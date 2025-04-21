@@ -621,7 +621,7 @@ void ATMainWindow_c::slotShowConfiguredLocalPorts()
 	QPushButton *pButton = new QPushButton( &dlg );
 	pButton->setText( "Close" );
 	pButton->setDefault( true );
-	ATVERIFY( connect( pButton, SIGNAL( clicked() ), &dlg, SLOT( accept() ) ) );
+    ATVERIFY( connect( pButton, &QPushButton::clicked, &dlg, &QDialog::accept ) );
 
 	QVBoxLayout *vbox = new QVBoxLayout;
 	vbox->addWidget( pTable );
