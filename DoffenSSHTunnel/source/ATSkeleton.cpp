@@ -226,7 +226,7 @@ QAction *sep0 = new QAction(m_pTreeTunnelsContextMenu);
     ui.btnLogMenu->setMenu(m_pLogMenu);
 
 	// SHOW PASSWORD DIALOG
-    ATVERIFY( connect( this, SIGNAL( signalPasswordDialog() ), this, SLOT( slotPasswordDialog() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( this, &ATSkeletonWindow::signalPasswordDialog, this, &ATSkeletonWindow::slotPasswordDialog, Qt::QueuedConnection ) );
     emit signalPasswordDialog();
 }
 
