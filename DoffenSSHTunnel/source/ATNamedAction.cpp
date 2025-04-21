@@ -9,7 +9,7 @@ ATNamedAction::ATNamedAction( const QString &strName, QObject * parent )
 {
     m_strName = strName;
 
-	bool bRet = connect(this, SIGNAL( triggered() ), this, SLOT( slotCustomTrigger() ) );
+    bool bRet = connect(this, &ATNamedAction::triggered, this, &ATNamedAction::slotCustomTrigger);
     ATASSERT( bRet );
 }
 
@@ -30,7 +30,7 @@ ATIconThemeAction::ATIconThemeAction( const QString &strName, const QString &str
 {
 	m_strName = strName;
 	m_strTheme = strTheme;
-	bool bRet = connect(this, SIGNAL( triggered() ), this, SLOT( slotCustomTrigger() ) );
+    bool bRet = connect(this,  &ATIconThemeAction::triggered, this,  &ATIconThemeAction::slotCustomTrigger);
 	ATASSERT( bRet );
 }
 
