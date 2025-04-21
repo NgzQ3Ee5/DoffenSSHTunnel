@@ -250,10 +250,7 @@ ATSkeletonWindow::~ATSkeletonWindow()
 
 void ATSkeletonWindow::wireSignals()
 {
-	//Backup
-	//ATVERIFY( connect( this, SIGNAL( signalAutoBackupSettings(BackupInfo) ), this, SLOT( slotAutoBackupSettings(BackupInfo) ), Qt::QueuedConnection ) );
-
-	connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(slotFocusChanged(QWidget*,QWidget*)));
+    connect(qApp, &QApplication::focusChanged, this, &ATSkeletonWindow::slotFocusChanged);
 
 	//Clean backup
 	ATVERIFY( connect( &m_cleanBackupFutureWatcher, SIGNAL(finished()), this, SLOT(slotCleanBackupFinished() ) ) );
@@ -5620,7 +5617,7 @@ void ATSkeletonWindow::slotFocusChanged(QWidget* oldFocus, QWidget* newFocus)
 	qDebug("oldFocus: %s", oldFocus != NULL ? qPrintable(oldFocus->objectName()) : "NULL" );
 	qDebug("newFocus: %s", newFocus != NULL ? qPrintable(newFocus->objectName()) : "NULL" );
 
-	ATVERIFY( disconnect( qApp, SIGNAL( focusChanged(QWidget*,QWidget*) ), 0, 0 ) );
+    ATVERIFY( disconnect( qApp, &QApplication::focusChanged, nullptr, nullptr ) );
 	
 	if(oldFocus == ui.treeTunnels) {
 		//Hosts tree: clear paste status and disable paste in context menu
@@ -5640,7 +5637,7 @@ void ATSkeletonWindow::slotFocusChanged(QWidget* oldFocus, QWidget* newFocus)
 		//ui.widgetCustomActionsEditButtons->setEnabled(true);
 	}
 
-	ATVERIFY( connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(slotFocusChanged(QWidget*,QWidget*))) );
+    ATVERIFY( connect(qApp, &QApplication::focusChanged, this, &ATSkeletonWindow::slotFocusChanged) );
 }
 
 bool ATSkeletonWindow::confirmSaveEditPane()
