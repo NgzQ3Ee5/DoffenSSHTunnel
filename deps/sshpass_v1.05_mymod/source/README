@@ -1,0 +1,16 @@
+My version of sshpass
+
+https://sourceforge.net/projects/sshpass/
+
+chmod u+x cleanup
+chmod u+x configure
+./configure
+make
+
+#MACOS
+mv sshpass ../release_osx_mavericks
+
+#LINUX UBUNTU
+mv sshpass ../release_ubuntu_1804_32bit
+
+./cleanup

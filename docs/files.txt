@@ -1,0 +1,125 @@
+http://qt-project.org/wiki/Transition_from_Qt_4.x_to_Qt5
+http://qt-project.org/doc/qt-5.0/qtdoc/sourcebreaks.html
+
+#if QT_VERSION >= 0x050000
+// Qt5 code
+#else
+// Qt4 code
+#endif
+
+
+
+aes.cpp							OK
+aes.h							OK
+ATLog.cpp						OK 
+ATLog.h							OK pch.h
+ATMainWindow.cpp				OK
+ATMainWindow.h					OK
+ATNamedAction.cpp				OK
+ATNamedAction.h					OK pch.h
+ATSkeleton.cpp			---------	ATSkeleton.h , Backup.h , sha256.h , PasswordDialog.h , CustomActionsEditWidget.h , MoreTunnelsEditWidget.h , CreatePasswordDialog.h , CustomButtonDialog.h , ExportHostsDialog.h , ImportHostsDialog.h , SSHHostDialog.h , ATMainWindow.h , PreferencesDialog.h , VariableSettingsDialog.h , Images.h
+									TODO line 4251
+											    //IF_WIN32(  int nReturn = _vsnprintf_s(buffer, count, count, format, argptr) );
+												//IF_NWIN32( int nReturn = vsnprintf(buffer, count, format, argptr) );
+												int nReturn = vsnprintf(buffer, count, format, argptr);
+									TODO line 4954 commented out check to force use of strtok
+												//#ifndef _WIN32
+												#define strtok_s(a,b,c) strtok(a,b)
+												//#endif
+										
+ATSkeleton.h			------------ pch.h , Backup.h , CustomAction.h , tinypasswordmanager.h , line 116 removed static from 'static enum {NONE,USERDEFINED,EDITPANE,PASSWORDS,EXECUTABLE};' , line 175 removed static from 'static enum {LOCAL,REMOTE,DYNAMIC};'
+									line 557 replaced 'void treeTunnelSetIcon(QTreeWidgetItem *twi, QPixmap& pm);' WITH 'void treeTunnelSetIcon(QTreeWidgetItem *twi, QPixmap pm);'
+ATSkeleton.ico					OK
+ATSkeleton.pri					SKIP
+ATSkeleton.rc					SKIP
+ATSkeleton.ui					OK
+Backup.cpp						OK
+Backup.h						OK pch.h
+build
+CHANGELOG.txt
+ChangePasswordDialog.cpp	---------
+ChangePasswordDialog.h		---------
+ChangePasswordDialog.ui			OK
+ComboBox.cpp					OK
+ComboBox.h						OK pch.h
+CreatePasswordDialog.cpp	---------
+CreatePasswordDialog.h		---------
+CreatePasswordDialog.ui			OK
+CustomAction.cpp				OK
+CustomAction.h					OK pch.h
+CustomActionsEditWidget.cpp		-----------------
+CustomActionsEditWidget.h		pch.h , Widget.h , TreeWidget.h , line 45 removed static from 'static enum { COL_LABEL, COL_COMMAND };'
+CustomButtonDialog.cpp			-----------------
+CustomButtonDialog.h			-----------------
+CustomButtonDialog.ui			OK
+docs
+exceptions.h					OK
+ExportHostsDialog.cpp			OK
+ExportHostsDialog.h				-----------------
+ExportHostsDialog.ui			OK
+files.txt
+gpl.txt
+how_to_compile.txt
+identifier.cpp					OK
+identifier.h					OK
+Images.cpp						OK
+Images.h						OK pch.h
+ImportHostsDialog.cpp			OK
+ImportHostsDialog.h				-----------------
+ImportHostsDialog.ui			OK
+main.cpp						OK
+Makefile						SKIP
+MoreTunnelsEditWidget.cpp		-----------------
+MoreTunnelsEditWidget.h			OK pch.h , Widget.h , TableWidget.h , line 28 removed static from 'static enum { COL_ENABLED, COL_NAME, COL_TYPE, COL_LOCALIP, COL_LOCALPORT, COL_DESTHOST, COL_DESTPORT, COL_DESCRIPTION };'
+PasswordDialog.cpp				-----------------
+PasswordDialog.h				-----------------
+PasswordDialog.ui				OK
+Paths.cpp						OK
+Paths.h							OK
+pch.h							OK
+pch.h.cpp						OK
+PlainTextEdit.cpp				OK
+PlainTextEdit.h					OK pch.h
+PreferencesDialog.cpp			-----------------
+PreferencesDialog.h				-----------------
+PreferencesDialog.ui			OK
+README_LINUX.txt
+README_WINDOWS.txt
+res								OK
+resource.h						SKIP
+RestoreDialog.cpp				OK
+RestoreDialog.h					OK
+RestoreDialog.ui				OK
+sha256.cpp						OK
+sha256.h						OK
+SSHHostDialog.cpp				-----------------
+SSHHostDialog.h					-----------------
+SSHHostDialog.ui				OK
+TableView.cpp					OK
+TableView.h						OK pch.h
+TableWidget.cpp					OK
+TableWidget.h					OK pch.h
+TemplateEditWidget.ui			DELETED
+tinypasswordmanager.cpp			OK aes.h, sha256.h , line 24 commented out '#define _CRT_SECURE_NO_DEPRECATE 1'
+tinypasswordmanager.h			OK identifier.h , exceptions.h
+TreeWidget.cpp					OK commented out on lines 629, 632, 639, 642
+TreeWidget.h					OK pch.h  line 74 removed static from 'static enum { INSERT_AFTER, INSERT_BEFORE, INSERT_CHILD, PASTE_NONE, PASTE_COPY, PASTE_CUT };'
+TunnelTreeWidget.cpp			OK
+TunnelTreeWidget.h				OK pch.h , TreeWidget.h
+VariableSettingsDialog.cpp		-----------------
+VariableSettingsDialog.h		-----------------
+VariableSettingsDialog.ui		OK
+Widget.cpp						OK ComboBox.h , TreeWidget.h , TableWidget.h
+Widget.h						OK pch.h
+
+
+NEW FILES
+
+botan.cpp
+botan.h
+Botan.pri
+botanwrapper.cpp
+botanwrapper.h
+
+TODO
+ATSkeleton.cpp linje 587 sjekk at jeg finner Chrome.exe på windows

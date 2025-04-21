@@ -1,0 +1,8 @@
+//This I do now
+Created new .icns file in themes/deps hand drawn icon dir https://blog.macsales.com/28492-create-your-own-custom-icons-in-10-7-5-or-later
+cd ~/workspace/Qt/DoffenSSHTunnel/trunk/DoffenSSHTunnel/source/res/mac
+cp ~/workspace/Qt/DoffenSSHTunnel/trunk/deps/themes/icons/Hand_Drawn_1/app_010_connected.png AppIcon.icns
+
+//This is what I used to do
+cd ~/workspace/Qt/DoffenSSHTunnel/trunk/DoffenSSHTunnel/source/res/mac
+sips -s format icns ~/workspace/Qt/DoffenSSHTunnel/trunk/deps/themes/icons/Hand_Drawn_1/app_010_connected.png --out AppIcon.icns

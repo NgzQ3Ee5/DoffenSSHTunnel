@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DoffenSSHTunnel
+Exec=DoffenSSHTunnel
+Comment=SSH Tunnel Mgr
+Icon=DoffenSSHTunnel
+Categories=Development;
+Terminal=true
+
+Name[en_US]=DoffenSSHTunnel

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PreferencesDialogClass</class>
+ <widget class="QDialog" name="PreferencesDialogClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>378</width>
+    <height>445</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Preferences</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabGeneral">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QWidget" name="widget" native="true">
+         <layout class="QGridLayout" name="_3">
+          <item row="7" column="0">
+           <widget class="QSpinBox" name="spinAutoReconnectIntervalSeconds">
+            <property name="suffix">
+             <string/>
+            </property>
+            <property name="prefix">
+             <string>Auto reconnect interval in seconds: </string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>99999</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="0">
+           <spacer>
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>41</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="11" column="0">
+           <widget class="QCheckBox" name="checkShowTreeSearch">
+            <property name="text">
+             <string>Show the search box below the tree by default</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkAutoSaveEditPane">
+            <property name="text">
+             <string>Automatically save changes in the Edit pane</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QCheckBox" name="checkAutoBackup">
+            <property name="text">
+             <string>Automatically backup before any change</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="checkAutoReconnectEnabled">
+            <property name="text">
+             <string>Enable auto reconnect tunnels</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkAutoClearLogEnabled">
+            <property name="text">
+             <string>Clear log automatically </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkHidePasswordsInLog">
+            <property name="text">
+             <string>Hide passwords in log</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="checkAutoConnectEnabled">
+            <property name="text">
+             <string>Enable auto connect tunnels on application start</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkConfirmOnQuit">
+            <property name="text">
+             <string>Confirm disconnection on quit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QSpinBox" name="spinAutoReconnectMaxAttempts">
+            <property name="prefix">
+             <string>Auto reconnect max attempts: </string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999999</number>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <spacer name="spacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>49</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <spacer name="spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>169</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>checkConfirmOnQuit</tabstop>
+  <tabstop>checkHidePasswordsInLog</tabstop>
+  <tabstop>checkAutoClearLogEnabled</tabstop>
+  <tabstop>checkAutoConnectEnabled</tabstop>
+  <tabstop>checkAutoReconnectEnabled</tabstop>
+  <tabstop>spinAutoReconnectIntervalSeconds</tabstop>
+  <tabstop>spinAutoReconnectMaxAttempts</tabstop>
+  <tabstop>checkAutoBackup</tabstop>
+  <tabstop>checkAutoSaveEditPane</tabstop>
+  <tabstop>checkShowTreeSearch</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

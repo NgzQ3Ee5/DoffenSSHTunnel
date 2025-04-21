@@ -1,0 +1,23 @@
+version: '3.5'
+
+#Build image .... : docker-compose up -d --build
+#Bash as root ... : docker-compose run --rm doffen bash
+#Bash as curuser  : docker-compose run --rm --user $(id -u):$(id -g) doffen bash
+#Build as curuser : docker-compose run --rm --user $(id -u):$(id -g) doffen
+#Build as curuser : docker-compose run --rm --user $(id -u):$(id -g) doffen /buildin/build/docker-ubuntu1604/build.sh
+
+services:
+
+  doffen:
+    
+    container_name: doffen
+    image: doffen/ubuntu1604_doffen
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: 
+      - BUILDSCRIPT=/buildin/build/docker-ubuntu1604/build_ubuntu.sh
+    volumes:
+      - ~/workspace/Qt/DoffenSSHTunnel/trunk:/buildin:ro
+      - /tmp/buildout:/buildout:rw
+    working_dir: /buildout

@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OutputWindow</class>
+ <widget class="QDialog" name="OutputWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>660</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Command Output</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="res/resource.qrc">
+    <normaloff>:/icons/ow_010_terminal.png</normaloff>:/icons/ow_010_terminal.png</iconset>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>9</number>
+   </property>
+   <item>
+    <widget class="QPlainTextEdit" name="terminal">
+     <property name="palette">
+      <palette>
+       <active>
+        <colorrole role="Text">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>170</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </active>
+       <inactive>
+        <colorrole role="Text">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>170</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </inactive>
+       <disabled>
+        <colorrole role="Text">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>128</red>
+           <green>128</green>
+           <blue>128</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </disabled>
+      </palette>
+     </property>
+     <property name="font">
+      <font>
+       <family>DejaVu Sans Mono</family>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="lineWidth">
+      <number>1</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="searchWidget" native="true">
+     <layout class="QHBoxLayout" name="searchLayout">
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>9</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>9</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="searchEdit"/>
+      </item>
+      <item>
+       <widget class="QToolButton" name="searchPrevButton">
+        <property name="text">
+         <string>Find Previous</string>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="searchNextButton">
+        <property name="text">
+         <string>Find Next</string>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <property name="leftMargin">
+      <number>9</number>
+     </property>
+     <property name="rightMargin">
+      <number>9</number>
+     </property>
+     <item>
+      <widget class="QToolButton" name="zoomInButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/resource.qrc">
+         <normaloff>:/icons/ow_020_zoom_in.png</normaloff>:/icons/ow_020_zoom_in.png</iconset>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl++</string>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::DelayedPopup</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="zoomOutButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/resource.qrc">
+         <normaloff>:/icons/ow_030_zoom_out.png</normaloff>:/icons/ow_030_zoom_out.png</iconset>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+-</string>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="resetZoomButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/resource.qrc">
+         <normaloff>:/icons/ow_040_zoom_best_fit.png</normaloff>:/icons/ow_040_zoom_best_fit.png</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="showSearchButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/resource.qrc">
+         <normaloff>:/icons/ht_210_btn_search.png</normaloff>:/icons/ht_210_btn_search.png</iconset>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+F</string>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="wrapCheckbox">
+       <property name="text">
+        <string>Wrap</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="killButton">
+       <property name="text">
+        <string>&amp;Kill Process</string>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="autoCloseCheckBox">
+       <property name="text">
+        <string>&amp;Auto Close</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton">
+       <property name="text">
+        <string>&amp;Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+  <action name="actionZoomIn">
+   <property name="icon">
+    <iconset resource="res/resource.qrc">
+     <normaloff>:/icons/ow_020_zoom_in.png</normaloff>:/icons/ow_020_zoom_in.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="toolTip">
+    <string>Make the font of the output window larger.</string>
+   </property>
+  </action>
+  <action name="actionZoomOut">
+   <property name="icon">
+    <iconset resource="res/resource.qrc">
+     <normaloff>:/icons/ow_030_zoom_out.png</normaloff>:/icons/ow_030_zoom_out.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Make the font of the output window smaller.</string>
+   </property>
+  </action>
+  <action name="actionResetZoom">
+   <property name="icon">
+    <iconset resource="res/resource.qrc">
+     <normaloff>:/icons/ow_040_zoom_best_fit.png</normaloff>:/icons/ow_040_zoom_best_fit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Zoom</string>
+   </property>
+   <property name="toolTip">
+    <string>Use standard font size for the output window.</string>
+   </property>
+  </action>
+  <action name="actionKillProcess">
+   <property name="icon">
+    <iconset resource="res/resource.qrc">
+     <normaloff>:/icons/ow_050_stop.png</normaloff>:/icons/ow_050_stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Kill Process</string>
+   </property>
+   <property name="toolTip">
+    <string>Forcefully kill the process.</string>
+   </property>
+  </action>
+  <action name="actionWrapToggled">
+   <property name="text">
+    <string>wrapToggled</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle word wrap</string>
+   </property>
+  </action>
+  <action name="actionSeachNext">
+   <property name="text">
+    <string>Seach Next</string>
+   </property>
+  </action>
+  <action name="actionSearchPrev">
+   <property name="text">
+    <string>Search Prev</string>
+   </property>
+  </action>
+  <action name="actionHideSearch">
+   <property name="text">
+    <string>Hide Search</string>
+   </property>
+  </action>
+  <action name="actionShowSearch">
+   <property name="text">
+    <string>Show Search</string>
+   </property>
+  </action>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Search</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="res/resource.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>killButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionKillProcess</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>271</x>
+     <y>376</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zoomInButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomIn</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>21</x>
+     <y>376</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zoomOutButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionZoomOut</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>51</x>
+     <y>376</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>resetZoomButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionResetZoom</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>81</x>
+     <y>376</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>OutputWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>609</x>
+     <y>377</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>329</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>autoCloseCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionWrapToggled</receiver>
+   <slot>toggle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>515</x>
+     <y>373</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showSearchButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionShowSearch</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>111</x>
+     <y>377</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchPrevButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSearchPrev</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>569</x>
+     <y>336</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchNextButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSeachNext</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>599</x>
+     <y>336</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>actionSeachNext</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>284</x>
+     <y>336</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchEdit</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>actionSearch</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>284</x>
+     <y>336</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

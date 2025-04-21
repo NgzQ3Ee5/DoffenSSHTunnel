@@ -1,0 +1,101 @@
+http://qt-project.org/doc/qt-5/macosx-deployment.html
+
+
+cd /Users/flemming/Documents/DoffenSSHTunnel_dev/build-DoffenSSHTunnel-Desktop_Qt_5_2_0_clang_64bit-Release
+rm -fr DoffenSSHTunnel.app && rm DoffenSSHTunnel.dmg
+MAKE IT
+cp /Users/flemming/Documents/DoffenSSHTunnel_dev/trunk/deps/sshpass_v1.05/release_osx_mountain_lion/sshpass DoffenSSHTunnel.app/Contents/MacOS/sshpass
+chmod a+x DoffenSSHTunnel.app/Contents/MacOS/sshpass
+/Users/flemming/Qt/5.2.0/clang_64/bin/macdeployqt DoffenSSHTunnel.app -dmg
+
+mv DoffenSSHTunnel.dmg DoffenSSHTunnel_v0.9.27_1.dmg
+
+
+otool -L DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+
+DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel:
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtWidgets.framework/Versions/5/QtWidgets (compatibility version 5.2.0, current version 5.2.0)
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtGui.framework/Versions/5/QtGui (compatibility version 5.2.0, current version 5.2.0)
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore (compatibility version 5.2.0, current version 5.2.0)
+	/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AGL.framework/Versions/A/AGL (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libstdc++.6.dylib (compatibility version 7.0.0, current version 60.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1197.1.1)
+	
+mkdir DoffenSSHTunnel.app/Contents/Frameworks
+cp -R /Users/flemming/Qt/5.2.0/clang_64/lib/QtWidgets.framework DoffenSSHTunnel.app/Contents/Frameworks
+cp -R /Users/flemming/Qt/5.2.0/clang_64/lib/QtGui.framework DoffenSSHTunnel.app/Contents/Frameworks
+cp -R /Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework DoffenSSHTunnel.app/Contents/Frameworks
+
+install_name_tool -id @executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets  \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets
+install_name_tool -id @executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtGui.framework/Versions/5/QtGui
+install_name_tool -id @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtCore.framework/Versions/5/QtCore
+       
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtWidgets.framework/Versions/5/QtWidgets \
+	@executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \
+	DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtGui.framework/Versions/5/QtGui \
+	@executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \
+	DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore \
+	@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \
+	DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+
+##QtGUI
+otool -L DoffenSSHTunnel.app/Contents/Frameworks/QtGui.framework/QtGui
+DoffenSSHTunnel.app/Contents/Frameworks/QtGui.framework/QtGui:
+	@executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui (compatibility version 5.2.0, current version 5.2.0)
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore (compatibility version 5.2.0, current version 5.2.0)
+	/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa (compatibility version 1.0.0, current version 19.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.5)
+	/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AGL.framework/Versions/A/AGL (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libstdc++.6.dylib (compatibility version 7.0.0, current version 56.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 169.3.0)
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 744.18.0)
+
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore \
+	@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtGui.framework/Versions/5/QtGui
+        
+#QtWidgets
+otool -L DoffenSSHTunnel.app/Contents/Frameworks/QtWidgets.framework/QtWidgets	
+DoffenSSHTunnel.app/Contents/Frameworks/QtWidgets.framework/QtWidgets:
+	@executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets (compatibility version 5.2.0, current version 5.2.0)
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtGui.framework/Versions/5/QtGui (compatibility version 5.2.0, current version 5.2.0)
+	/Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore (compatibility version 5.2.0, current version 5.2.0)
+	/System/Library/Frameworks/Carbon.framework/Versions/A/Carbon (compatibility version 2.0.0, current version 155.0.0)
+	/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa (compatibility version 1.0.0, current version 19.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.5)
+	/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AGL.framework/Versions/A/AGL (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libstdc++.6.dylib (compatibility version 7.0.0, current version 56.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 169.3.0)
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 744.18.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices (compatibility version 1.0.0, current version 45.0.0)
+	/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 945.16.0)
+	/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 1187.37.0)
+
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtGui.framework/Versions/5/QtGui \
+	@executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets
+	
+install_name_tool -change /Users/flemming/Qt/5.2.0/clang_64/lib/QtCore.framework/Versions/5/QtCore \
+	@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \
+	DoffenSSHTunnel.app/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets
+	
+#QtCore
+otool -L DoffenSSHTunnel.app/Contents/Frameworks/QtCore.framework/QtCore	
+
+rm /Applications/DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+rm -fr /Applications/DoffenSSHTunnel.app/Contents/Frameworks
+rm /Applications/DoffenSSHTunnel.app/Contents/MacOS/sshpass
+cp DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel /Applications/DoffenSSHTunnel.app/Contents/MacOS/DoffenSSHTunnel
+cp DoffenSSHTunnel.app/Contents/Frameworks /Applications/DoffenSSHTunnel.app/Contents
+cp DoffenSSHTunnel.app/Contents/MacOS/sshpass /Applications/DoffenSSHTunnel.app/Contents/MacOS/sshpass
+
+

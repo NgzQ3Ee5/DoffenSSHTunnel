@@ -1,0 +1,11 @@
+#! /bin/sh
+# Delete files created by configure and make
+
+make clean
+rm .deps/main.Po
+rmdir .deps
+rm Makefile
+rm config.h
+rm config.log
+rm config.status
+rm stamp-h1

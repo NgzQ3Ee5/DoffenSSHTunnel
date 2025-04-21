@@ -1,0 +1,7 @@
+https://sourceforge.net/projects/sshpass/
+
+cd source
+./configure
+make
+mv sshpass ../release_osx_mavericks
+make clean

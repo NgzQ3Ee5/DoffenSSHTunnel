@@ -1,0 +1,173 @@
+= v0.9.27 Nov 30, 2014 =
+  * Bugfix: If you typed the wrong password when you start the app then executable variables would reset to default 
+  * Update: Rewritten parts of the code to be platform independent 
+
+= v0.9.26 May 2, 2013 =
+  * New: Added option to specify Local IP (listening-IP) in tunnels (suggests localhost by default)
+  * Update: Added tooltip that explains the Extra Arguments input box in the Edit pane.
+
+= v0.9.25 January 23, 2013 =
+  * Update: Updated Qt libraries from 4.8.1 to 4.8.4
+  * Update: Updated the bundled winscp.exe from 4.3.7 to 4.3.9
+  * Update: Default disabled Preferences -> 'Enable auto reconnect tunnels'
+  * Update: Menu item Settings -> 'Password and Variables' is allways available even when editing is turned off (unchecked File -> 'Editing Enbaled').
+
+= v0.9.24 =
+  * Bugfix: Cut/Paste custom actions not working properly 
+  * Bugfix: Backing up when changing icon theme 
+  * Bugfix: New SSH Host sets the custom action command as the name 
+
+= v0.9.23 =
+  * Update: Icons themes can be installed inside the icons folder ./DoffeSSHTunnel/themes/icons/My Icons
+  * Update: Updated bundled putty.exe to latest release (v0.62). This is the modified putty from http://jakub.kotrla.net/putty/ that stores session data i files.
+  * Update: Updated bundled plink.exe to latest release (v0.62)
+  * Update: Updated bundled winscp.exe to latest release (v4.3.7)
+
+= v0.9.22 =
+  * New: Support for multiple icon themes. See IconThemes
+
+= v0.9.21 =
+  * New: More Tunnels in the Edit pane. 
+  * New: Use your own icons. Create folder themes/icons/. An icon found in that folder overrides the built in icon. Download built in icons from here: http://code.google.com/p/doffensshtunnel/source/browse/trunk/res
+  * Update: Lots of UI improvements
+  * Update: Simplified mgmt of Custom Actions. Edit directly in the Connect pane.
+  * Update: Moved Options to Menu -> Settings -> Preferences...
+  * Update: Moved Passwords to Menu -> Settings -> Passwords & Variables...
+
+= v0.9.20 =
+  * Bugfix: User defined variables disappeared
+
+= v0.9.19 =
+  * Bugfix: Restore restored wrong backup - http://http://code.google.com/p/doffensshtunnel/issues/detail?id=40
+
+= v0.9.18 =
+  * New: Import / Export - http://code.google.com/p/doffensshtunnel/issues/detail?id=38
+  * New: Detect local port already in use when connecting - http://code.google.com/p/doffensshtunnel/issues/detail?id=26
+  * New: Propose tunnel local port - http://code.google.com/p/doffensshtunnel/issues/detail?id=27
+  * New: Propose tunnel remote port 22 - http://code.google.com/p/doffensshtunnel/issues/detail?id=39
+  * New: Restore dialog: filter on manual and auto backup. - http://code.google.com/p/doffensshtunnel/issues/detail?id=32
+
+= v0.9.17 =
+  * New: Get help while creating custom actions - http://code.google.com/p/doffensshtunnel/issues/detail?id=37
+  * New: Support for user defined variables - http://code.google.com/p/doffensshtunnel/issues/detail?id=34
+  * New: Unlimited custom actions (the buttons are gone) - http://code.google.com/p/doffensshtunnel/issues/detail?id=31
+  * Update: UI improvements - http://code.google.com/p/doffensshtunnel/issues/detail?id=36
+  * Update: Automatically save changes - http://code.google.com/p/doffensshtunnel/issues/detail?id=35
+  * Update: Ask for username and password if not stored - http://code.google.com/p/doffensshtunnel/issues/detail?id=33 
+
+= v0.9.16 =
+  * New: Sortable columns in Tools->View configured local ports - http://code.google.com/p/doffensshtunnel/issues/detail?id=18
+  * New: Drag&Drop in tree tunnel - http://code.google.com/p/doffensshtunnel/issues/detail?id=17
+  * New: Checkbox in the Options pane 'Enable drag and drop in tunnel tree' - http://code.google.com/p/doffensshtunnel/issues/detail?id=16
+  * New: File -> Editing enabled CTRL+E - http://code.google.com/p/doffensshtunnel/issues/detail?id=15
+  * Bugfix: Child tunnel host not updated on folder move,cut,copy,paste,duplicate - http://code.google.com/p/doffensshtunnel/issues/detail?id=23
+  * Update: DoffenSSHTunnel.ini change variable names - http://code.google.com/p/doffensshtunnel/issues/detail?id=30
+  * Update: Remove unused data from DoffenSSHTunnel.ini - http://code.google.com/p/doffensshtunnel/issues/detail?id=29
+  * Update: Link libraries dynamically - http://code.google.com/p/doffensshtunnel/issues/detail?id=25
+  * Update: Update to QT 4.8.0 - http://code.google.com/p/doffensshtunnel/issues/detail?id=24
+  * Update: Enable custom buttons even when a host is not connected. - http://code.google.com/p/doffensshtunnel/issues/detail?id=20
+  * Update: Do not require a tunnel to be defined. - http://code.google.com/p/doffensshtunnel/issues/detail?id=19
+
+
+= v0.9.15 =
+  * New: Added support for backup/restore. Automatic backup enabled by default. Creates folder 'DoffenSSHTunnelBackup' in same dir as ini file
+  * New: checkbox in the Options pane 'Auto backup enabled'. Enabled by default
+  * New: checkbox in the Options pane 'Ask for description on manual backup'. Enabled by default
+  * New: 'File' menu item 'Backup now'. Hotkey Ctrl+B
+  * New: 'File' menu item 'Restore a backup'. Hotkey Ctrl+R
+  * New: Folder icon shows whether child tunnels are connected
+  * New: Dobleclick or Enter on folder disconnects all child tunnels
+  * New: Tools -> Disconnect all tunnels
+  * New: Show Count in 'Tools'->'View configured local ports'.
+
+= v0.9.14 =
+  * New: Added support for folders.
+
+= v0.9.13 =
+  * New: Added new button 'Clear Log' in the Connect pane.
+  * New: Added new checkbox in the Options pane 'Clear log automatically' (default enabled). Clear the log window before trying to connect.
+
+= v0.9.12 =
+  * New: Added new custom command variable in Edit pane: $kfile . Note that you must quote it if the key file path contains spaces: "$kfile"
+
+= v0.9.11 =
+  * New: Context menu item 'Clear log' in tunnel tree. Right click tunnel in tree and select Clear log. Clears the log on the Connect tab.
+  * New: Menu item 'Clear all logs' in the Tools menu.
+
+= v0.9.10 =
+  * New: Support for challenge response password prompt. A password dialog appears when the server says %enter challenge response%
+  * New: Support for personal code prompt. A password dialog appears when the server says %enter personal code%
+
+= v0.9.9 =
+  * Fixed: Added missing files to the QT project file ATSkeleton.pri
+
+= v0.9.8 =
+  * New: When connecting a child tunnel, automatically connect parent tunnels if they are disconnected.
+  * New: Intentionally disconnecting parent tunnel disconnects all child tunnels.
+  * New: Checkbox in Options tab to globally turn on/off the auto connect feature. Overrides tunnel setting in the Edit tab.
+  * New: Checkbox in Options tab to globally turn on/off the auto reconnect feature. Overrides tunnel setting in the Edit tab.
+  * New: Support for several remote  hosts in the tunnel. On the Edit tab, Click the [...] button next to the Remote Host
+    textbox to open the edit dialog. Insert multiple hosts by pressing the enter key. One host per line. The textbox on
+    the Edit tab turns into a combobox where you select the one to be active.
+  * New: Write password to STDIN instead of -pw parameter to plink.exe
+  * New: Support for password protected private key. Refer to password in password manager with variable `${<name>.pwd}`
+  * New: Save expanded/collapsed state in the tunnel tree
+  * New: Tools -> View configured local ports. Show distinct list of local ports in ascending order.
+  * Fixed: Duplicate tunnel and copy/paste caused memory leaks since the QTreeWidgetItemiterator traversed the whole tree and created copies of too many internal tunnel objects.
+
+= v0.9.7 =
+  * New: Support for several SSH hosts in the tunnel. On the Edit tab, Click the [...] button next to the SSH Host
+    textbox to open the edit dialog. Insert multiple hosts by pressing the enter key. One host per line. The textbox on
+    the Edit tab turns into a combobox where you select the one to be active. This feature will be utilized by
+    autoconnect in a future version. 
+
+= v0.9.6 =
+  * New: Origanizing the tunnels in a treview 
+  * New: Right click context menu in treeview with copy/paste etc...
+  * Fixed: Duplicate tunnel did not copy the custom button labels
+
+= v0.9.5 =
+  * New: Customizable label on the 'SSH Term' and 'SSH FTP' buttons
+    * On the Edit tab, click the [...] button next to the Cmd text box
+  * Change: INI file 
+    * renamed property SSHTermCmd=.. to CustomButton1Cmd=...
+    * renamed property SSHFTPCmd=.. to CustomButton1Cmd=...
+    * added property CustomButton1Label
+    * added property CustomButton2Label
+  * Fixed: Update info in about dialog
+
+= v0.9.4 =
+  * Minor improvements
+
+= v0.9.3 =
+  * New: Option to specify the amount of spaces used to indent the tunnel name in the tree view when clicking left/right
+  * New: Option turn on/off the masking of passwords in the log
+  * Fixed: nasty bug when moving tunnel down and edit edited the wrong tunnel
+
+= v0.9.2 =
+
+  * New: Added password manager. 
+    * DB file DoffenSSHTunnel.pwd craeted on app start if not exists. Encrypted with AES 256. 
+    * User prompted to create a master password for the db file if not found
+    * User must enter master password on app start to decrypt db file
+    * Password fields: name, login, password
+    * Refer to username and passwords with variables `${<name>.uid}` and `${<name>.pwd}`
+    * Added combobox in edit page to select username and password from password manager
+    * To change master password select File->Change master password
+  * New: Hiding passwords in log window
+  * New: Store window splitter pos in ini file
+  * New: Added cancel button to edit page
+
+= v0.9.1 =
+
+  * New: Saving app version number in ini file
+  * Change: renamed tunnel group in ini file from [TunnelX] to [Tunnel_XXX]
+  * Fixed: crash when duplicating tunnel and then moving it up/down/left/right
+  * Fixed: delete tunnel did not remove tunnel from ini file
+
+= v0.9.0 =
+
+  * Port of ezTunnel SSH to Doffen SSH Tunnel
+  * Added ability to move tunnel up/down/left/right in the tree view
+  * Minor bug fixes
+

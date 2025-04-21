@@ -1,0 +1,11 @@
+My version of sshpass
+
+https://sourceforge.net/projects/sshpass/
+
+cd source
+chmod u+x cleanup
+chmod u+x configure
+./configure
+make
+mv sshpass ../release_osx_mavericks
+./cleanup
