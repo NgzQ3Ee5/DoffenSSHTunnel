@@ -456,6 +456,8 @@ public:
     QString replaceExecutableVariables( QString str );
 	QString replaceUserDefVars( QString str );
 	QString replaceVarsLog( Tunnel_c &tunnel, QString str );
+    QStringList replaceVars( Tunnel_c &tunnel, QStringList strList );
+    QStringList replaceVarsLog( Tunnel_c &tunnel, QStringList strList );
 	//Used for statistics.
 	//QUuid: VariableStruct.uUid
 	//VariableStatStruct: The stat values

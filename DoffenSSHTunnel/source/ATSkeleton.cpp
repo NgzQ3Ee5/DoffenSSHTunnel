@@ -2615,7 +2615,8 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         pOutputWindow->addProcess( process );
         pOutputWindow->noMoreProcesses();
     } else {
-        bool startResult = QProcess::startDetached( sCmd );
+        QStringList parts = QProcess::splitCommand(sCmd);
+        bool startResult = QProcess::startDetached( parts.takeFirst(), parts );
         if(!startResult) {
             AddToLog( *pt, QString("Failed to start") );
         }
@@ -3021,6 +3022,30 @@ QString ATSkeletonWindow::replaceVarsLog( Tunnel_c &tunnel, QString str )
 	return replaced;
 }
 
+QStringList ATSkeletonWindow::replaceVars( Tunnel_c &tunnel, QStringList strList ) {
+    // Create a copy
+    QStringList replaced = strList;
+
+    // Apply replaceVarsLog to each element
+    for (QString &arg : replaced) {
+        arg = replaceVars(tunnel, arg);
+    }
+
+    return replaced;
+}
+
+QStringList ATSkeletonWindow::replaceVarsLog( Tunnel_c &tunnel, QStringList strList ) {
+    // Create a copy
+    QStringList replaced = strList;
+
+    // Apply replaceVarsLog to each element
+    for (QString &arg : replaced) {
+        arg = replaceVarsLog(tunnel, arg);
+    }
+
+    return replaced;
+}
+
 void ATSkeletonWindow::slotConnected( QTreeWidgetItem *twi )
 {
 	qDebug() << "setIcon 4";
@@ -3377,10 +3402,9 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
         }
     }
 
- 	QString strCommand;
+    QStringList arguments;
  
- 	strCommand += strPlink + " ";
-    strCommand += "-v "; // increase verbosity
+    arguments << "-v"; // increase verbosity
  
     QStringList strListSSHHost = pt->getSelectedSSHHost().split( ':', Qt::SkipEmptyParts );
     if ( strListSSHHost.count() == 1 ) strListSSHHost << "22";
@@ -3396,33 +3420,41 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
         //windows with plink.exe or linux with plink
         if(pLinkVersion >= QVersionNumber(0, 82)) {
             // https://the.earth.li/~sgtatham/putty/0.82/htmldoc/Chapter3.html#using-cmdline-legacy-stdio-prompts
-            strCommand += "-legacy-stdio-prompts -legacy-charset-handling ";
+            arguments << "-legacy-stdio-prompts" << "-legacy-charset-handling";
         }
     }
 
     if(usingPlink) {
         //windows with plink.exe or linux with plink
-        strCommand += strListSSHHost.at(0) + " -P " + strListSSHHost.at(1) + " ";
+        arguments << strListSSHHost.at(0) << "-P" << strListSSHHost.at(1);
     } else {
         //sshpass or ssh (openssh) on mac/linux
-        strCommand += strListSSHHost.at(0) + " -p " + strListSSHHost.at(1) + " ";
+        arguments << strListSSHHost.at(0) << "-p" << strListSSHHost.at(1);
     }
 
- 	if ( !pt->strUsername.isEmpty() ) strCommand += QString( "-l %1 " ).arg( pt->strUsername );
+    if ( !pt->strUsername.isEmpty() ) {
+        arguments << "-l" << pt->strUsername;
+    }
  
- 	if ( pt->bCompression ) strCommand += "-C ";
+    if ( pt->bCompression ) {
+        arguments <<  "-C";
+    }
  
- 	strCommand += ( pt->iSSH1or2 == 1 ) ? "-1 " : "-2 ";
+    if(pt->iSSH1or2 == 1) {
+        arguments << "-1";
+    } else {
+        arguments << "-2";
+    }
 	
 	if ( !pt->getSelectedRemoteHost().isEmpty() && pt->iLocalPort > 0 && pt->iRemotePort > 0 )
 	{
         if(!usingPlink) {
-            strCommand += "-g ";
+            arguments << "-g";
         }
 		if(pt->strLocalIP.isEmpty()) {
- 			strCommand += QString( "-L %1:%2:%3 " ).arg( pt->iLocalPort ).arg( pt->getSelectedRemoteHost()).arg( pt->iRemotePort );		
+            arguments << "-L" << QString( "%1:%2:%3" ).arg( pt->iLocalPort ).arg( pt->getSelectedRemoteHost()).arg( pt->iRemotePort );
 		} else {
-			strCommand += QString( "-L %1:%2:%3:%4 " ).arg( pt->strLocalIP ).arg( pt->iLocalPort ).arg( pt->getSelectedRemoteHost()).arg( pt->iRemotePort );		
+            arguments << "-L" << QString( "%1:%2:%3:%4" ).arg( pt->strLocalIP ).arg( pt->iLocalPort ).arg( pt->getSelectedRemoteHost()).arg( pt->iRemotePort );
 		}
 	}
 
@@ -3432,25 +3464,25 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 		if(pfs.nType == PortForwardStruct::LOCAL) {
 			if(pfs.nLocalPort > 0 && !pfs.strDestinationHost.isEmpty() && pfs.nDestinationPort > 0) {
 				if(pfs.strLocalIP.isEmpty()) {
-					strCommand += QString( "-L %1:%2:%3 " ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
+                    arguments << "-L" << QString( "%1:%2:%3" ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
 				} else {
-					strCommand += QString( "-L %1:%2:%3:%4 " ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
+                    arguments << "-L" << QString( "%1:%2:%3:%4" ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
 				}
 			}
 		} else if(pfs.nType == PortForwardStruct::REMOTE) {
 			if(pfs.nLocalPort > 0 && !pfs.strDestinationHost.isEmpty() && pfs.nDestinationPort > 0) {
 				if(pfs.strLocalIP.isEmpty()) {
-					strCommand += QString( "-R %1:%2:%3 " ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
+                    arguments << "-R" << QString( "%1:%2:%3" ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
 				} else {
-					strCommand += QString( "-R %1:%2:%3:%4 " ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
+                    arguments << "-R" << QString( "%1:%2:%3:%4" ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort ).arg( pfs.strDestinationHost ).arg( pfs.nDestinationPort );
 				}
 			}
 		} else if(pfs.nType == PortForwardStruct::DYNAMIC) {
 			if(pfs.nLocalPort > 0) {
 				if(pfs.strLocalIP.isEmpty()) {
-					strCommand += QString( "-D %1 " ).arg( pfs.nLocalPort );
+                    arguments << "-D" << QString( "%1" ).arg(pfs.nLocalPort);
 				} else {
-					strCommand += QString( "-D %1:%2 " ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort );
+                    arguments << "-D" << QString( "%1:%2" ).arg( pfs.strLocalIP ).arg( pfs.nLocalPort );
 				}
 			}
 		}
@@ -3504,12 +3536,13 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
                 keyFile = keyFile + "\"";
             }
         }
-		strCommand += QString( "-i %1 " ).arg( keyFile );
+        arguments << "-i" << keyFile;
 	}
  
- 	strCommand += pt->strExtraArguments;
+    arguments << pt->strExtraArguments;
 
-    AddToLog( tunnel, QString("%1\n").arg( replaceVarsLog(*pt, strCommand) ) );
+    QString strCommandLog = replaceVarsLog(*pt, QString("%1 %2").arg(replaceVarsLog(*pt, strPlink)).arg(replaceVarsLog(*pt, arguments).join(' ')) );
+    AddToLog( tunnel, QString("%1\n").arg( strCommandLog ) );
 
 	//--- setup plink command string
 
@@ -3553,26 +3586,37 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
  	pt->pProcess = new QProcess;
  	pt->pProcess->setProcessChannelMode( QProcess::MergedChannels );
 
- 	ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardOutput() ), pt->pConnector, SLOT( slotProcessReadStandardOutput() ) ) );
- 	ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardError() ), pt->pConnector, SLOT( slotProcessReadStandardError() ) ) );
-    ATVERIFY( connect( pt->pProcess, SIGNAL( error(QProcess::ProcessError) ), pt->pConnector, SLOT( slotProcessError(QProcess::ProcessError) ) ) );
-    ATVERIFY( connect( pt->pProcess, SIGNAL( finished(int, QProcess::ExitStatus) ), pt->pConnector, SLOT( slotProcessFinished(int, QProcess::ExitStatus) ) ) );
-    ATVERIFY( connect( pt->pConnector, SIGNAL( finished(Tunnel_c*) ), this, SLOT( slotConnectorFinished(Tunnel_c*) ), Qt::QueuedConnection ) );
-	ATVERIFY( connect( pt->pConnector, SIGNAL( signalConnected(QTreeWidgetItem*) ), this, SLOT( slotConnected(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
-    ATVERIFY( connect( pt->pConnector, SIGNAL( signalKillConnection(QTreeWidgetItem*) ), this, SLOT( slotKillConnection(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
+//    ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardOutput() ), pt->pConnector, SLOT( slotProcessReadStandardOutput() ) ) );
+// 	ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardError() ), pt->pConnector, SLOT( slotProcessReadStandardError() ) ) );
+//    ATVERIFY( connect( pt->pProcess, SIGNAL( error(QProcess::ProcessError) ), pt->pConnector, SLOT( slotProcessError(QProcess::ProcessError) ) ) );
+//    ATVERIFY( connect( pt->pProcess, SIGNAL( finished(int, QProcess::ExitStatus) ), pt->pConnector, SLOT( slotProcessFinished(int, QProcess::ExitStatus) ) ) );
+//    ATVERIFY( connect( pt->pConnector, SIGNAL( finished(Tunnel_c*) ), this, SLOT( slotConnectorFinished(Tunnel_c*) ), Qt::QueuedConnection ) );
+//	ATVERIFY( connect( pt->pConnector, SIGNAL( signalConnected(QTreeWidgetItem*) ), this, SLOT( slotConnected(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
+//    ATVERIFY( connect( pt->pConnector, SIGNAL( signalKillConnection(QTreeWidgetItem*) ), this, SLOT( slotKillConnection(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
+
+    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::finished, this, &ATSkeletonWindow::slotConnectorFinished, Qt::QueuedConnection ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalConnected, this, &ATSkeletonWindow::slotConnected, Qt::QueuedConnection ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, this, &ATSkeletonWindow::slotKillConnection, Qt::QueuedConnection ) );
 
 	//--- setup the process
 
-
- 	pt->pProcess->start( replaceVars(*pt, strCommand) );
+    //QString strCommand = replaceVars(*pt, QString("%1 %2").arg(strPlink).arg(arguments.join(' ')) );
+    pt->pProcess->start( replaceVars(*pt, strPlink), replaceVars(*pt, arguments) );
 }
 
 QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunnel_c &tunnel)
 {
-    QString strCommand = QString("%1 --version").arg(plinkPath);
-    AddToLog( tunnel, strCommand );
+    QStringList arguments;
+    arguments << "--version";
+
+    AddToLog(tunnel, QString("\"%1\" %2").arg(plinkPath).arg(arguments.join(' ')));
+
     QProcess versionProcess;
-    versionProcess.start(strCommand);
+    versionProcess.start(plinkPath, arguments);
     if (!versionProcess.waitForFinished(1000)) {
         AddToLog( tunnel, "Timeout waiting for plink version process to finish" );
         return QVersionNumber(); // Invalid version
