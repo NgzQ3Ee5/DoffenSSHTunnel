@@ -40,13 +40,13 @@ QMainWindow( vpParent )
 	setCentralWidget( m_pSkeletonWindow );
 
 	restoreDialog = new RestoreDialog(this);
-	ATVERIFY( connect( restoreDialog, SIGNAL( accepted() ), this, SLOT( slotRestoreDialogAccepted() ) ) );
+    ATVERIFY( connect( restoreDialog, &RestoreDialog::accepted, this, &ATMainWindow_c::slotRestoreDialogAccepted ) );
 
 	variableSettingsDialog = new VariableSettingsDialog(m_pSkeletonWindow);
-	ATVERIFY( connect( variableSettingsDialog, SIGNAL( accepted() ), this, SLOT( slotVariableSettingsDialogAccepted() ) ) );
+    ATVERIFY( connect( variableSettingsDialog, &VariableSettingsDialog::accepted, this, &ATMainWindow_c::slotVariableSettingsDialogAccepted ) );
 
 	preferencesDialog = new PreferencesDialog(this, m_pSkeletonWindow);
-	ATVERIFY( connect( preferencesDialog, SIGNAL( accepted() ), this, SLOT( slotPreferencesDialogAccepted() ) ) );
+    ATVERIFY( connect( preferencesDialog, &PreferencesDialog::accepted, this, &ATMainWindow_c::slotPreferencesDialogAccepted ) );
 
     setWindowTitle( QString( "%1[*] - %2 %3 " ).arg( g_strWindowTitle ).arg( APP_NICE_NAME ).arg( APP_VERSION ) );
 
@@ -61,10 +61,10 @@ QMainWindow( vpParent )
 	setWindowIcon( Images::icon("app_020_disconnected") );
 
 	//File Menu->Enable editing: save state to my m_bEnableEditing
-	ATVERIFY( connect( m_pActionEnableEditing					,SIGNAL(toggled(bool)),					this, SLOT( slotEnableEditingToggled(bool) ) ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnTabEditMaximize,	SIGNAL( clicked() ),				this, SLOT( slotTabEditHideButton() ) ) );
+    ATVERIFY( connect( m_pActionEnableEditing, &QAction::toggled, this, &ATMainWindow_c::slotEnableEditingToggled ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTabEditMaximize, &QToolButton::clicked, this, &ATMainWindow_c::slotTabEditHideButton ) );
 
-    ATVERIFY( connect(m_pSkeletonWindow, SIGNAL(signalSetTrayIcon(int)), this, SLOT(slotSetTrayIcon(int))) );
+    ATVERIFY( connect( m_pSkeletonWindow, &ATSkeletonWindow::signalSetTrayIcon, this, &ATMainWindow_c::slotSetTrayIcon ) );
 
     m_pSkeletonWindow->ui.widgetTreeTunnelSearch_2->setVisible( preferencesDialog->showTreeSearchEnabled() );
 
