@@ -198,7 +198,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	//File -> Change Master &Password...
 	m_pActionChangeMasterPassword = new QAction(QObject::tr("Change Master &Password..."), this);
-	bool bRet = QObject::connect(m_pActionChangeMasterPassword, SIGNAL(triggered()), this, SLOT(slotChangeMasterPassword()));
+    bool bRet = QObject::connect(m_pActionChangeMasterPassword, &QAction::triggered, this, &ATMainWindow_c::slotChangeMasterPassword);
 	ATASSERT( bRet );
 
 	pFileMenu->addAction( m_pActionChangeMasterPassword );
@@ -208,7 +208,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 	//File -> &Backup now...
 	m_pActionBackupTunnelSettings = new QAction(QObject::tr("&Backup now..."), this);
 	m_pActionBackupTunnelSettings->setShortcut(QObject::tr("CTRL+B"));
-	bRet = QObject::connect(m_pActionBackupTunnelSettings, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotManualBackupSelected()));
+    bRet = QObject::connect(m_pActionBackupTunnelSettings, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotManualBackupSelected);
 	ATASSERT( bRet );
 
 	pFileMenu->addAction( m_pActionBackupTunnelSettings );
@@ -216,7 +216,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 	//File -> &Restore a backup...
 	m_pActionRestoreTunnelSettings = new QAction(QObject::tr("&Restore a backup..."), this);
 	m_pActionRestoreTunnelSettings->setShortcut(QObject::tr("CTRL+R"));
-	bRet = QObject::connect(m_pActionRestoreTunnelSettings, SIGNAL(triggered()), this, SLOT(slotRestore()));
+    bRet = QObject::connect(m_pActionRestoreTunnelSettings, &QAction::triggered, this, &ATMainWindow_c::slotRestore);
 	ATASSERT( bRet );
 
 	pFileMenu->addAction( m_pActionRestoreTunnelSettings );
@@ -229,13 +229,13 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 		//File -> E&xport -> Export &Selected...
 		m_pActionExportSelectedTunnels = new QAction(QObject::tr("Export &Selected..."), this);
-		bRet = QObject::connect(m_pActionExportSelectedTunnels, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotTreeTunnelExportCurrent()));
+        bRet = QObject::connect(m_pActionExportSelectedTunnels, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotTreeTunnelExportCurrent);
 		ATASSERT( bRet );
 		m_pMenuExportTunnels->addAction( m_pActionExportSelectedTunnels );
 
 		//File -> E&xport -> Export &All...
 		m_pActionExportAllTunnels = new QAction(QObject::tr("Export &All..."), this);
-		bRet = QObject::connect(m_pActionExportAllTunnels, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotTreeTunnelExportAll()));
+        bRet = QObject::connect(m_pActionExportAllTunnels, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotTreeTunnelExportAll);
 		ATASSERT( bRet );
 		m_pMenuExportTunnels->addAction( m_pActionExportAllTunnels );
 
@@ -245,13 +245,13 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 		//File -> I&mport -> Import After Selected Folder/Host...
 		m_pActionImportTunnelsAfter = new QAction(QObject::tr("Import After Selected Folder/Host..."), this);
-		bRet = QObject::connect(m_pActionImportTunnelsAfter, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotTreeTunnelImportAfter()));
+        bRet = QObject::connect(m_pActionImportTunnelsAfter, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotTreeTunnelImportAfter);
 		ATASSERT( bRet );
 		m_pMenuImportTunnels->addAction( m_pActionImportTunnelsAfter );
 
 		//File -> I&mport -> Import as Children of Selected Folder/Host...
 		m_pActionImportTunnelsChild = new QAction(QObject::tr("Import as Children of Selected Folder/Host..."), this);
-		bRet = QObject::connect(m_pActionImportTunnelsChild, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotTreeTunnelImportChild()));
+        bRet = QObject::connect(m_pActionImportTunnelsChild, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotTreeTunnelImportChild);
 		ATASSERT( bRet );
 		m_pMenuImportTunnels->addAction( m_pActionImportTunnelsChild );
 
@@ -262,7 +262,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 	//File -> &Quit
 	pAction				= new QAction(QObject::tr("&Quit"), this);
 	pAction->setShortcut(QObject::tr("CTRL+Q"));
-	bRet			= QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotTentativeQuit()));
+    bRet			= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotTentativeQuit);
 	ATASSERT( bRet );
 
 	pFileMenu->addAction( pAction );
@@ -275,23 +275,23 @@ bool ATMainWindow_c::InitMenusAndActions()
 	//Tools -> &Disconnect all
 	pAction				= new QAction(QObject::tr("&Disconnect all"), this);
 	pAction->setShortcut(QObject::tr("CTRL+D"));
-	bRet				= QObject::connect(pAction, SIGNAL(triggered()), m_pSkeletonWindow, SLOT(slotDisconnectAllTunnels()), Qt::QueuedConnection);
+    bRet				= QObject::connect(pAction, &QAction::triggered, m_pSkeletonWindow, &ATSkeletonWindow::slotDisconnectAllTunnels, Qt::QueuedConnection);
 	ATASSERT( bRet );
 
 	pToolsMenu->addAction( pAction );
 
 	//Tools -> &Clear all logs
 	pAction				= new QAction(QObject::tr("&Clear all logs"), this);
-	bRet				= QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotClearAllTunnelLogs()),Qt::QueuedConnection);
+    bRet				= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotClearAllTunnelLogs,Qt::QueuedConnection);
 	ATASSERT( bRet );
 
-	pToolsMenu->addAction( pAction );
+    pToolsMenu->addAction( pAction );
 
 	pToolsMenu->addSeparator();
 
 	//Tools -> &View configured local ports...
 	pAction				= new QAction(QObject::tr("&View configured local ports..."), this);
-	bRet				= QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotShowConfiguredLocalPorts()),Qt::QueuedConnection);
+    bRet				= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotShowConfiguredLocalPorts,Qt::QueuedConnection);
 	ATASSERT( bRet );
 
 	pToolsMenu->addAction( pAction );
@@ -303,7 +303,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	//Settings -> &Preferences...
 	pAction				= new QAction(QObject::tr("&Preferences..."), this);
-	bRet				= QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotPreferencesSetup()), Qt::QueuedConnection);
+    bRet				= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotPreferencesSetup, Qt::QueuedConnection);
 	ATASSERT( bRet );
 
 	pSettingsMenu->addAction( pAction );
@@ -312,7 +312,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	//Settings -> Setup &Variables...
 	m_pActionSetupVariables	= new QAction(QObject::tr("Passwords and &Variables..."), this);
-	bRet				= QObject::connect(m_pActionSetupVariables, SIGNAL(triggered()), this, SLOT(slotVariablesSetup()),Qt::QueuedConnection );
+    bRet				= QObject::connect(m_pActionSetupVariables, &QAction::triggered, this, &ATMainWindow_c::slotVariablesSetup,Qt::QueuedConnection );
 	ATASSERT( bRet );
 
 	pSettingsMenu->addAction( m_pActionSetupVariables );
@@ -327,7 +327,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 	for( int i=0; i<styleList.count(); i++ )
 	{
 		ATNamedAction *pNamedAction = new ATNamedAction( styleList.at(i), this );
-		ATASSERT( connect( pNamedAction, SIGNAL( signalTriggerNamed(QString) ), this, SLOT(slotChangeStyle(QString)),Qt::QueuedConnection ));
+        ATASSERT( connect( pNamedAction, &ATNamedAction::signalTriggerNamed, this, &ATMainWindow_c::slotChangeStyle,Qt::QueuedConnection ));
 		pStyleMenu->addAction(pNamedAction);
 	}
 
@@ -340,14 +340,14 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 		//Reload icons
 		pAction	= new QAction(QObject::tr("&Reload"), this);
-		bRet				= QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotLoadIcons()),Qt::QueuedConnection );
+        bRet				= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotLoadIcons,Qt::QueuedConnection );
 		ATASSERT( bRet );
 		m_pIconsMenu->addAction( pAction );
 		m_pIconsMenu->addSeparator();
 
 		ATIconThemeAction *pIconThemeAction = new ATIconThemeAction( "Default (built-in)", ICON_THEME_DEFAULT, this );
 		pIconThemeAction->setCheckable(true);
-		ATASSERT( connect( pIconThemeAction, SIGNAL( signalTriggerTheme(QString) ), this, SLOT(slotChangeIcons(QString)),Qt::QueuedConnection ));
+        ATASSERT( connect( pIconThemeAction, &ATIconThemeAction::signalTriggerTheme, this, &ATMainWindow_c::slotChangeIcons,Qt::QueuedConnection ));
 		m_pIconsMenu->addAction(pIconThemeAction);
 
 		for( int i=0; i<iconThemes.count(); i++ )
@@ -358,7 +358,7 @@ bool ATMainWindow_c::InitMenusAndActions()
             themeName = themeName.replace("_"," ");
 			pIconThemeAction = new ATIconThemeAction( themeName, theme, this ); 
 			pIconThemeAction->setCheckable(true);
-			ATASSERT( connect( pIconThemeAction, SIGNAL( signalTriggerTheme(QString) ), this, SLOT(slotChangeIcons(QString)),Qt::QueuedConnection ));
+            ATASSERT( connect( pIconThemeAction, &ATIconThemeAction::signalTriggerTheme, this, &ATMainWindow_c::slotChangeIcons,Qt::QueuedConnection ));
 			m_pIconsMenu->addAction(pIconThemeAction);
 		}
 
@@ -370,7 +370,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	QMenu *pHelpMenu	= new QMenu(this);
 	pAction				= new QAction(QObject::tr("&About..."), this);
-	ATASSERT( QObject::connect(pAction, SIGNAL(triggered()), this, SLOT(slotShowAbout()),Qt::QueuedConnection) );
+    ATASSERT( QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotShowAbout,Qt::QueuedConnection) );
 	pHelpMenu->addAction(pAction);
 
 	menuBar()->addMenu(pFileMenu)->setText(QObject::tr("&File"));
