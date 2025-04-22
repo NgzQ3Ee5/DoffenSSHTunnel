@@ -24,9 +24,9 @@ ImportHostsDialog::ImportHostsDialog(QWidget *parent, ATSkeletonWindow *pMainWin
 		buttonImport->setText("Import");
 	}
 
-	ATVERIFY( connect(chkAutoCheck, SIGNAL(toggled(bool)), this, SLOT(slotAutoCheckToggled(bool) ) ) );
-	ATVERIFY( connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotImport() ) ) );
-    ATVERIFY( connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject() ) ) );
+    ATVERIFY( connect(chkAutoCheck, &QAbstractButton::toggled, this, &ImportHostsDialog::slotAutoCheckToggled ) );
+    ATVERIFY( connect(buttonBox, &QDialogButtonBox::accepted,  this, &ImportHostsDialog::slotImport ) );
+    ATVERIFY( connect(buttonBox, &QDialogButtonBox::rejected,  this, &ImportHostsDialog::reject ) );
 }
 
 ImportHostsDialog::~ImportHostsDialog()
