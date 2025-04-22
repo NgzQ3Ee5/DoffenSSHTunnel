@@ -1944,9 +1944,9 @@ void ATSkeletonWindow::restoreBackup(QString backupInfoFilePath)
 	enableTreeTunnelsPaste(false);
 	m_bAutoBackupSettingsDisabled = true; //stop readSettings() from backing up
 
-	ATVERIFY( disconnect( ui.treeTunnels, SIGNAL( itemSelectionChanged() ),	0, 0 )  );
-	ATVERIFY( disconnect( ui.treeTunnels, SIGNAL( activated(const QModelIndex &) ), 0, 0 ) );
-	ATVERIFY( disconnect( this, SIGNAL( signalAutoConnect(Tunnel_c*) ),	0, 0 )  );
+    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::itemSelectionChanged, nullptr, nullptr )  );
+    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::activated, nullptr, nullptr ) );
+    ATVERIFY( disconnect( this, &ATSkeletonWindow::signalAutoConnect, nullptr, nullptr )  );
 
 	while(ui.treeTunnels->topLevelItemCount() > 0) {
 		QTreeWidgetItem* twi = ui.treeTunnels->topLevelItem(0);
@@ -1963,14 +1963,14 @@ void ATSkeletonWindow::restoreBackup(QString backupInfoFilePath)
 		QMessageBox::warning(this, tr("Ooops! Restore Failed"),status.sMsg,QMessageBox::Close);
 	}
 
-	ATVERIFY( connect( ui.treeTunnels, SIGNAL( itemSelectionChanged() ),	this, SLOT( slotSelectTunnel() ) ) );
-	ATVERIFY( connect( ui.treeTunnels, SIGNAL( activated(const QModelIndex &) ), this, SLOT( slotItemActivated() ) ) );
+    ATVERIFY( connect( ui.treeTunnels, &TunnelTreeWidget::itemSelectionChanged,	this, &ATSkeletonWindow::slotSelectTunnel ) );
+    ATVERIFY( connect( ui.treeTunnels, &TunnelTreeWidget::activated, this, &ATSkeletonWindow::slotItemActivated ) );
 
 	//////////////////////
 	// READ DoffenSSHTunnel.ini & DoffenSSHTunnelApp.ini
 	readSettings();
 
-	ATVERIFY( connect( this, SIGNAL( signalAutoConnect(Tunnel_c*) ), this, SLOT( slotAutoConnect(Tunnel_c*) ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( this, &ATSkeletonWindow::signalAutoConnect, this, &ATSkeletonWindow::slotAutoConnect, Qt::QueuedConnection ) );
 
 	m_bAutoBackupSettingsDisabled = false;
 
