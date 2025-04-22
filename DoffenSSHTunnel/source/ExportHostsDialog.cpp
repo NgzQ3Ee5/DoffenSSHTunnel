@@ -21,9 +21,9 @@ ExportHostsDialog::ExportHostsDialog(QWidget *parent, ATSkeletonWindow *pMainWin
 		buttonSave->setText("&Save As...");
 	}
 
-	ATVERIFY( connect(chkAutoCheck, SIGNAL(toggled(bool)), this, SLOT(slotAutoCheckToggled(bool) ) ) );
-	ATVERIFY( connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotExport() ) ) );
-    ATVERIFY( connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject() ) ) );
+    ATVERIFY( connect(chkAutoCheck, &QAbstractButton::toggled, this, &ExportHostsDialog::slotAutoCheckToggled ) );
+    ATVERIFY( connect(buttonBox, &QDialogButtonBox::accepted,  this, &ExportHostsDialog::slotExport ) );
+    ATVERIFY( connect(buttonBox, &QDialogButtonBox::rejected,  this, &ExportHostsDialog::reject ) );
 }
 
 ExportHostsDialog::~ExportHostsDialog()
