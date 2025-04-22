@@ -5683,7 +5683,7 @@ bool ATSkeletonWindow::askforPassword( Tunnel_c &tunnel )
 	QPushButton *pButton = new QPushButton( &dlg );
 	pButton->setText( "Ok" );
 	pButton->setDefault( true );
-	ATVERIFY( connect( pButton, SIGNAL( clicked() ), &dlg, SLOT( accept() ) ) );
+    ATVERIFY( connect( pButton, &QAbstractButton::clicked, &dlg, &QDialog::accept ) );
 
 	QVBoxLayout *vbox = new QVBoxLayout;
 	vbox->addWidget( pLabel );
@@ -5715,7 +5715,7 @@ QString ATSkeletonWindow::askforPassword( QString label )
 	QPushButton *pButton = new QPushButton( &dlg );
 	pButton->setText( "Ok" );
 	pButton->setDefault( true );
-	ATVERIFY( connect( pButton, SIGNAL( clicked() ), &dlg, SLOT( accept() ) ) );
+    ATVERIFY( connect( pButton, &QAbstractButton::clicked, &dlg, &QDialog::accept ) );
 
 	QVBoxLayout *vbox = new QVBoxLayout;
 	vbox->addWidget( pLabel );
