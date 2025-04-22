@@ -2721,7 +2721,7 @@ void ATSkeletonWindow::delayRetryConnect( Tunnel_c *pt, int autoReconnectInterva
 {
     qDebug() << Q_FUNC_INFO;
     if( pt ) {
-        ATVERIFY( connect( pt, SIGNAL( signalTimerDelayRetryConnect(Tunnel_c*) ), this, SLOT( slotDelayRetryConnect(Tunnel_c*) ) ) );
+        ATVERIFY( connect( pt, &Tunnel_c::signalTimerDelayRetryConnect, this, &ATSkeletonWindow::slotDelayRetryConnect ) );
         pt->startTimerDelayRetryConnect(autoReconnectIntervalSeconds);
         updateControlsTunnel(pt);
         //tunnel icon
