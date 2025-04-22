@@ -6,8 +6,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, ATSkeletonWindow *skeleton
 {
 	setupUi(this);
 	m_pSkeletonWindow = skeletonWindow;
-	connect(buttonBox->button(QDialogButtonBox::Ok),SIGNAL(clicked()),this,SLOT(OnOK()));
-	connect(buttonBox->button(QDialogButtonBox::Cancel),SIGNAL(clicked()),this,SLOT(OnCancel()));
+    connect(buttonBox->button(QDialogButtonBox::Ok),     &QAbstractButton::clicked, this, &PreferencesDialog::OnOK);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QAbstractButton::clicked, this, &PreferencesDialog::OnCancel);
 	readSettings();
 }
 
