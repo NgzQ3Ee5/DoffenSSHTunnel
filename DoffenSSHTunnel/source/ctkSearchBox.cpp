@@ -75,8 +75,7 @@ void ctkSearchBoxPrivate::init()
   // Set a text by default on the QLineEdit
   q->setPlaceholderText(q->tr("Search..."));
 
-  QObject::connect(q, SIGNAL(textChanged(QString)),
-                   q, SLOT(updateClearButtonState()));
+  QObject::connect(q, &ctkSearchBox::textChanged, q, &ctkSearchBox::updateClearButtonState);
 }
 
 // --------------------------------------------------

@@ -103,8 +103,8 @@ protected:
   QScopedPointer<ctkSearchBoxPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(ctkSearchBox);
-  Q_DISABLE_COPY(ctkSearchBox);
+  Q_DECLARE_PRIVATE(ctkSearchBox)
+  Q_DISABLE_COPY(ctkSearchBox)
 };
 #endif // __ctkSearchBox_h
 
