@@ -4276,7 +4276,7 @@ void ATSkeletonWindow::disconnectAllTunnelsSilent()
 	qDebug() << "disconnectAllTunnelsSilent()";
 
 	// Make sure we won't try to reconnect
-    ATVERIFY( disconnect( this, SIGNAL( signalAutoConnect(Tunnel_c*) ), 0, 0 ) );
+    ATVERIFY( disconnect( this, &ATSkeletonWindow::signalAutoConnect, nullptr, nullptr ) );
 
     QList<QTreeWidgetItem*> treeTunnelItems = ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
 	for(int i=0;i<treeTunnelItems.size();i++)
@@ -4286,15 +4286,15 @@ void ATSkeletonWindow::disconnectAllTunnelsSilent()
 
 		// Make sure we don't process any stdout,stderr from ssh process
 		if(it->pProcess != NULL) {
- 			ATVERIFY( disconnect( it->pProcess, SIGNAL( readyReadStandardOutput() ), 0, 0 ) );
- 			ATVERIFY( disconnect( it->pProcess, SIGNAL( readyReadStandardError() ), 0, 0 ) );
- 			ATVERIFY( disconnect( it->pProcess, SIGNAL( error(QProcess::ProcessError) ), 0, 0 ) );
- 			ATVERIFY( disconnect( it->pProcess, SIGNAL( finished(int, QProcess::ExitStatus) ), 0, 0 ) );
+            ATVERIFY( disconnect( it->pProcess, &QProcess::readyReadStandardOutput, nullptr, nullptr ) );
+            ATVERIFY( disconnect( it->pProcess, &QProcess::readyReadStandardError, nullptr, nullptr ) );
+            ATVERIFY( disconnect( it->pProcess, &QProcess::errorOccurred, nullptr, nullptr ) );
+            ATVERIFY( disconnect( it->pProcess, &QProcess::finished, nullptr, nullptr ) );
 		}
 		if(it->pConnector != NULL) {
- 			ATVERIFY( disconnect( it->pConnector, SIGNAL( finished(Tunnel_c*) ), 0, 0 ) );
-			ATVERIFY( disconnect( it->pConnector, SIGNAL( signalConnected(QTreeWidgetItem*) ), 0, 0 ) );
-            ATVERIFY( disconnect( it->pConnector, SIGNAL( signalKillConnection(QTreeWidgetItem*) ), 0, 0 ) );
+            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::finished, nullptr, nullptr ) );
+            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::signalConnected, nullptr, nullptr ) );
+            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::signalKillConnection, nullptr, nullptr ) );
         }
 		disconnectTunnelSilent( twi );
 		ATASSERT( it->pProcess == NULL );
