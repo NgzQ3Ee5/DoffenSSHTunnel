@@ -3538,7 +3538,8 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
  
     arguments << pt->strExtraArguments;
 
-    QString strCommandLog = replaceVarsLog(*pt, QString("%1 %2").arg(replaceVarsLog(*pt, strPlink)).arg(replaceVarsLog(*pt, arguments).join(' ')) );
+    QString strCommandLog = replaceVarsLog(*pt, QString("%1 %2")
+        .arg(replaceVarsLog(*pt, strPlink), replaceVarsLog(*pt, arguments).join(' ')) );
     AddToLog( tunnel, QString("%1\n").arg( strCommandLog ) );
 
 	//--- setup plink command string
@@ -3558,7 +3559,8 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 			if(portList.size()>5) {
 				sPortList.append("...");
 			}
-			QString errMsg = QString("Cannot connect host %1.\nLocal tunnel port(s) %2 already in use.").arg(pt->strName).arg(sPortList.join(","));
+            QString errMsg = QString("Cannot connect host %1.\nLocal tunnel port(s) %2 already in use.")
+                    .arg(pt->strName, sPortList.join(","));
 			qDebug( "Error: %s", qPrintable( errMsg ) );
             AddToLog( tunnel, QString("Error: %1\n").arg( errMsg ) );
 			recursiveDisconnectTunnelSignals(twi);
@@ -3583,14 +3585,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
  	pt->pProcess = new QProcess;
  	pt->pProcess->setProcessChannelMode( QProcess::MergedChannels );
 
-//    ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardOutput() ), pt->pConnector, SLOT( slotProcessReadStandardOutput() ) ) );
-// 	ATVERIFY( connect( pt->pProcess, SIGNAL( readyReadStandardError() ), pt->pConnector, SLOT( slotProcessReadStandardError() ) ) );
-//    ATVERIFY( connect( pt->pProcess, SIGNAL( error(QProcess::ProcessError) ), pt->pConnector, SLOT( slotProcessError(QProcess::ProcessError) ) ) );
-//    ATVERIFY( connect( pt->pProcess, SIGNAL( finished(int, QProcess::ExitStatus) ), pt->pConnector, SLOT( slotProcessFinished(int, QProcess::ExitStatus) ) ) );
-//    ATVERIFY( connect( pt->pConnector, SIGNAL( finished(Tunnel_c*) ), this, SLOT( slotConnectorFinished(Tunnel_c*) ), Qt::QueuedConnection ) );
-//	ATVERIFY( connect( pt->pConnector, SIGNAL( signalConnected(QTreeWidgetItem*) ), this, SLOT( slotConnected(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
-//    ATVERIFY( connect( pt->pConnector, SIGNAL( signalKillConnection(QTreeWidgetItem*) ), this, SLOT( slotKillConnection(QTreeWidgetItem*) ), Qt::QueuedConnection ) );
-
     ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
     ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
     ATVERIFY( connect( pt->pProcess, &QProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
@@ -3610,7 +3604,7 @@ QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunne
     QStringList arguments;
     arguments << "--version";
 
-    AddToLog(tunnel, QString("\"%1\" %2").arg(plinkPath).arg(arguments.join(' ')));
+    AddToLog(tunnel, QString("\"%1\" %2").arg(plinkPath, arguments.join(' ')));
 
     QProcess versionProcess;
     versionProcess.start(plinkPath, arguments);
