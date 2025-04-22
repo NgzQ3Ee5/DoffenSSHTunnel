@@ -51,10 +51,14 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 
     layout->addWidget(m_pSearchBox);
 
-    ATVERIFY( connect( m_pTimerDelayIndex, SIGNAL( timeout() ), this, SLOT( slotDelayIndex() ) ) );
-    ATVERIFY( connect( m_pTimerDelayUpdateCompleterIcons, SIGNAL( timeout() ), this, SLOT( slotDelayUpdateCompleterIcons() ) ) );
-    ATVERIFY( connect( m_pSearchBox, SIGNAL( textChanged(QString) ), this, SLOT( textChanged(QString) ) ) );
-    ATVERIFY( connect( m_pSearchBoxCompleter, SIGNAL(activated(const QModelIndex &)), this, SLOT(slotCompleterActivated(const QModelIndex &) ) ) );
+    ATVERIFY( connect( m_pTimerDelayIndex, &QTimer::timeout, this, &SearchWidget::slotDelayIndex ) );
+    ATVERIFY( connect( m_pTimerDelayUpdateCompleterIcons, &QTimer::timeout, this, &SearchWidget::slotDelayUpdateCompleterIcons ) );
+    ATVERIFY( connect( m_pSearchBox, &QLineEdit::textChanged, this, &SearchWidget::textChanged ) );
+    ATVERIFY(connect(m_pSearchBoxCompleter,
+         static_cast<void (QCompleter::*)(const QModelIndex &)>(&QCompleter::activated),
+         this,
+         &SearchWidget::slotCompleterActivated));
+
 }
 
 SearchWidget::~SearchWidget()
