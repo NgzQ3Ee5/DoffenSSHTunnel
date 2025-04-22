@@ -6,10 +6,10 @@ PasswordDialog::PasswordDialog(QWidget *parent)
 {
 	setupUi(this);
 	slotLoadIcons();
-	connect(buttonBox->button(QDialogButtonBox::Ok),SIGNAL(clicked()),this,SLOT(OnOK()));
-	connect(buttonBox->button(QDialogButtonBox::Cancel),SIGNAL(clicked()),this,SLOT(OnCancel()));
-	connect(Button_HidePassword,SIGNAL(toggled(bool)),this,SLOT(OnHidePasswordToggled(bool)));
-	connect(EditPassword,SIGNAL(textChanged(const QString&)),this,SLOT(OnTextChanged(const QString&)));
+    connect(buttonBox->button(QDialogButtonBox::Ok),     &QAbstractButton::clicked, this, &PasswordDialog::OnOK);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QAbstractButton::clicked, this, &PasswordDialog::OnCancel);
+    connect(Button_HidePassword,                         &QAbstractButton::toggled, this, &PasswordDialog::OnHidePasswordToggled);
+    connect(EditPassword,                                &QLineEdit::textChanged,   this, &PasswordDialog::OnTextChanged);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
