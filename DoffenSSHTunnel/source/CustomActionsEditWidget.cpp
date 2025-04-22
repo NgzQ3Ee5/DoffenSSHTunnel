@@ -48,30 +48,30 @@ void CustomActionsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
 #endif
 	treeContextMenu->insertAction(pSeparator, m_pActionExecute);
 
-	ATVERIFY( connect( m_pDlgEdit, SIGNAL( accepted() ), this, SLOT( slotEditDialogAccepted() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( m_pDlgEdit, &QDialog::accepted, this, &CustomActionsEditWidget::slotEditDialogAccepted, Qt::QueuedConnection ) );
 
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalUpdateControls() ),	this, SLOT( slotUpdateControls() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalBeforeShowingContextMenu() ),	this, SLOT( slotBeforeShowingContextMenu() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalAddItem(int) ),		this, SLOT( slotAddItem(int) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalCreatedNewFolder(QTreeWidgetItem*) ), this, SLOT( slotCreatedNewFolder(QTreeWidgetItem*) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalAfterPasteItem(QTreeWidgetItem*,QTreeWidgetItem*,int,int) ), this, SLOT( slotAfterPasteItem(QTreeWidgetItem*,QTreeWidgetItem*,int,int) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionAdd,	SIGNAL( clicked() ),				this, SLOT( slotAddItem() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( signalEditItem() ),			this, SLOT( slotEditItem() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pDlgEdit,								SIGNAL( signalActionExec(const CustomActionStruct&) ),	this, SLOT( slotExecute(const CustomActionStruct&) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionExecute,							SIGNAL( triggered() ),				this, SLOT( slotExecute() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	SIGNAL( itemActivated(QTreeWidgetItem*, int) ),	this, SLOT( slotExecute() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionEdit,	SIGNAL( clicked() ),				this, SLOT( slotEditItem() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDelete, SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotDelete() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDuplicate, SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotDuplicate() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionUp,		SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotMoveUp() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDown,	SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotMoveDown() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionLeft,	SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotMoveLeft() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionRight,	SIGNAL( clicked() ),				m_pSkeletonWindow->ui.treeCustomActionsEdit, SLOT( slotMoveRight() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalUpdateControls,     this, &CustomActionsEditWidget::slotUpdateControls, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalBeforeShowingContextMenu, this, &CustomActionsEditWidget::slotBeforeShowingContextMenu, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalAddItem,            this, &CustomActionsEditWidget::slotAddItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalCreatedNewFolder,   this, &CustomActionsEditWidget::slotCreatedNewFolder, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalAfterPasteItem,     this, &CustomActionsEditWidget::slotAfterPasteItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionAdd,    &QAbstractButton::clicked,             this, &CustomActionsEditWidget::slotAddItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::signalEditItem,           this, &CustomActionsEditWidget::slotEditItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pDlgEdit,                                  &CustomButtonDialog::signalActionExec, this, &CustomActionsEditWidget::slotExecute, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionExecute,							&QAction::triggered,                   this, &CustomActionsEditWidget::slotExecuteCurrentItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit,	&TreeWidget::itemActivated,	           this, &CustomActionsEditWidget::slotExecuteCurrentItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionEdit,	&QAbstractButton::clicked,             this, &CustomActionsEditWidget::slotEditItem, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDelete, &QAbstractButton::clicked,    m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotDelete, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDuplicate, &QAbstractButton::clicked, m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotDuplicate, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionUp,		&QAbstractButton::clicked,    m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotMoveUp, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionDown,	&QAbstractButton::clicked,    m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotMoveDown, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionLeft,	&QAbstractButton::clicked,    m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotMoveLeft, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnCustomActionRight,	&QAbstractButton::clicked,    m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::slotMoveRight, Qt::UniqueConnection ) );
 
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, SIGNAL( signalSave() ), this, SLOT( slotSave() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::signalSave,    this, &CustomActionsEditWidget::slotSave, Qt::UniqueConnection ) );
 
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, SIGNAL( itemCollapsed(QTreeWidgetItem*) ), this, SLOT( slotItemCollapsed(QTreeWidgetItem*) ) ) );
-	ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, SIGNAL( itemExpanded(QTreeWidgetItem*) ), this, SLOT( slotItemExpanded(QTreeWidgetItem*) ) ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::itemCollapsed, this, &CustomActionsEditWidget::slotItemCollapsed, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.treeCustomActionsEdit, &TreeWidget::itemExpanded,  this, &CustomActionsEditWidget::slotItemExpanded, Qt::UniqueConnection ) );
 
 	slotUpdateControls();
 }
@@ -356,7 +356,7 @@ void CustomActionsEditWidget::slotItemExpanded(QTreeWidgetItem * twi)
 	}
 }
 
-void CustomActionsEditWidget::slotExecute()
+void CustomActionsEditWidget::slotExecuteCurrentItem()
 {
 	QTreeWidgetItem *twi = m_pSkeletonWindow->ui.treeCustomActionsEdit->currentItem();
 	if(twi == NULL) return;

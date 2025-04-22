@@ -32,7 +32,7 @@ private slots:
 	void slotEditItem();
 	void slotUpdateControls();
 	void slotEditDialogAccepted();
-	void slotExecute();
+    void slotExecuteCurrentItem();
 	void slotExecute(const CustomActionStruct& cas);
 	void slotBeforeShowingContextMenu();
 	void slotSave();
