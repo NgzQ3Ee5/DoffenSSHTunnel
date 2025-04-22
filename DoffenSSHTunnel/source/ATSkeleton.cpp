@@ -6468,7 +6468,7 @@ void Tunnel_c::init()
     strBgColor = "";
     bActivateDisconnects = true;
     m_timerDelayRetryConnect.setSingleShot(true);
-    ATVERIFY( connect( &m_timerDelayRetryConnect, SIGNAL( timeout() ), this, SLOT( slotTimerDelayRetryConnectTimeout() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( &m_timerDelayRetryConnect, &QTimer::timeout, this, &Tunnel_c::slotTimerDelayRetryConnectTimeout, Qt::UniqueConnection ) );
 }
 
 void Tunnel_c::copyFrom( const Tunnel_c *orig )
