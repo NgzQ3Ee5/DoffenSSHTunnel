@@ -15,10 +15,10 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tabWidget->setCurrentIndex(0);
 
     //Dialog
-    ATVERIFY( connect( this, SIGNAL( accepted() ), this, SLOT( slotAccepted() ) ) );
-    ATVERIFY( connect( this, SIGNAL( rejected() ), this, SLOT( slotRejected() ) ) );
+    ATVERIFY( connect( this, &VariableSettingsDialog::accepted, this, &VariableSettingsDialog::slotAccepted ) );
+    ATVERIFY( connect( this, &VariableSettingsDialog::rejected, this, &VariableSettingsDialog::slotRejected ) );
 
-    ATVERIFY( connect( tabWidget, SIGNAL( currentChanged(int) ), this, SLOT( slotTabChanged(int) ) ) );
+    ATVERIFY( connect( tabWidget, &QTabWidget::currentChanged,  this, &VariableSettingsDialog::slotTabChanged ) );
 
 	//Passwords table
 	tableIdents->clear();
@@ -30,14 +30,14 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	identHeaders << "Used" << "Variable Name" << "User ID" << "Password" << "";
 	tableIdents->setHorizontalHeaderLabels(identHeaders);
 
-	ATVERIFY( connect( tableIdents,			SIGNAL( itemChanged(QTableWidgetItem*) ),	this, SLOT( slotPwdItemChanged(QTableWidgetItem*) ) ) );
-	ATVERIFY( connect( tableIdents,			SIGNAL( itemSelectionChanged() ),			this, SLOT( slotPwdUpdateControls() ) ) );
-	ATVERIFY( connect( buttonPwdShowAll,	SIGNAL( toggled(bool) ),					this, SLOT( slotPwdShowPasswords(bool) ) ) );
-	ATVERIFY( connect( btnPwdAdd,			SIGNAL( clicked() ),						this, SLOT( slotPwdAdd() ) ) );
-	ATVERIFY( connect( tableIdents,			SIGNAL( signalKeyCtrlNPressed() ),			this, SLOT( slotPwdAdd() ) ) );
-	ATVERIFY( connect( btnPwdDelete,		SIGNAL( clicked() ),						this, SLOT( slotPwdDelete() ) ) );
-	ATVERIFY( connect( tableIdents,			SIGNAL( signalKeyDeletePressed() ),			this, SLOT( slotPwdDelete() ) ) );
-    ATVERIFY( connect( btnPwdEnableEdit,	SIGNAL( toggled(bool) ),					this, SLOT( slotPwdEnableEditView(bool) ) ) );
+    ATVERIFY( connect( tableIdents,         &TableWidget::itemChanged,              this, &VariableSettingsDialog::slotPwdItemChanged ) );
+    ATVERIFY( connect( tableIdents,         &TableWidget::itemSelectionChanged,     this, &VariableSettingsDialog::slotPwdUpdateControls ) );
+    ATVERIFY( connect( buttonPwdShowAll,    &QAbstractButton::toggled,              this, &VariableSettingsDialog::slotPwdShowPasswords ) );
+    ATVERIFY( connect( btnPwdAdd,           &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotPwdAdd ) );
+    ATVERIFY( connect( tableIdents,         &TableWidget::signalKeyCtrlNPressed,    this, &VariableSettingsDialog::slotPwdAdd ) );
+    ATVERIFY( connect( btnPwdDelete,        &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotPwdDelete ) );
+    ATVERIFY( connect( tableIdents,         &TableWidget::signalKeyDeletePressed,   this, &VariableSettingsDialog::slotPwdDelete ) );
+    ATVERIFY( connect( btnPwdEnableEdit,    &QAbstractButton::toggled,              this, &VariableSettingsDialog::slotPwdEnableEditView ) );
 
 #ifdef Q_OS_MACOS
     btnPwdAdd->setToolTip("Add (Cmd+N))");
@@ -58,16 +58,16 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
     execHeaders << "Used" << "Variable Name" << "Executable File" << "Args" << "" << "Description";
 	tableExecutables->setHorizontalHeaderLabels(execHeaders);
 	
-	ATVERIFY( connect( tableExecutables,	SIGNAL( itemChanged(QTableWidgetItem*) ),	this, SLOT( slotExecItemChanged(QTableWidgetItem*) ) ) );
-	ATVERIFY( connect( tableExecutables,	SIGNAL( itemSelectionChanged() ),			this, SLOT( slotExecUpdateControls() ) ) );
-	ATVERIFY( connect( btnExecAdd,			SIGNAL( clicked() ),						this, SLOT( slotExecAdd() ) ) );
-	ATVERIFY( connect( tableExecutables,	SIGNAL( signalKeyCtrlNPressed() ),			this, SLOT( slotExecAdd() ) ) );
-	ATVERIFY( connect( btnExecDelete,		SIGNAL( clicked() ),						this, SLOT( slotExecDelete() ) ) );
-	ATVERIFY( connect( tableExecutables,	SIGNAL( signalKeyDeletePressed() ),			this, SLOT( slotExecDelete() ) ) );
-	ATVERIFY( connect( btnExecMoveUp,		SIGNAL( clicked() ),						this, SLOT( slotExecMoveUp() ) ) );
-	ATVERIFY( connect( tableExecutables,	SIGNAL( signalKeyCtrlUpPressed() ),			this, SLOT( slotExecMoveUp() ) ) );
-	ATVERIFY( connect( btnExecMoveDown,		SIGNAL( clicked() ),						this, SLOT( slotExecMoveDown() ) ) );
-	ATVERIFY( connect( tableExecutables,	SIGNAL( signalKeyCtrlDownPressed() ),		this, SLOT( slotExecMoveDown() ) ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::itemChanged,              this, &VariableSettingsDialog::slotExecItemChanged ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::itemSelectionChanged,     this, &VariableSettingsDialog::slotExecUpdateControls ) );
+    ATVERIFY( connect( btnExecAdd,          &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotExecAdd ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::signalKeyCtrlNPressed,    this, &VariableSettingsDialog::slotExecAdd ) );
+    ATVERIFY( connect( btnExecDelete,       &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotExecDelete ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::signalKeyDeletePressed,   this, &VariableSettingsDialog::slotExecDelete ) );
+    ATVERIFY( connect( btnExecMoveUp,       &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotExecMoveUp ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::signalKeyCtrlUpPressed,   this, &VariableSettingsDialog::slotExecMoveUp ) );
+    ATVERIFY( connect( btnExecMoveDown,     &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotExecMoveDown ) );
+    ATVERIFY( connect( tableExecutables,    &TableWidget::signalKeyCtrlDownPressed, this, &VariableSettingsDialog::slotExecMoveDown ) );
 
 #ifdef Q_OS_MACOS
     btnExecAdd->setToolTip("Add (Cmd+N)");
@@ -92,16 +92,16 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	userHeaders << "Used" << "Variable Name" << "Variable Value" << "" << "Description";
 	tableUser->setHorizontalHeaderLabels(userHeaders);
 
-	ATVERIFY( connect( tableUser,		SIGNAL( itemChanged(QTableWidgetItem*) ),	this, SLOT( slotUserItemChanged(QTableWidgetItem*) ) ) );
-	ATVERIFY( connect( tableUser,		SIGNAL( itemSelectionChanged() ),			this, SLOT( slotUserUpdateControls() ) ) );
-	ATVERIFY( connect( btnUserAdd,		SIGNAL( clicked() ),						this, SLOT( slotUserAdd() ) ) );
-	ATVERIFY( connect( tableUser,		SIGNAL( signalKeyCtrlNPressed() ),			this, SLOT( slotUserAdd() ) ) );
-	ATVERIFY( connect( btnUserDelete,	SIGNAL( clicked() ),						this, SLOT( slotUserDelete() ) ) );
-	ATVERIFY( connect( tableUser,		SIGNAL( signalKeyDeletePressed() ),			this, SLOT( slotUserDelete() ) ) );
-	ATVERIFY( connect( btnUserMoveUp,	SIGNAL( clicked() ),						this, SLOT( slotUserMoveUp() ) ) );
-	ATVERIFY( connect( tableUser,		SIGNAL( signalKeyCtrlUpPressed() ),			this, SLOT( slotUserMoveUp() ) ) );
-	ATVERIFY( connect( btnUserMoveDown,	SIGNAL( clicked() ),						this, SLOT( slotUserMoveDown() ) ) );
-	ATVERIFY( connect( tableUser,		SIGNAL( signalKeyCtrlDownPressed() ),		this, SLOT( slotUserMoveDown() ) ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::itemChanged,              this, &VariableSettingsDialog::slotUserItemChanged ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::itemSelectionChanged,     this, &VariableSettingsDialog::slotUserUpdateControls ) );
+    ATVERIFY( connect( btnUserAdd,      &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotUserAdd ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::signalKeyCtrlNPressed,    this, &VariableSettingsDialog::slotUserAdd ) );
+    ATVERIFY( connect( btnUserDelete,   &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotUserDelete ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::signalKeyDeletePressed,   this, &VariableSettingsDialog::slotUserDelete ) );
+    ATVERIFY( connect( btnUserMoveUp,   &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotUserMoveUp ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::signalKeyCtrlUpPressed,   this, &VariableSettingsDialog::slotUserMoveUp ) );
+    ATVERIFY( connect( btnUserMoveDown, &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotUserMoveDown ) );
+    ATVERIFY( connect( tableUser,       &TableWidget::signalKeyCtrlDownPressed, this, &VariableSettingsDialog::slotUserMoveDown ) );
 
 #ifdef Q_OS_MACOS
     btnUserAdd->setToolTip("Add (Cmd+N)");
@@ -1260,8 +1260,8 @@ void VariableSettingsDialog::slotPwdUpdateTableWidgets()
 			btn->setToolTip("Click to show the password");
 			btn->setAutoRaise(true);
 			tableIdents->setCellWidget(row,PWD_COL_BUTTON,btn);
-			ATVERIFY( connect( btn,	SIGNAL( signalToggled(bool,int,int) ),	this, SLOT( slotPwdShowPassword(bool,int,int) ) ) );
-			ATVERIFY( connect( btn,	SIGNAL( signalClicked(int,int) ),		tableIdents, SLOT( slotSetCurrentCell(int,int) ) ) );
+            ATVERIFY( connect( btn,	&TableWidgetToolButton::signalToggled,  this, &VariableSettingsDialog::slotPwdShowPassword ) );
+            ATVERIFY( connect( btn,	&TableWidgetToolButton::signalClicked,  tableIdents, &TableWidget::slotSetCurrentCell ) );
 		}
 
 		TableWidgetLineEdit *editPwd = qobject_cast<TableWidgetLineEdit*>(tableIdents->cellWidget(row,PWD_COL_PWD));
@@ -1273,7 +1273,7 @@ void VariableSettingsDialog::slotPwdUpdateTableWidgets()
 			editPwd->setText(tableIdents->item(row, PWD_COL_PWD)->text());
 			tableIdents->item(row, PWD_COL_PWD)->setText("");
 			tableIdents->setCellWidget(row, PWD_COL_PWD, editPwd);
-			ATVERIFY( connect( editPwd,	SIGNAL( setCurrentCell(int,int) ),	tableIdents, SLOT( slotSetCurrentCell(int,int) ) ) );
+            ATVERIFY( connect( editPwd,	&TableWidgetLineEdit::setCurrentCell, tableIdents, &TableWidget::slotSetCurrentCell ) );
 		}
 
         editPwd->setReadOnly(!(m_bEditingEnabled && btnPwdEnableEdit->isChecked()));
@@ -1304,7 +1304,7 @@ void VariableSettingsDialog::slotExecUpdateBrowseButtons()
 			btn->setToolTip("Click to browse for file...");
 			btn->setAutoRaise(true);
 			tableExecutables->setCellWidget(row,EXECUTABLES_COL_BUTTON,btn);
-			ATVERIFY( connect( btn,	SIGNAL( signalClicked(int,int) ), this, SLOT( slotExecBrowse(int,int) ) ) );
+            ATVERIFY( connect( btn,	&TableWidgetToolButton::signalClicked, this, &VariableSettingsDialog::slotExecBrowse ) );
 		}
 		btn->setEnabled(m_bEditingEnabled);
     }
@@ -1356,7 +1356,7 @@ void VariableSettingsDialog::slotExecBrowse(int row, int column)
 void VariableSettingsDialog::slotExecAdd()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
 
 	int row = tableExecutables->addRowBelowSelected();
 	QTableWidgetItem *itemInUse = tableExecutables->item(row,EXECUTABLES_COL_INUSE);
@@ -1383,7 +1383,7 @@ void VariableSettingsDialog::slotExecAdd()
 	//Updates the browse button rowIndex in all rows
 	slotExecUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotExecItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged ) );
 }
 
 void VariableSettingsDialog::slotExecDelete()
@@ -1404,27 +1404,27 @@ void VariableSettingsDialog::slotExecDelete()
 void VariableSettingsDialog::slotExecMoveUp()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
 
 	tableExecutables->moveSelectedRowUp();
 
 	//Updates the browse button rowIndex in all rows
 	slotExecUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotExecItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged ) );
 }
 
 void VariableSettingsDialog::slotExecMoveDown()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
 
 	tableExecutables->moveSelectedRowDown();
 
 	//Updates the browse button rowIndex in all rows
 	slotExecUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotExecItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged ) );
 }
 
 void VariableSettingsDialog::slotExecUpdateControls()
@@ -1454,7 +1454,7 @@ void VariableSettingsDialog::slotExecItemChanged(QTableWidgetItem *item)
 	qDebug() << "slotExecItemChanged slotExecItemChanged slotExecItemChanged " << item->text();
 
 	//since we change ourselves, _DO_NOT_ trigger change event while we are in here
-	disconnect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
 
 	//Trim
 	QString itemText = item->text();
@@ -1537,7 +1537,7 @@ void VariableSettingsDialog::slotExecItemChanged(QTableWidgetItem *item)
 
     } // end - if(item->column() == EXECUTABLES_COL_ARGS) {
 
-	ATVERIFY( connect( tableExecutables, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotExecItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged ) );
 }
 
 void VariableSettingsDialog::slotUserBrowse(int row, int column)
@@ -1564,7 +1564,7 @@ void VariableSettingsDialog::slotUserBrowse(int row, int column)
 void VariableSettingsDialog::slotUserAdd()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
 
 	int row = tableUser->addRowBelowSelected();
 	QTableWidgetItem *itemInUse = tableUser->item(row,USERDEF_COL_INUSE);
@@ -1588,7 +1588,7 @@ void VariableSettingsDialog::slotUserAdd()
 	//Updates the browse button rowIndex in all rows
 	slotUserUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotUserItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged ) );
 }
  
 void VariableSettingsDialog::slotUserDelete()
@@ -1609,27 +1609,27 @@ void VariableSettingsDialog::slotUserDelete()
 void VariableSettingsDialog::slotUserMoveUp()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
 
 	tableUser->moveSelectedRowUp();
 
 	//Updates the browse button rowIndex in all rows
 	slotUserUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotUserItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged ) );
 }
 
 void VariableSettingsDialog::slotUserMoveDown()
 {
 	if(!m_bEditingEnabled) return;
-	disconnect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ),	0, 0 );
+    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
 
 	tableUser->moveSelectedRowDown();
 
 	//Updates the browse button rowIndex in all rows
 	slotUserUpdateBrowseButtons();
 
-	ATVERIFY( connect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotUserItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged ) );
 }
 
 void VariableSettingsDialog::slotUserUpdateControls()
@@ -1658,22 +1658,6 @@ void VariableSettingsDialog::slotUserUpdateBrowseButtons()
 {
 	//update our browse buttons
     tableUser->hideColumn(USERDEF_COL_BUTTON);
-    /*
-	for(int row=0;row<tableUser->rowCount();row++) {
-		TableWidgetToolButton *btn = static_cast<TableWidgetToolButton*>( tableUser->cellWidget(row,USERDEF_COL_BUTTON) );
-		if(btn != NULL) {
-			btn->setRowIndex(row);
-		} else {
-			btn = new TableWidgetToolButton(this,row,USERDEF_COL_BUTTON);
-			btn->setText("...");
-			btn->setToolTip("Click to browse for file...");
-			btn->setAutoRaise(true);
-			tableUser->setCellWidget(row,USERDEF_COL_BUTTON,btn);
-			ATVERIFY( connect( btn,	SIGNAL( signalClicked(int,int) ), this, SLOT( slotUserBrowse(int,int) ) ) );
-		}
-		btn->setEnabled(m_bEditingEnabled);
-	}	
-    */
 }
 
 void VariableSettingsDialog::slotUserItemChanged(QTableWidgetItem *item)
@@ -1681,7 +1665,7 @@ void VariableSettingsDialog::slotUserItemChanged(QTableWidgetItem *item)
 	qDebug() << "slotUserItemChanged slotUserItemChanged slotUserItemChanged " << item->text();
 
 	//since we change ourselves, _DO_NOT_ trigger change event while we are in here
-	disconnect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ), 0, 0 );
+    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
 
 	//Trim
 	QString itemText = item->text();
@@ -1760,7 +1744,7 @@ void VariableSettingsDialog::slotUserItemChanged(QTableWidgetItem *item)
 
 	} // end - if(item->column() == USERDEF_COL_VALUE) {
 
-	ATVERIFY( connect( tableUser, SIGNAL( itemChanged(QTableWidgetItem*) ), this, SLOT( slotUserItemChanged(QTableWidgetItem*) ) ) );
+    ATVERIFY( connect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged ) );
 }
 
 
