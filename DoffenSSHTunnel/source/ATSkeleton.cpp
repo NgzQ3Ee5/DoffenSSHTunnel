@@ -3674,22 +3674,22 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     pt->pPopulateChildNodesProcess = new QProcess;
     pt->pPopulateChildNodesProcess->setProcessChannelMode( QProcess::MergedChannels );
 
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      SIGNAL( readyReadStandardOutput() ),
-                       pt->pPopulateChildNodesConnector,    SLOT( slotProcessReadStandardOutput() ) ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      SIGNAL( readyReadStandardError() ),
-                       pt->pPopulateChildNodesConnector,    SLOT( slotProcessReadStandardError() ) ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      SIGNAL( error(QProcess::ProcessError) ),
-                       pt->pPopulateChildNodesConnector,    SLOT( slotProcessError(QProcess::ProcessError) ) ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      SIGNAL( finished(int, QProcess::ExitStatus) ),
-                       pt->pPopulateChildNodesConnector,    SLOT( slotProcessFinished(int, QProcess::ExitStatus) ) ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesConnector,    SIGNAL( finished(Tunnel_c*) ),
-                       this, SLOT( slotConnectorPopulateChildNodesWithExternalCommandFinished(Tunnel_c*) ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::readyReadStandardOutput,
+                       pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessReadStandardOutput ) );
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::readyReadStandardError,
+                       pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessReadStandardError ) );
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::errorOccurred,
+                       pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessError ) );
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::finished,
+                       pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessFinished ) );
+    ATVERIFY( connect( pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::finished,
+                       this, &ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinished, Qt::QueuedConnection ) );
 
     pt->pPopulateChildNodesProcess->start( replaceVars(*pt, strCommand) );
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
-        ATVERIFY( connect( pt->pPopulateChildNodesProcess, SIGNAL( finished(int, QProcess::ExitStatus) ),pd, SLOT( cancel() ) ) );
-        ATVERIFY( connect( pd, SIGNAL( canceled() ), pt->pPopulateChildNodesConnector, SLOT( slotCancel() ) ) );
+        ATVERIFY( connect( pt->pPopulateChildNodesProcess, &QProcess::finished, pd, &QProgressDialog::cancel ) );
+        ATVERIFY( connect( pd, &QProgressDialog::canceled, pt->pPopulateChildNodesConnector, &ATPopulateChildNodesConnector_c::slotCancel ) );
         pd->setModal(true);
         pd->show();
     } else {
