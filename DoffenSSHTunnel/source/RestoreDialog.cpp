@@ -252,26 +252,26 @@ RestoreDialog::RestoreDialog(QWidget *parent)
 	buttonRestore->setEnabled(false);
 
 	//Buttons
-	ATVERIFY( connect( buttonRestore,	SIGNAL( clicked() ),		this,SLOT(OnOK())) );
-	ATVERIFY( connect( buttonCancel,	SIGNAL( clicked() ),		this,SLOT(OnCancel())) );
+    ATVERIFY( connect( buttonRestore,	&QAbstractButton::clicked,	this, &RestoreDialog::OnOK ) );
+    ATVERIFY( connect( buttonCancel,	&QAbstractButton::clicked,	this, &RestoreDialog::OnCancel ) );
 
 	//Dialog
-	ATVERIFY( connect( this,			SIGNAL( finished(int) ),	this, SLOT( slotFinished() ) ) );
-	ATVERIFY( connect( this,			SIGNAL( signalLoadData() ), this, SLOT( slotLoadData() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( this,			&RestoreDialog::finished,       this, &RestoreDialog::slotFinished ) );
+    ATVERIFY( connect( this,			&RestoreDialog::signalLoadData, this, &RestoreDialog::slotLoadData, Qt::QueuedConnection ) );
 
 	//TableView
-	connect(tableView->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(slotCurrentChanged(QModelIndex, QModelIndex)));
+    connect( tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &RestoreDialog::slotCurrentChanged );
 
 	//Backup type filter
-	ATVERIFY( connect(chkManual,		SIGNAL( toggled(bool) ),	this, SLOT( slotBackupTypeFilterChanged() ) ) );
-	ATVERIFY( connect(chkAuto,			SIGNAL( toggled(bool) ),	this, SLOT( slotBackupTypeFilterChanged() ) ) );
-	ATVERIFY( connect(chkAutoSpes,		SIGNAL( toggled(bool) ),	this, SLOT( slotBackupTypeFilterChanged() ) ) );
+    ATVERIFY( connect(chkManual,		&QAbstractButton::toggled,	this, &RestoreDialog::slotBackupTypeFilterChanged ) );
+    ATVERIFY( connect(chkAuto,			&QAbstractButton::toggled,	this, &RestoreDialog::slotBackupTypeFilterChanged ) );
+    ATVERIFY( connect(chkAutoSpes,		&QAbstractButton::toggled,	this, &RestoreDialog::slotBackupTypeFilterChanged ) );
 	
 	//Text filter
-	ATVERIFY( connect(txtFilter,		SIGNAL( textChanged(const QString&) ),	this, SLOT( slotTextFilterChanged(const QString&) ) ) );
+    ATVERIFY( connect(txtFilter,		&QLineEdit::textChanged,	this, &RestoreDialog::slotTextFilterChanged ) );
 
 	//Counter
-	ATVERIFY( connect(tableView->verticalHeader(),		SIGNAL( sectionCountChanged(int,int) ),	this, SLOT( slotRowCountChanged(int,int) ) ) );
+    ATVERIFY( connect(tableView->verticalHeader(), &QHeaderView::sectionCountChanged, this, &RestoreDialog::slotRowCountChanged ) );
 
 	setWindowTitle("Restore backup");
 }
@@ -447,10 +447,26 @@ void RestoreDialog::slotBackupTypeFilterChanged()
 
 void RestoreDialog::slotTextFilterChanged(const QString & text)
 {
-	QString searchFor = text;
-	searchFor.replace(' ',"*");
-    proxyModel->setFilterRegularExpression(QRegularExpression(QRegularExpression::wildcardToRegularExpression(searchFor),
-                                                   QRegularExpression::CaseInsensitiveOption));
+    if (text.isEmpty()) {
+        // Clear filter if input is empty
+        proxyModel->setFilterRegularExpression(QRegularExpression());
+        return;
+    }
+
+    QString searchFor = text;
+    searchFor.replace(' ', "*"); // Replace spaces with wildcard '*'
+    if(!searchFor.startsWith("*")) {
+        searchFor = "*" + searchFor;
+    }
+    if(!searchFor.endsWith("*")) {
+        searchFor = searchFor + "*";
+    }
+
+    // Convert wildcards (*) to a valid regular expression
+    QString regexPattern = QRegularExpression::wildcardToRegularExpression(searchFor);
+
+    // Set the filter using QRegularExpression (modern Qt 6)
+    proxyModel->setFilterRegularExpression(QRegularExpression(regexPattern, QRegularExpression::CaseInsensitiveOption));
 }
 
 void RestoreDialog::slotRowCountChanged(int oldRowCount,int newRowCount)
