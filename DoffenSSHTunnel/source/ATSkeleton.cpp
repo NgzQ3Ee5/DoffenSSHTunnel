@@ -4120,15 +4120,15 @@ void ATSkeletonWindow::recursiveDisconnectTunnelSignals( QTreeWidgetItem* twi )
 	{
 		qDebug() << Q_FUNC_INFO << pt->strName;
 		if(pt->pProcess != NULL) {
-			ATVERIFY( disconnect( pt->pProcess, SIGNAL( readyReadStandardOutput() ), 0, 0 ) );
-			ATVERIFY( disconnect( pt->pProcess, SIGNAL( readyReadStandardError() ), 0, 0 ) );
-			ATVERIFY( disconnect( pt->pProcess, SIGNAL( error(QProcess::ProcessError) ), 0, 0 ) );
-			ATVERIFY( disconnect( pt->pProcess, SIGNAL( finished(int, QProcess::ExitStatus) ), 0, 0 ) );
+            ATVERIFY( disconnect( pt->pProcess, &QProcess::readyReadStandardOutput, nullptr, nullptr ) );
+            ATVERIFY( disconnect( pt->pProcess, &QProcess::readyReadStandardError, nullptr, nullptr ) );
+            ATVERIFY( disconnect( pt->pProcess, &QProcess::errorOccurred, nullptr, nullptr ) );
+            ATVERIFY( disconnect( pt->pProcess, &QProcess::finished, nullptr, nullptr ) );
 		}
 		if(pt->pConnector != NULL) {
-			ATVERIFY( disconnect( pt->pConnector, SIGNAL( finished(Tunnel_c*) ), 0, 0 ) );
-			ATVERIFY( disconnect( pt->pConnector, SIGNAL( signalConnected(QTreeWidgetItem*) ), 0, 0 ) );
-            ATVERIFY( disconnect( pt->pConnector, SIGNAL( signalKillConnection(QTreeWidgetItem*) ), 0, 0 ) );
+            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::finished, nullptr, nullptr ) );
+            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::signalConnected, nullptr, nullptr ) );
+            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, nullptr, nullptr ) );
         }
 	}
 
