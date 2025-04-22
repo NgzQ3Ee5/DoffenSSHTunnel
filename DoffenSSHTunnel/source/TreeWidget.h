@@ -223,7 +223,7 @@ public slots:
 	void slotMoveDown();
 
 	//connected to signalKeySpacePressed() Qt::QueuedConnection
-	void slotUpdateCheckStateInheritance(); 
+    void slotUpdateCheckStateInheritanceCurrentItem();
 	//called by slotItemClicked(...) if m_bCheckStateInheritanceEnabled
 	void slotUpdateCheckStateInheritance(QTreeWidgetItem* twi, int col); 
 

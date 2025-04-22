@@ -32,13 +32,13 @@ TreeWidget::TreeWidget(QWidget *parent)
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	m_pContextMenu = new QMenu(this);
 
-	ATVERIFY( connect( &m_timerModifiedSignal,			SIGNAL( timeout() ),	this, SLOT( slotModifiedTimerTimeout() ), Qt::QueuedConnection ) );
-	ATVERIFY( connect( &m_timerSaveSignal,				SIGNAL( timeout() ),	this, SLOT( slotSaveTimerTimeout() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( &m_timerModifiedSignal,  &QTimer::timeout,       this, &TreeWidget::slotModifiedTimerTimeout, Qt::QueuedConnection ) );
+    ATVERIFY( connect( &m_timerSaveSignal,      &QTimer::timeout,       this, &TreeWidget::slotSaveTimerTimeout, Qt::QueuedConnection ) );
 
-	ATVERIFY( connect( this, SIGNAL( customContextMenuRequested (const QPoint&) ), this, SLOT( slotCustomContextMenuRequested(const QPoint&) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( itemClicked( QTreeWidgetItem*, int ) ), this, SLOT( slotItemClicked( QTreeWidgetItem*, int ) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeySpacePressed() ),				 this, SLOT( slotUpdateCheckStateInheritance() ), Qt::QueuedConnection ) );
-	ATVERIFY( connect( this, SIGNAL( itemChanged(QTreeWidgetItem*,int) ),	 this, SLOT( slotItemChanged(QTreeWidgetItem*,int) ) ) );
+    ATVERIFY( connect( this, &TreeWidget::customContextMenuRequested,   this, &TreeWidget::slotCustomContextMenuRequested, Qt::QueuedConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::itemClicked,                  this, &TreeWidget::slotItemClicked, Qt::QueuedConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeySpacePressed,		this, &TreeWidget::slotUpdateCheckStateInheritanceCurrentItem, Qt::QueuedConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::itemChanged,                  this, &TreeWidget::slotItemChanged, Qt::QueuedConnection ) );
 }
 
 TreeWidget::~TreeWidget()
@@ -118,10 +118,10 @@ void TreeWidget::setupCheckControls()
 	m_pContextMenu->addAction(m_pCheckAllChildren);
 	m_pContextMenu->addAction(m_pUnCheckAllChildren);
 
-	ATVERIFY( connect( m_pCheckSelected,		SIGNAL( triggered() ),		this, SLOT( slotCheckSelected() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pUnCheckSelected,		SIGNAL( triggered() ),		this, SLOT( slotUnCheckSelected() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pCheckAllChildren,		SIGNAL( triggered() ),		this, SLOT( slotCheckAllChildren() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pUnCheckAllChildren,	SIGNAL( triggered() ),		this, SLOT( slotUnCheckAllChildren() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pCheckSelected,		&QAction::triggered, this, &TreeWidget::slotCheckSelected, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pUnCheckSelected,		&QAction::triggered, this, &TreeWidget::slotUnCheckSelected, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pCheckAllChildren,		&QAction::triggered, this, &TreeWidget::slotCheckAllChildren, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pUnCheckAllChildren,	&QAction::triggered, this, &TreeWidget::slotUnCheckAllChildren, Qt::UniqueConnection ) );
 }
 
 //public
@@ -191,34 +191,34 @@ void TreeWidget::setupStandardControls()
 	m_pContextMenu->addSeparator();
 	m_pContextMenu->addAction(m_pActionDelete);
 
-	ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ),					this, SLOT( slotUpdateControls() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlUpPressed() ),				this, SLOT( slotMoveUp() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlDownPressed() ),				this, SLOT( slotMoveDown() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlLeftPressed() ),				this, SLOT( slotMoveLeft() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlRightPressed() ),				this, SLOT( slotMoveRight() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyEscapePressed() ),				this, SLOT( slotClearPasteItems() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyDeletePressed() ),				this, SLOT( slotDelete() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlCPressed() ),					this, SLOT( slotCopy() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlXPressed() ),					this, SLOT( slotCut() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlVPressed() ),					this, SLOT( slotPasteAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalPasteEnabled() ),					this, SLOT( slotUpdateControls() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalPasteDisabled() ),					this, SLOT( slotUpdateControls() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionEdit,		SIGNAL( triggered() ),				this, SLOT( slotEdit() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionDuplicate,	SIGNAL( triggered() ),				this, SLOT( slotDuplicate() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertFolderAfter,SIGNAL( triggered() ),		this, SLOT( slotInsertFolderAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertFolderBefore,SIGNAL( triggered() ),		this, SLOT( slotInsertFolderBefore() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertFolderChild,SIGNAL( triggered() ),		this, SLOT( slotInsertFolderChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertAfter,SIGNAL( triggered() ),				this, SLOT( slotInsertAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( this, SIGNAL( signalKeyCtrlNPressed() ),					this, SLOT( slotInsertAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertBefore,SIGNAL( triggered() ),				this, SLOT( slotInsertBefore() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionInsertChild,SIGNAL( triggered() ),				this, SLOT( slotInsertChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionCut,		SIGNAL( triggered() ),				this, SLOT( slotCut() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionCopy,		SIGNAL( triggered() ),				this, SLOT( slotCopy() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionPasteAfter,	SIGNAL( triggered() ),				this, SLOT( slotPasteAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionPasteBefore,SIGNAL( triggered() ),				this, SLOT( slotPasteBefore() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pPasteChild,		SIGNAL( triggered() ),				this, SLOT( slotPasteChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pActionDelete,		SIGNAL( triggered() ),				this, SLOT( slotDelete() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pActionRename,		SIGNAL( triggered() ),				this, SLOT( slotRename() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged,             this, &TreeWidget::slotUpdateControls, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlUpPressed,           this, &TreeWidget::slotMoveUp, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlDownPressed,         this, &TreeWidget::slotMoveDown, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlLeftPressed,         this, &TreeWidget::slotMoveLeft, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget:: signalKeyCtrlRightPressed,       this, &TreeWidget::slotMoveRight, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyEscapePressed,           this, &TreeWidget:: slotClearPasteItems, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyDeletePressed,           this, &TreeWidget::slotDelete, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlCPressed,            this, &TreeWidget::slotCopy, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlXPressed,            this, &TreeWidget::slotCut, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlVPressed,            this, &TreeWidget::slotPasteAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalPasteEnabled,               this, &TreeWidget::slotUpdateControls, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalPasteDisabled,              this, &TreeWidget::slotUpdateControls, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionEdit,               &QAction::triggered,    this, &TreeWidget::slotEdit, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionDuplicate,          &QAction::triggered,    this, &TreeWidget::slotDuplicate, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertFolderAfter,  &QAction::triggered,    this, &TreeWidget::slotInsertFolderAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertFolderBefore, &QAction::triggered,    this, &TreeWidget::slotInsertFolderBefore, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertFolderChild,  &QAction::triggered,    this, &TreeWidget::slotInsertFolderChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertAfter,        &QAction::triggered,    this, &TreeWidget::slotInsertAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( this, &TreeWidget::signalKeyCtrlNPressed,            this, &TreeWidget::slotInsertAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertBefore,       &QAction::triggered,    this, &TreeWidget::slotInsertBefore, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionInsertChild,        &QAction::triggered,    this, &TreeWidget::slotInsertChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionCut,                &QAction::triggered,    this, &TreeWidget::slotCut, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionCopy,               &QAction::triggered,    this, &TreeWidget::slotCopy, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionPasteAfter,         &QAction::triggered,    this, &TreeWidget::slotPasteAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionPasteBefore,        &QAction::triggered,    this, &TreeWidget::slotPasteBefore, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pPasteChild,               &QAction::triggered,    this, &TreeWidget::slotPasteChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionDelete,             &QAction::triggered,    this, &TreeWidget::slotDelete, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pActionRename,             &QAction::triggered,    this, &TreeWidget::slotRename, Qt::UniqueConnection ) );
 }
 
 void TreeWidget::setAllowItemsToBeParents(bool allow)
@@ -260,7 +260,7 @@ void TreeWidget::slotItemChanged(QTreeWidgetItem *, int)
 }
 
 //public connected to signalKeySpacePressed() Qt::QueuedConnection
-void TreeWidget::slotUpdateCheckStateInheritance()
+void TreeWidget::slotUpdateCheckStateInheritanceCurrentItem()
 {
 	if(m_bCheckStateInheritanceEnabled) {
 		QTreeWidgetItem *twi = currentItem();
@@ -375,7 +375,7 @@ void TreeWidget::slotDelete()
  	if ( iRet == QMessageBox::Yes )
  	{
 		if(m_bUsingStandardControls) {
-			ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+            ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 		}
 
 		deleteItems(twiList);
@@ -389,7 +389,7 @@ void TreeWidget::slotDelete()
 		slotUpdateControls(); //notifies listener
 
 		if(m_bUsingStandardControls) {
-			ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+            ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 		}
 	}
 }
@@ -1185,7 +1185,7 @@ QList<QTreeWidgetItem*> TreeWidget::pasteAtItem(QTreeWidgetItem *twiPasteAt, int
 	QList<QTreeWidgetItem*> pastedItems;
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	for(int i=0; i<m_listItemsToPaste.size(); i++) {
@@ -1201,7 +1201,7 @@ QList<QTreeWidgetItem*> TreeWidget::pasteAtItem(QTreeWidgetItem *twiPasteAt, int
 	slotUpdateControls(); //notifies listener
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	return pastedItems;
@@ -1279,7 +1279,7 @@ void TreeWidget::handleModifiedAndSave()
 void TreeWidget::insertAtCurrentItem(QTreeWidgetItem* twiInsert, int insertMode)
 {
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	QTreeWidgetItem *twiInsertAt = currentItem();
@@ -1292,7 +1292,7 @@ void TreeWidget::insertAtCurrentItem(QTreeWidgetItem* twiInsert, int insertMode)
 	slotUpdateControls(); //notifies listener
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 }
 
@@ -1457,7 +1457,7 @@ bool TreeWidget::moveItemsUp(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsUp(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	clearPasteItems();
@@ -1484,7 +1484,7 @@ bool TreeWidget::moveItemsUp(QList<QTreeWidgetItem*> twiList)
 	slotUpdateControls();
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	emit signalAfterMoveItemsUp(twiListNorm);
@@ -1529,7 +1529,7 @@ bool TreeWidget::moveItemsDown(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsDown(twiList);
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	clearPasteItems();
@@ -1554,7 +1554,7 @@ bool TreeWidget::moveItemsDown(QList<QTreeWidgetItem*> twiList)
 	slotUpdateControls();
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	emit signalAfterMoveItemsDown(twiListNorm);
@@ -1598,7 +1598,7 @@ bool TreeWidget::moveItemsLeft(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsLeft(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	clearPasteItems();
@@ -1623,7 +1623,7 @@ bool TreeWidget::moveItemsLeft(QList<QTreeWidgetItem*> twiList)
 	slotUpdateControls();
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	emit signalAfterMoveItemsLeft(twiListNorm);
@@ -1684,7 +1684,7 @@ bool TreeWidget::moveItemsRight(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsRight(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY ( disconnect( this, SIGNAL( itemSelectionChanged() ), 0, 0 ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
 	}
 
 	clearPasteItems();
@@ -1709,7 +1709,7 @@ bool TreeWidget::moveItemsRight(QList<QTreeWidgetItem*> twiList)
 	slotUpdateControls();
 
 	if(m_bUsingStandardControls) {
-		ATVERIFY( connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( slotUpdateControls() ) ) );
+        ATVERIFY( connect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	emit signalAfterMoveItemsRight(twiListNorm);
