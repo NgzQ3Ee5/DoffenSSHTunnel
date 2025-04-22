@@ -85,7 +85,7 @@ void CustomActionsEditWidget::setData(Tunnel_c *pTunnel)
 	m_pTunnel = pTunnel;
 
 	m_pSkeletonWindow->ui.treeCustomActionsEdit->setModifiedAndSaveSignalEnabled(false);
-
+    m_pSkeletonWindow->ui.treeCustomActionsEdit->blockSignals(true);
 	m_pSkeletonWindow->ui.treeCustomActionsEdit->clear(); 
 	QTreeWidgetItem* lastTwi = NULL;
 	int lastLevel = 0;
@@ -143,6 +143,7 @@ void CustomActionsEditWidget::setData(Tunnel_c *pTunnel)
 
 	slotUpdateControls();
 
+    m_pSkeletonWindow->ui.treeCustomActionsEdit->blockSignals(false);
 	m_pSkeletonWindow->ui.treeCustomActionsEdit->setModifiedAndSaveSignalEnabled(true);
 }
 
