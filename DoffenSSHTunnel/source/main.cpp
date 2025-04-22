@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<PortForwardStruct>();
 
     QApplication app(argc, argv);
-    // ATASSERT( app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit())) );
+    // ATASSERT( app.connect(&app, &QApplication::lastWindowClosed, &app, &QApplication::quit) );
     app.setApplicationVersion(APP_VERSION);
     app.setApplicationName(SETTINGS_APP);
     app.setApplicationDisplayName(APP_NICE_NAME);
