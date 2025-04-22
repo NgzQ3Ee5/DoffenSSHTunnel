@@ -5,8 +5,8 @@ SSHHostDialog::SSHHostDialog(QWidget *parent, const QString& host)
 : QDialog(parent)
 {
 	setupUi(this);
-	connect(buttonBox->button(QDialogButtonBox::Ok),SIGNAL(clicked()),this,SLOT(OnOK()));
-	connect(buttonBox->button(QDialogButtonBox::Cancel),SIGNAL(clicked()),this,SLOT(OnCancel()));
+    connect(buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &SSHHostDialog::OnOK);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked, this, &SSHHostDialog::OnCancel);
 
 	sshHost = host;
 	editSSHHost->setPlainText(host);
