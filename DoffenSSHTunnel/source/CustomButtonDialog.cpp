@@ -26,12 +26,12 @@ CustomButtonDialog::CustomButtonDialog(QWidget *parent, ATSkeletonWindow *pMainW
 #endif
 	m_pTableVarContextMenu->addAction(m_pTableVarActionCopy);
 
-	ATVERIFY( connect( tableVarHelp, SIGNAL( customContextMenuRequested (const QPoint&) ), this, SLOT( slotTableVarCustomContextMenuRequested(const QPoint&) ) ) );
-	ATVERIFY( connect(m_pTableVarActionCopy,SIGNAL(triggered()),this,SLOT(slotTableVarCopy())) );
-	ATVERIFY( connect(editCommand,SIGNAL(signalReturnKeyPressed()),this,SLOT(accept())) );
-	ATVERIFY( connect(editCommand,SIGNAL(textChanged()),this,SLOT(slotCommandTextChanged())) );
-	ATVERIFY( connect(commandPreview,SIGNAL(signalReturnKeyPressed()),this,SLOT(accept())) );
-	ATVERIFY( connect(btnExecute,SIGNAL(clicked()),this,SLOT(slotExecute())) );
+    ATVERIFY( connect( tableVarHelp,          &QWidget::customContextMenuRequested,   this, &CustomButtonDialog::slotTableVarCustomContextMenuRequested ) );
+    ATVERIFY( connect( m_pTableVarActionCopy, &QAction::triggered,                    this, &CustomButtonDialog::slotTableVarCopy ) );
+    ATVERIFY( connect( editCommand,           &PlainTextEdit::signalReturnKeyPressed, this, &CustomButtonDialog::accept ) );
+    ATVERIFY( connect( editCommand,           &PlainTextEdit::textChanged,            this, &CustomButtonDialog::slotCommandTextChanged ) );
+    ATVERIFY( connect( commandPreview,        &PlainTextEdit::signalReturnKeyPressed, this, &CustomButtonDialog::accept ) );
+    ATVERIFY( connect( btnExecute,            &QAbstractButton::clicked,              this, &CustomButtonDialog::slotExecute ) );
 }
 
 CustomButtonDialog::~CustomButtonDialog()
