@@ -34,14 +34,6 @@ class ctkSearchBoxPrivate;
 /// "Clear" clears the current text
 /// See QLineEdit::text to set/get the current text.
 /// ctkSearchBox's purpose is to be used to filter other widgets.
-/// e.g.:
-/// <code>
-///  ctkSearchBox searchBox;
-///  QSortFilterProxyModel filterModel;
-///  QObject::connect(&searchBox, SIGNAL(textChanged(QString)),
-///                   &filterModel, SLOT(setFilterFixedString(QString)));
-///  ...
-/// </code>
 class ctkSearchBox : public QLineEdit
 {
   Q_OBJECT
