@@ -250,119 +250,119 @@ ATSkeletonWindow::~ATSkeletonWindow()
 
 void ATSkeletonWindow::wireSignals()
 {
-    connect(qApp, &QApplication::focusChanged, this, &ATSkeletonWindow::slotFocusChanged);
+    ATVERIFY( connect(qApp, &QApplication::focusChanged, this, &ATSkeletonWindow::slotFocusChanged) );
 
 	//Clean backup
-	ATVERIFY( connect( &m_cleanBackupFutureWatcher, SIGNAL(finished()), this, SLOT(slotCleanBackupFinished() ) ) );
-	ATVERIFY( connect( this, SIGNAL( signalCleanBackup() ), this, SLOT( slotCleanBackup() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( &m_cleanBackupFutureWatcher, &QFutureWatcher<void>::finished, this, &ATSkeletonWindow::slotCleanBackupFinished ) );
+    ATVERIFY( connect( this, &ATSkeletonWindow::signalCleanBackup, this, &ATSkeletonWindow::slotCleanBackup, Qt::QueuedConnection ) );
 
 	// Organize tree
-	ATVERIFY( connect( ui.btnLeftTunnel,  SIGNAL( clicked() ), this, SLOT( slotTreeTunnelMoveLeft() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.btnRightTunnel, SIGNAL( clicked() ), this, SLOT( slotTreeTunnelMoveRight() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.btnUpTunnel,    SIGNAL( clicked() ), this, SLOT( slotTreeTunnelMoveUp() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.btnDownTunnel,  SIGNAL( clicked() ), this, SLOT( slotTreeTunnelMoveDown() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalKeyCtrlLeftPressed() ),  this, SLOT( slotTreeTunnelMoveLeft() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalKeyCtrlRightPressed() ), this, SLOT( slotTreeTunnelMoveRight() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalKeyCtrlUpPressed() ),	 this, SLOT( slotTreeTunnelMoveUp() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalKeyCtrlDownPressed() ),	 this, SLOT( slotTreeTunnelMoveDown() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.btnLeftTunnel,  &QToolButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelMoveLeft, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.btnRightTunnel, &QToolButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelMoveRight, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.btnUpTunnel,    &QToolButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelMoveUp, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.btnDownTunnel,  &QToolButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelMoveDown, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalKeyCtrlLeftPressed,  this, &ATSkeletonWindow::slotTreeTunnelMoveLeft, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalKeyCtrlRightPressed, this, &ATSkeletonWindow::slotTreeTunnelMoveRight, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalKeyCtrlUpPressed,	this, &ATSkeletonWindow::slotTreeTunnelMoveUp, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalKeyCtrlDownPressed,	this, &ATSkeletonWindow::slotTreeTunnelMoveDown, Qt::UniqueConnection ) );
 
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalDragMoveStarted(QTreeWidgetItem*) ), this, SLOT( slotDragMoveStarted(QTreeWidgetItem*) ) ) );
-	ATVERIFY( connect( ui.treeTunnels,	  SIGNAL( signalDragMoveFinished(QTreeWidgetItem*) ), this, SLOT( slotDragMoveFinished(QTreeWidgetItem*) ) ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalDragMoveStarted, this, &ATSkeletonWindow::slotDragMoveStarted ) );
+    ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalDragMoveFinished,this, &ATSkeletonWindow::slotDragMoveFinished ) );
 
     // Edit host widget
-	ATVERIFY( connect( ui.btnEditSSHHost,		SIGNAL( clicked() ), this, SLOT( slotEditSSHHost() ) ) );
-	ATVERIFY( connect( ui.btnEditRemoteHost,	SIGNAL( clicked() ), this, SLOT( slotEditRemoteHost() ) ) );
-    ATVERIFY( connect( ui.btnSave,				SIGNAL( clicked() ), this, SLOT( slotSave() ) ) );
-	ATVERIFY( connect( ui.btnCancel,			SIGNAL( clicked() ), this, SLOT( slotCancel() ) ) );
-	ATVERIFY( connect( ui.comboPasswordSelect,	SIGNAL( currentIndexChanged(int) ),		this, SLOT( slotComboPasswordSelectSelectionChanged(int) ) ) );
-	ATVERIFY( connect( ui.comboKeyPasswordSelect,	SIGNAL( currentIndexChanged(int) ),		this, SLOT( slotComboKeyPasswordSelectSelectionChanged(int) ) ) );
+    ATVERIFY( connect( ui.btnEditSSHHost,		&QToolButton::clicked, this, &ATSkeletonWindow::slotEditSSHHost ) );
+    ATVERIFY( connect( ui.btnEditRemoteHost,	&QToolButton::clicked, this, &ATSkeletonWindow::slotEditRemoteHost ) );
+    ATVERIFY( connect( ui.btnSave,				&QToolButton::clicked, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.btnCancel,			&QToolButton::clicked, this, &ATSkeletonWindow::slotCancel ) );
+    ATVERIFY( connect( ui.comboPasswordSelect,	  &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboPasswordSelectSelectionChanged ) );
+    ATVERIFY( connect( ui.comboKeyPasswordSelect, &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged ) );
 	ui.widgetEditTunnel->wireSignals();
-	ATVERIFY( connect( ui.widgetEditTunnel,		SIGNAL( signalChildWidgetModified() ), this, SLOT( slotHostModified() ) ) );
+    ATVERIFY( connect( ui.widgetEditTunnel,		&Widget::signalChildWidgetModified, this, &ATSkeletonWindow::slotHostModified ) );
 	
     // Edit host widget - returnPressed() - capture return key and save
-    ATVERIFY( connect( ui.editTunnelName,			SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editSSHHost,				SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editUsername,				SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editPassword,				SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editSSHKeyFile,			SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editSSHKeyFilePassword,	SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editLocalIP,				SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editLocalPort,			SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editRemoteHost,			SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editRemotePort,			SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editExtraArguments,		SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
+    ATVERIFY( connect( ui.editTunnelName,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editSSHHost,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editUsername,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editPassword,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editSSHKeyFile,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editSSHKeyFilePassword,	&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editLocalIP,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editLocalPort,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editRemoteHost,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editRemotePort,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editExtraArguments,		&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
 
     // Edit folder widget
-    ATVERIFY( connect( ui.btnSaveFolder,			SIGNAL( clicked() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.btnCancelFolder,			SIGNAL( clicked() ), this, SLOT( slotCancel() ) ) );
+    ATVERIFY( connect( ui.btnSaveFolder,			&QAbstractButton::clicked, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.btnCancelFolder,			&QAbstractButton::clicked, this, &ATSkeletonWindow::slotCancel ) );
     ui.widgetEditFolder->wireSignals();
-    ATVERIFY( connect( ui.widgetEditFolder,         SIGNAL( signalChildWidgetModified() ), this, SLOT( slotHostModified() ) ) );
+    ATVERIFY( connect( ui.widgetEditFolder,         &Widget::signalChildWidgetModified, this, &ATSkeletonWindow::slotHostModified ) );
 
     // Edit host widget - returnPressed() - capture return key and save
-    ATVERIFY( connect( ui.editFolderName,               SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
-    ATVERIFY( connect( ui.editFolderChildNodesCommand,	SIGNAL( returnPressed() ), this, SLOT( slotSave() ) ) );
+    ATVERIFY( connect( ui.editFolderName,               &QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editFolderChildNodesCommand,	&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
 
 	// Connect buttons
-	ATVERIFY( connect( ui.btnAddFolder,    SIGNAL( clicked() ), this, SLOT( slotTreeTunnelInsertFolderAfter() ) ) );
-	ATVERIFY( connect( ui.btnAddTunnel,    SIGNAL( clicked() ), this, SLOT( slotTreeTunnelInsertNodeAfter() ) ) );
-	ATVERIFY( connect( ui.btnDuplicate,    SIGNAL( clicked() ), this, SLOT( slotTreeTunnelDuplicate() ) ) );
-	ATVERIFY( connect( ui.treeTunnels,	   SIGNAL( signalKeyDeletePressed() ),	 this, SLOT( slotTreeTunnelDeleteNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.btnDeleteTunnel, SIGNAL( clicked() ), this, SLOT( slotTreeTunnelDeleteNode() ) ) );
-	ATVERIFY( connect( ui.btnBrowseSSHKeyFile,   SIGNAL( clicked() ), this, SLOT( slotBrowseKeyFile() ) ) );
+    ATVERIFY( connect( ui.btnAddFolder,    &QAbstractButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelInsertFolderAfter ) );
+    ATVERIFY( connect( ui.btnAddTunnel,    &QAbstractButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelInsertNodeAfter ) );
+    ATVERIFY( connect( ui.btnDuplicate,    &QAbstractButton::clicked, this, &ATSkeletonWindow::slotTreeTunnelDuplicate ) );
+    ATVERIFY( connect( ui.treeTunnels,	   &TunnelTreeWidget::signalKeyDeletePressed, this, &ATSkeletonWindow::slotTreeTunnelDeleteNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.btnDeleteTunnel, &QAbstractButton::clicked,     this, &ATSkeletonWindow::slotTreeTunnelDeleteNode ) );
+    ATVERIFY( connect( ui.btnBrowseSSHKeyFile, &QAbstractButton::clicked, this, &ATSkeletonWindow::slotBrowseKeyFile ) );
 
 	// Connect tab widget
-	ATVERIFY( connect( ui.btnConnect,      SIGNAL( clicked() ), this, SLOT( slotConnect() ) ) );
-	ATVERIFY( connect( ui.btnDisconnect,   SIGNAL( clicked() ), this, SLOT( slotDisconnect() ) ) );
-	ATVERIFY( connect( ui.tabWidget, SIGNAL( currentChanged(int) ), this, SLOT( slotTabChanged() ) ) );
-	ATVERIFY( connect( ui.widgetCustomActions,   SIGNAL( signalActionExec(const CustomActionStruct&) ), this, SLOT( slotCustomActionExec(const CustomActionStruct&) ) ) );
-	ATVERIFY( connect( ui.textBrowser,   SIGNAL( textChanged() ), this, SLOT( slotUpdateClearLogButtons() ) ) ); 
+    ATVERIFY( connect( ui.btnConnect,                           &QAbstractButton::clicked, this, &ATSkeletonWindow::slotConnect ) );
+    ATVERIFY( connect( ui.btnDisconnect,                        &QAbstractButton::clicked, this, &ATSkeletonWindow::slotDisconnect ) );
+    ATVERIFY( connect( ui.tabWidget,                          &QTabWidget::currentChanged, this, &ATSkeletonWindow::slotTabChanged ) );
+    ATVERIFY( connect( ui.widgetCustomActions, &CustomActionsEditWidget::signalActionExec, this, &ATSkeletonWindow::slotCustomActionExec ) );
+    ATVERIFY( connect( ui.textBrowser,                         &QTextBrowser::textChanged, this, &ATSkeletonWindow::slotUpdateClearLogButtons ) );
 
 	// Connect tree
-	ATVERIFY( connect( &m_timerDelayUpdateUIFromTWI,			SIGNAL( timeout() ),	this, SLOT( slotUpdateUIFromTWI() ),Qt::QueuedConnection ) );
-	ATVERIFY( connect( &m_timerDelayWriteSettings,				SIGNAL( timeout() ),	this, SLOT( slotDelayWriteSettings() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,							SIGNAL( itemSelectionChanged() ),	this, SLOT( slotSelectTunnel() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,							SIGNAL( activated(const QModelIndex &) ), this, SLOT( slotItemActivated() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionExport,				SIGNAL( triggered() ), this, SLOT( slotTreeTunnelExportCurrent() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionImportAfter,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelImportAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionImportChild,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelImportChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionRename,				SIGNAL( triggered() ), this, SLOT( slotTreeTunnelRename() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,							SIGNAL( itemChanged(QTreeWidgetItem*,int) ), this, SLOT( slotTreeTunnelItemChanged(QTreeWidgetItem*,int) ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionDuplicate,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelDuplicate() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertChildFolder,	SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertChildFolder() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertFolderAfter,	SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertFolderAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertFolderBefore,	SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertFolderBefore() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,							SIGNAL( signalKeyCtrlNPressed() ), this, SLOT( slotTreeTunnelInsertNodeAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertChild,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertNodeAfter,		SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertNodeAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionInsertNodeBefore,	SIGNAL( triggered() ), this, SLOT( slotTreeTunnelInsertNodeBefore() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,		SIGNAL( signalKeyEscapePressed() ),		   this, SLOT( slotDisableTreeTunnelsPaste() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,		SIGNAL( signalKeyCtrlXPressed() ),         this, SLOT( slotTreeTunnelCutNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,		SIGNAL( signalKeyCtrlCPressed() ),         this, SLOT( slotTreeTunnelCopyNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( ui.treeTunnels,		SIGNAL( signalKeyCtrlVPressed() ),         this, SLOT( slotTreeTunnelPasteNodeAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionCutNode,				SIGNAL( triggered() ), this, SLOT( slotTreeTunnelCutNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionCopyNode,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelCopyNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionPasteNodeAfter,		SIGNAL( triggered() ), this, SLOT( slotTreeTunnelPasteNodeAfter() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionPasteNodeChild,		SIGNAL( triggered() ), this, SLOT( slotTreeTunnelPasteNodeChild() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionDeleteNode,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelDeleteNode() ), Qt::UniqueConnection ) );
-	ATVERIFY( connect( m_pTreeTunnelsActionClearLog,			SIGNAL( triggered() ), this, SLOT( slotTreeTunnelClearNodeLog() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( ui.treeTunnels,							SIGNAL( itemCollapsed(QTreeWidgetItem*) ), this, SLOT( slotTreeTunnelCollapsed(QTreeWidgetItem*) ) ) );
-	ATVERIFY( connect( ui.treeTunnels,							SIGNAL( itemExpanded(QTreeWidgetItem*) ), this, SLOT( slotTreeTunnelExpanded(QTreeWidgetItem*) ) ) );
+    ATVERIFY( connect( &m_timerDelayUpdateUIFromTWI,               &QTimer::timeout, this, &ATSkeletonWindow::slotUpdateUIFromTWI, Qt::QueuedConnection ) );
+    ATVERIFY( connect( &m_timerDelayWriteSettings,                 &QTimer::timeout, this, &ATSkeletonWindow::slotDelayWriteSettings, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,      &TunnelTreeWidget::itemSelectionChanged, this, &ATSkeletonWindow::slotSelectTunnel, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,                 &TunnelTreeWidget::activated, this, &ATSkeletonWindow::slotItemActivated, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionExport,				&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelExportCurrent, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionImportAfter,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelImportAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionImportChild,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelImportChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionRename,				&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelRename, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,               &TunnelTreeWidget::itemChanged, this, &ATSkeletonWindow::slotTreeTunnelItemChanged, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionDuplicate,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelDuplicate, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertChildFolder,	&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertChildFolder, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertFolderAfter,	&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertFolderAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertFolderBefore,	&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertFolderBefore, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,     &TunnelTreeWidget::signalKeyCtrlNPressed, this, &ATSkeletonWindow::slotTreeTunnelInsertNodeAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertChild,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertNodeAfter,		&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertNodeAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionInsertNodeBefore,	&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelInsertNodeBefore, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,    &TunnelTreeWidget::signalKeyEscapePressed, this, &ATSkeletonWindow::slotDisableTreeTunnelsPaste, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,     &TunnelTreeWidget::signalKeyCtrlXPressed, this, &ATSkeletonWindow::slotTreeTunnelCutNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,     &TunnelTreeWidget::signalKeyCtrlCPressed, this, &ATSkeletonWindow::slotTreeTunnelCopyNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,     &TunnelTreeWidget::signalKeyCtrlVPressed, this, &ATSkeletonWindow::slotTreeTunnelPasteNodeAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionCutNode,				&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelCutNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionCopyNode,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelCopyNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionPasteNodeAfter,		&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelPasteNodeAfter, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionPasteNodeChild,		&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelPasteNodeChild, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionDeleteNode,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelDeleteNode, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionClearLog,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelClearNodeLog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( ui.treeTunnels,             &TunnelTreeWidget::itemCollapsed, this, &ATSkeletonWindow::slotTreeTunnelCollapsed ) );
+    ATVERIFY( connect( ui.treeTunnels,              &TunnelTreeWidget::itemExpanded, this, &ATSkeletonWindow::slotTreeTunnelExpanded ) );
 
     //Tunnel/Folder color
-    ATVERIFY( connect( m_pTunnelNameFgColorAction,		SIGNAL( triggered() ), this, SLOT( slotTunnelNameFgColorDialog() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pTunnelNameBgColorAction,		SIGNAL( triggered() ), this, SLOT( slotTunnelNameBgColorDialog() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pTunnelNameFgColorResetAction,	SIGNAL( triggered() ), this, SLOT( slotTunnelNameFgColorReset() ),  Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pTunnelNameBgColorResetAction,	SIGNAL( triggered() ), this, SLOT( slotTunnelNameBgColorReset() ),  Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pFolderNameFgColorAction,		SIGNAL( triggered() ), this, SLOT( slotFolderNameFgColorDialog() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pFolderNameBgColorAction,		SIGNAL( triggered() ), this, SLOT( slotFolderNameBgColorDialog() ), Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pFolderNameFgColorResetAction,	SIGNAL( triggered() ), this, SLOT( slotFolderNameFgColorReset() ),  Qt::UniqueConnection ) );
-    ATVERIFY( connect( m_pFolderNameBgColorResetAction,	SIGNAL( triggered() ), this, SLOT( slotFolderNameBgColorReset() ),  Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTunnelNameFgColorAction,		&QAction::triggered, this, &ATSkeletonWindow::slotTunnelNameFgColorDialog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTunnelNameBgColorAction,		&QAction::triggered, this, &ATSkeletonWindow::slotTunnelNameBgColorDialog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTunnelNameFgColorResetAction,	&QAction::triggered, this, &ATSkeletonWindow::slotTunnelNameFgColorReset, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTunnelNameBgColorResetAction,	&QAction::triggered, this, &ATSkeletonWindow::slotTunnelNameBgColorReset, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pFolderNameFgColorAction,		&QAction::triggered, this, &ATSkeletonWindow::slotFolderNameFgColorDialog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pFolderNameBgColorAction,		&QAction::triggered, this, &ATSkeletonWindow::slotFolderNameBgColorDialog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pFolderNameFgColorResetAction,	&QAction::triggered, this, &ATSkeletonWindow::slotFolderNameFgColorReset, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pFolderNameBgColorResetAction,	&QAction::triggered, this, &ATSkeletonWindow::slotFolderNameBgColorReset, Qt::UniqueConnection ) );
 
     //Log
-    ATVERIFY( connect( m_pLogMenuClearAction,	SIGNAL( triggered() ), this, SLOT( slotTreeTunnelClearNodeLog() ), Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pLogMenuClearAction,	        &QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelClearNodeLog, Qt::UniqueConnection ) );
  
 	// Connect signals
-	ATVERIFY( connect( this, SIGNAL( signalAutoConnect(Tunnel_c*) ), this, SLOT( slotAutoConnect(Tunnel_c*) ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( this,           &ATSkeletonWindow::signalAutoConnect, this, &ATSkeletonWindow::slotAutoConnect, Qt::QueuedConnection ) );
 }
 
 void ATSkeletonWindow::slotHostModified()
@@ -4456,6 +4456,7 @@ void ATSkeletonWindow::saveEditPane()
 
 void ATSkeletonWindow::slotComboPasswordSelectSelectionChanged(int index)
 {
+    qDebug( "%s", Q_FUNC_INFO );
 	if(index > 0) {
 		ui.editUsername->setText( "${" + ui.comboPasswordSelect->itemText(index) + ".uid}" );
 		ui.editPassword->setText( "${" + ui.comboPasswordSelect->itemText(index) + ".pwd}" );
@@ -4464,6 +4465,7 @@ void ATSkeletonWindow::slotComboPasswordSelectSelectionChanged(int index)
 
 void ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged(int index)
 {
+    qDebug( "%s", Q_FUNC_INFO );
 	if(index > 0) {
 		ui.editSSHKeyFilePassword->setText( "${" + ui.comboKeyPasswordSelect->itemText(index) + ".pwd}" );
 	}
