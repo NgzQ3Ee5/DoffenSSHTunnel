@@ -18,12 +18,12 @@ void TreeSearchWidget::setup(ATSkeletonWindow *pSkeletonWindow)
 {
     m_pSkeletonWindow = pSkeletonWindow;
 
-    ATVERIFY( connect( m_pSkeletonWindow->ui.editTreeTunnelSearch, SIGNAL( textChanged(const QString&) ), this, SLOT( slotTextChanged() ) ) );
-    ATVERIFY( connect( m_pSkeletonWindow->ui.editTreeTunnelSearch, SIGNAL( returnPressed() ), this, SLOT( slotSearchDown() ) ) );
-    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchUp, SIGNAL( clicked() ), this, SLOT( slotSearchUp() ) ) );
-    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchDown, SIGNAL( clicked() ), this, SLOT( slotSearchDown() ) ) );
-    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchHide, SIGNAL( clicked() ), this, SLOT( slotHide() ) ) );
-    ATVERIFY( connect( &m_timerDelaySearch, SIGNAL( timeout() ), this, SLOT( slotSearch() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.editTreeTunnelSearch, &QLineEdit::textChanged, this, &TreeSearchWidget::slotTextChanged ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.editTreeTunnelSearch, &QLineEdit::returnPressed, this, &TreeSearchWidget::slotSearchDown ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchUp, &QAbstractButton::clicked, this, &TreeSearchWidget::slotSearchUp ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchDown, &QAbstractButton::clicked, this, &TreeSearchWidget::slotSearchDown ) );
+    ATVERIFY( connect( m_pSkeletonWindow->ui.btnTreeTunnelSearchHide, &QAbstractButton::clicked, this, &TreeSearchWidget::slotHide ) );
+    ATVERIFY( connect( &m_timerDelaySearch, &QTimer::timeout, this, &TreeSearchWidget::slotSearch, Qt::QueuedConnection ) );
 }
 
 void TreeSearchWidget::slotLoadIcons()
