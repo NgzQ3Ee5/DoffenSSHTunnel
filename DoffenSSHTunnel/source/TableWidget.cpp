@@ -243,7 +243,7 @@ TableWidget::TableWidget(QWidget *parent)
 	m_timerSaveSignal.setSingleShot(true);
 	m_timerSaveSignal.setInterval(500);
 
-    ATVERIFY( connect( this,					&TableWidget::itemChanged,	this, &TableWidget::slotHandleModifiedAndSave ) );
+    ATVERIFY( connect( this,					&TableWidget::currentItemChanged,	this, &TableWidget::slotHandleModifiedAndSave ) );
     ATVERIFY( connect( &m_timerModifiedSignal,  &QTimer::timeout,           this, &TableWidget::slotModifiedTimerTimeout, Qt::QueuedConnection ) );
     ATVERIFY( connect( &m_timerSaveSignal,		&QTimer::timeout,           this, &TableWidget::slotSaveTimerTimeout, Qt::QueuedConnection ) );
 }
