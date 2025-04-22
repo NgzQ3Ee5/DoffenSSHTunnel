@@ -8,8 +8,8 @@ TableWidgetCheckBox::TableWidgetCheckBox(QWidget *parent, int row, int col)
 {
 	m_rowIndex = row;
 	m_colIndex = col;
-	installEventFilter((QObject *)this);
-	ATVERIFY( connect( this,	SIGNAL( stateChanged(int) ), this, SLOT( slotStateChanged(int) ) ) );
+    installEventFilter((QObject *)this);
+    ATVERIFY( connect( this, &TableWidgetCheckBox::checkStateChanged, this, &TableWidgetCheckBox::slotStateChanged ) );
 }
 
 void TableWidgetCheckBox::setRowIndex(int index) { m_rowIndex = index; }
@@ -71,7 +71,7 @@ TableWidgetComboBox::TableWidgetComboBox(QWidget *parent, int row, int col)
 	m_rowIndex = row;
 	m_colIndex = col;
 	installEventFilter((QObject *)this);
-	ATVERIFY( connect( this,	SIGNAL( currentIndexChanged(int) ), this, SLOT( slotCurrentIndexChanged(int) ) ) );
+    ATVERIFY( connect( this, &TableWidgetComboBox::currentIndexChanged, this, &TableWidgetComboBox::slotCurrentIndexChanged ) );
 }
 
 void TableWidgetComboBox::setRowIndex(int index) { m_rowIndex = index; }
@@ -185,7 +185,7 @@ TableWidgetPushButton::TableWidgetPushButton(QWidget *parent, int row, int col)
 {
 	m_rowIndex = row;
 	m_colIndex = col;
-	ATVERIFY( connect( this,	SIGNAL( clicked() ), this, SLOT( slotClicked() ) ) );
+    ATVERIFY( connect( this, &TableWidgetPushButton::clicked, this, &TableWidgetPushButton::slotClicked ) );
 }
 
 void TableWidgetPushButton::setRowIndex(int index) { m_rowIndex = index; }
@@ -210,8 +210,8 @@ TableWidgetToolButton::TableWidgetToolButton(QWidget *parent, int row, int col)
 {
 	m_rowIndex = row;
 	m_colIndex = col;
-	ATVERIFY( connect( this,	SIGNAL( clicked() ), this, SLOT( slotClicked() ) ) );
-	ATVERIFY( connect( this,	SIGNAL( toggled(bool) ), this, SLOT( slotToggled(bool) ) ) );
+    ATVERIFY( connect( this, &TableWidgetToolButton::clicked, this, &TableWidgetToolButton::slotClicked ) );
+    ATVERIFY( connect( this, &TableWidgetToolButton::toggled, this, &TableWidgetToolButton::slotToggled ) );
 }
 
 void TableWidgetToolButton::setRowIndex(int index) { m_rowIndex = index; }
@@ -243,9 +243,9 @@ TableWidget::TableWidget(QWidget *parent)
 	m_timerSaveSignal.setSingleShot(true);
 	m_timerSaveSignal.setInterval(500);
 
-	ATVERIFY( connect( this,							SIGNAL( itemChanged(QTableWidgetItem*) ),	this, SLOT( slotHandleModifiedAndSave() ) ) );
-	ATVERIFY( connect( &m_timerModifiedSignal,			SIGNAL( timeout() ),	this, SLOT( slotModifiedTimerTimeout() ), Qt::QueuedConnection ) );
-	ATVERIFY( connect( &m_timerSaveSignal,				SIGNAL( timeout() ),	this, SLOT( slotSaveTimerTimeout() ), Qt::QueuedConnection ) );
+    ATVERIFY( connect( this,					&TableWidget::itemChanged,	this, &TableWidget::slotHandleModifiedAndSave ) );
+    ATVERIFY( connect( &m_timerModifiedSignal,  &QTimer::timeout,           this, &TableWidget::slotModifiedTimerTimeout, Qt::QueuedConnection ) );
+    ATVERIFY( connect( &m_timerSaveSignal,		&QTimer::timeout,           this, &TableWidget::slotSaveTimerTimeout, Qt::QueuedConnection ) );
 }
 
 void TableWidget::keyPressEvent(QKeyEvent *e)
