@@ -8,12 +8,12 @@ ChangePasswordDialog::ChangePasswordDialog(QWidget *parent)
 {
 	setupUi(this);
 	slotLoadIcons();
-	connect(buttonBox->button(QDialogButtonBox::Ok),SIGNAL(clicked()),this,SLOT(OnOK()));
-	connect(buttonBox->button(QDialogButtonBox::Cancel),SIGNAL(clicked()),this,SLOT(OnCancel()));
-	connect(Button_HidePassword,SIGNAL(toggled(bool)),this,SLOT(OnHidePasswordToggled(bool)));
-	connect(EditPasswordOld,SIGNAL(textChanged(const QString&)),this,SLOT(OnTextChanged()));
-	connect(EditPassword,SIGNAL(textChanged(const QString&)),this,SLOT(OnTextChanged()));
-	connect(EditPasswordRepeat,SIGNAL(textChanged(const QString&)),this,SLOT(OnTextChanged()));
+    ATVERIFY( connect(buttonBox->button(QDialogButtonBox::Ok), &QAbstractButton::clicked, this, &ChangePasswordDialog::OnOK) );
+    ATVERIFY( connect(buttonBox->button(QDialogButtonBox::Cancel), &QAbstractButton::clicked, this, &ChangePasswordDialog::OnCancel) );
+    ATVERIFY( connect(Button_HidePassword, &QAbstractButton::toggled, this, &ChangePasswordDialog::OnHidePasswordToggled) );
+    ATVERIFY( connect(EditPasswordOld, &QLineEdit::textChanged, this, &ChangePasswordDialog::OnTextChanged) );
+    ATVERIFY( connect(EditPassword, &QLineEdit::textChanged, this, &ChangePasswordDialog::OnTextChanged) );
+    ATVERIFY( connect(EditPasswordRepeat, &QLineEdit::textChanged, this, &ChangePasswordDialog::OnTextChanged) );
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
