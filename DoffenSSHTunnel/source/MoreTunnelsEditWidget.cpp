@@ -48,19 +48,17 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
 	m_pTable->setColumnWidth(COL_DESTPORT,70);
 	m_pTable->setColumnWidth(COL_DESCRIPTION,90);*/
 
-	ATVERIFY( connect( m_pTable,	SIGNAL( itemChanged(QTableWidgetItem*) ),	this, SLOT( slotItemChanged(QTableWidgetItem*) ) ) );
-	ATVERIFY( connect( m_pTable,	SIGNAL( itemSelectionChanged() ),			this, SLOT( slotUpdateControls() ) ) );
-	ATVERIFY( connect( m_pBtnAdd,	SIGNAL( clicked() ),						this, SLOT( slotAdd() ) ) );
-	ATVERIFY( connect( m_pTable,	SIGNAL( signalKeyCtrlNPressed() ),			this, SLOT( slotAdd() ) ) );
-	ATVERIFY( connect( m_pBtnDelete,SIGNAL( clicked() ),						this, SLOT( slotDelete() ) ) );
-	ATVERIFY( connect( m_pTable,	SIGNAL( signalKeyDeletePressed() ),			this, SLOT( slotDelete() ) ) );
-	ATVERIFY( connect( m_pBtnMoveUp,SIGNAL( clicked() ),						this, SLOT( slotMoveUp() ) ) );
-	ATVERIFY( connect( m_pTable,	SIGNAL( signalKeyCtrlUpPressed() ),			this, SLOT( slotMoveUp() ) ) );
-	ATVERIFY( connect( m_pBtnMoveDown,SIGNAL( clicked() ),						this, SLOT( slotMoveDown() ) ) );
-	ATVERIFY( connect( m_pTable,	SIGNAL( signalKeyCtrlDownPressed() ),		this, SLOT( slotMoveDown() ) ) );
-	//ATVERIFY( connect( m_pBtnMoreTunnelsMore,SIGNAL( toggled(bool) ),			this, SLOT( slotMoreToggled(bool) ) ) );
-
-	ATVERIFY( connect( m_pTable,	SIGNAL( signalModified() ), this, SLOT( slotModified() ) ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::itemChanged,              this, &MoreTunnelsEditWidget::slotItemChanged ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::itemSelectionChanged,     this, &MoreTunnelsEditWidget::slotUpdateControls ) );
+    ATVERIFY( connect( m_pBtnAdd,       &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget::slotAdd ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlNPressed,    this, &MoreTunnelsEditWidget::slotAdd ) );
+    ATVERIFY( connect( m_pBtnDelete,    &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget:: slotDelete ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyDeletePressed,   this, &MoreTunnelsEditWidget::slotDelete ) );
+    ATVERIFY( connect( m_pBtnMoveUp,    &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget::slotMoveUp ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlUpPressed,   this, &MoreTunnelsEditWidget::slotMoveUp ) );
+    ATVERIFY( connect( m_pBtnMoveDown,  &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget::slotMoveDown ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlDownPressed,	this, &MoreTunnelsEditWidget::slotMoveDown ) );
+    ATVERIFY( connect( m_pTable,        &TableWidget::signalModified,           this, &MoreTunnelsEditWidget::slotModified ) );
 
 	m_pBtnMoreTunnelsMore->setVisible(false);
 	m_pTable->hideColumn(COL_NAME);

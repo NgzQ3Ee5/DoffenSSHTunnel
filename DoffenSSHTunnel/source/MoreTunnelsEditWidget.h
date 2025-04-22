@@ -82,7 +82,7 @@ public:
 		if(index.column() == MoreTunnelsEditWidget::COL_NAME) {
 			QLineEdit *le = new QLineEdit(parent);
 			le->setFrame(false);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			return le;
 		} 
 		if(index.column() == MoreTunnelsEditWidget::COL_TYPE) {
@@ -91,12 +91,12 @@ public:
 			cb->addItem(PORTFORWARD_TYPE_LOCAL);
 			cb->addItem(PORTFORWARD_TYPE_REMOTE);
 			cb->addItem(PORTFORWARD_TYPE_DYNAMIC);
-			ATVERIFY( connect( cb,	SIGNAL( currentIndexChanged(int) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( cb,	&QComboBox::currentIndexChanged, this, &MoreTunnelsItemDelegate::slotModified ) );
 			return cb;
 		} 
 		if(index.column() == MoreTunnelsEditWidget::COL_LOCALIP) {
 			QLineEdit *le = new QLineEdit(parent);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			le->setFrame(false);
 			return le;
 		} 
@@ -104,13 +104,13 @@ public:
 			QLineEdit *le = new QLineEdit(parent);
 			QIntValidator *v = new QIntValidator(0,65535,parent);
 			le->setValidator(v);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			le->setFrame(false);
 			return le;
 		} 
 		if(index.column() == MoreTunnelsEditWidget::COL_DESTHOST) {
 			QLineEdit *le = new QLineEdit(parent);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			le->setFrame(false);
 			return le;
 		} 
@@ -118,13 +118,13 @@ public:
 			QLineEdit *le = new QLineEdit(parent);
 			QIntValidator *v = new QIntValidator(0,65535,parent);
 			le->setValidator(v);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			le->setFrame(false);
 			return le;
 		} 
 		if(index.column() == MoreTunnelsEditWidget::COL_DESCRIPTION) {
 			QLineEdit *le = new QLineEdit(parent);
-			ATVERIFY( connect( le,	SIGNAL( textEdited(const QString&) ), this, SLOT( slotModified() ) ) );
+            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
 			le->setFrame(false);
 			return le;
 		}
@@ -246,7 +246,7 @@ public:
 	MoreTunnelsTableWidget(QWidget *parent = 0) : TableWidget(parent) {
 		m_pItemDelegate = new MoreTunnelsItemDelegate(this);
 		setItemDelegate(m_pItemDelegate);
-		ATVERIFY( connect( m_pItemDelegate,	SIGNAL( signalModified() ), this, SLOT( slotModified() ) ) );
+        ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalModified, this, &MoreTunnelsTableWidget::slotModified ) );
 	}
 
 private slots:
