@@ -19,9 +19,6 @@
 // using QDirStat::readFontEntry;
 // using QDirStat::writeFontEntry;
 
-#define CONNECT_ACTION(ACTION, RECEIVER, RCVR_SLOT)                            \
-  connect((ACTION), SIGNAL(triggered()), (RECEIVER), SLOT(RCVR_SLOT))
-
 OutputWindow::OutputWindow(QWidget *parent)
     : QDialog(parent), _ui(new Ui::OutputWindow), _showOnStderr(true),
       _noMoreProcesses(false), _closed(false), _killedAll(false),
@@ -36,16 +33,16 @@ OutputWindow::OutputWindow(QWidget *parent)
   setAutoClose(false);
   hideSearch();
 
-  CONNECT_ACTION(_ui->actionZoomIn, this, zoomIn());
-  CONNECT_ACTION(_ui->actionZoomOut, this, zoomOut());
-  CONNECT_ACTION(_ui->actionResetZoom, this, resetZoom());
-  CONNECT_ACTION(_ui->actionKillProcess, this, killAll());
-  CONNECT_ACTION(_ui->actionShowSearch, this, showSearch());
-  CONNECT_ACTION(_ui->actionHideSearch, this, hideSearch());
-  CONNECT_ACTION(_ui->actionSearch, this, search());
-  CONNECT_ACTION(_ui->actionSearchPrev, this, searchPrev());
-  CONNECT_ACTION(_ui->actionSeachNext, this, searchNext());
-  connect( _ui->wrapCheckbox ,SIGNAL(toggled(bool)), this, SLOT( enableWrap(bool) ) );
+  connect(_ui->actionZoomIn,     &QAction::triggered, this, &OutputWindow::zoomIn);
+  connect(_ui->actionZoomOut,    &QAction::triggered, this, &OutputWindow::zoomOut);
+  connect(_ui->actionResetZoom,  &QAction::triggered, this, &OutputWindow::resetZoom);
+  connect(_ui->actionKillProcess,&QAction::triggered, this, &OutputWindow::killAll);
+  connect(_ui->actionShowSearch, &QAction::triggered, this, &OutputWindow::showSearch);
+  connect(_ui->actionHideSearch, &QAction::triggered, this, &OutputWindow::hideSearch);
+  connect(_ui->actionSearch,     &QAction::triggered, this, &OutputWindow::search);
+  connect(_ui->actionSearchPrev, &QAction::triggered, this, &OutputWindow::searchPrev);
+  connect(_ui->actionSeachNext,  &QAction::triggered, this, &OutputWindow::searchNext);
+  connect(_ui->wrapCheckbox,     &QCheckBox::toggled, this, &OutputWindow::enableWrap);
 
   updateActions();
 }
@@ -77,15 +74,10 @@ void OutputWindow::addProcess(QProcess *process) {
   _processList << process;
   qDebug() << "Adding process" << Qt::endl;
 
-  connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(readStdout()));
-
-  connect(process, SIGNAL(readyReadStandardError()), this, SLOT(readStderr()));
-
-  connect(process, SIGNAL(error(QProcess::ProcessError)), this,
-          SLOT(processError(QProcess::ProcessError)));
-
-  connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this,
-          SLOT(processFinished(int, QProcess::ExitStatus)));
+  connect(process, &QProcess::readyReadStandardOutput, this, &OutputWindow::readStdout);
+  connect(process, &QProcess::readyReadStandardError,  this, &OutputWindow::readStderr);
+  connect(process, &QProcess::errorOccurred,           this, &OutputWindow::processError);
+  connect(process, &QProcess::finished,                this, &OutputWindow::processFinished);
 
   if (!hasActiveProcess())
     startNextProcess();
