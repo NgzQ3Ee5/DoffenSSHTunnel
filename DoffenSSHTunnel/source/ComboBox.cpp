@@ -3,8 +3,8 @@
 ComboBox::ComboBox(QWidget *parent)
     : QComboBox(parent)
 {
-	ATVERIFY( connect( this, SIGNAL( currentIndexChanged(int) ), this, SLOT( slotModified() ) ) );
-	ATVERIFY( connect( this->model(), SIGNAL( dataChanged (const QModelIndex&, const QModelIndex&) ), this, SLOT( slotModified() ) ) );
+    ATVERIFY( connect( this, &ComboBox::currentIndexChanged, this, &ComboBox::slotModified ) );
+    ATVERIFY( connect( this->model(), &QAbstractItemModel::dataChanged, this, &ComboBox::slotModified ) );
 }
 
 
