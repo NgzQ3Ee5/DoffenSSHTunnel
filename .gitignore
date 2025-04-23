@@ -10,6 +10,9 @@
 *.dll
 *.dylib
 
+# But allow DLLs in the deps directory
+!deps/**/*.dll
+
 # Qt-es
 object_script.*.Release
 object_script.*.Debug

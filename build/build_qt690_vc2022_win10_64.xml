@@ -1,0 +1,126 @@
+<project name="doffensshtunnel" default="win32" basedir=".">
+	
+	<description>
+        DoffenSSHTunnel
+    </description>
+	
+	<!--APP_VERSION=0.9.27-->
+	<property file="build.properties"/>
+	
+	<!-- QT VERSION DIR -->
+	<property name="qt_bin_dir" value="C:\Qt\6.9.0\msvc2022_64\bin"/>
+	
+	<property name="distname" value="DoffenSSHTunnel"/>
+	<property name="distname_exe" value="DoffenSSHTunnel.exe"/>
+	<property name="version" value="v${APP_VERSION}"/>
+	<property name="distfullname" value="${distname}-${version}-Win64"/>
+	<property name="windir" value="C:/WINDOWS"/>
+	<property name="depsdir" value="../deps"/>
+	<!-- C:\Qt\DoffenSSHTunnel\build-DoffenSSHTunnel_32bit-Release -->
+	<property name="builddir_win64" value="c:/QtProjects/build-DoffenSSHTunnel_64bit-Release"/>
+	<property name="distdir_win64" value="${builddir_win64}/dist"/>
+	
+	<target name="nothing"></target>
+		
+	<target name="win32" depends="clean_win32" description="create dist files">
+	
+		<echo message="Execute ${qt_bin_dir}\windeployqt"/>
+		<exec executable="${qt_bin_dir}\windeployqt" failonerror="true" failifexecutionfails="true">
+			<arg value="--dir"/>
+			<arg value="${distdir_win64}/windeployqt"/>
+			<arg value="${builddir_win64}/source/release/DoffenSSHTunnel.exe"/>
+		</exec>
+
+		<echo message="Copy DoffenSSHTunnel.exe"/>
+		<copy file="${builddir_win64}/source/release/DoffenSSHTunnel.exe" tofile="${distdir_win64}/${distfullname}/${distname_exe}"/>		
+		
+		<echo message="Copy dependencies"/>
+		<copy todir="${distdir_win64}/${distfullname}">
+			<fileset dir="${depsdir}/putty_v0.83/release_win32">
+				<include name="**/**"/>
+			</fileset>		
+			<fileset dir="${distdir_win64}/windeployqt">
+				<include name="**/**"/>
+			</fileset>	
+			<fileset dir="${depsdir}/msvc2022_release_win64">
+				<include name="**/**"/>
+			</fileset>
+			<fileset dir="${depsdir}/winscp_v6.5/release_win32">
+				<include name="**/**"/>
+			</fileset>	
+			<fileset dir="${depsdir}/windows_scripts">
+				<include name="**/**"/>
+			</fileset>	
+		</copy>
+		
+		<echo message="Copy themes"/>
+		<copy todir="${distdir_win64}/${distfullname}/themes">
+			<fileset dir="${depsdir}/themes">
+				<include name="**/**"/>
+			</fileset>		
+		</copy>
+		
+		<echo message="Execute rcedit"/>
+		<exec executable="${depsdir}/windows_rcedit/rcedit-x64.exe" failonerror="true" failifexecutionfails="true">
+			<arg value="${distdir_win64}/${distfullname}/${distname_exe}"/>
+			
+			<arg value="--set-product-version"/>
+			<arg value="${APP_VERSION}"/>
+			
+			<arg value="--set-file-version"/>
+			<arg value="${APP_VERSION}"/>
+			
+			<arg value="--set-version-string"/>
+			<arg value="ProductName"/>
+			<arg value="${distname}"/>
+			
+			<arg value="--set-version-string"/>
+			<arg value="FileDescription"/>
+			<arg value="SSH Tunnel Manager"/>
+			
+			<arg value="--set-version-string"/>
+			<arg value="InternalName"/>
+			<arg value="${distname}"/>
+			
+			<arg value="--set-version-string"/>
+			<arg value="OriginalFilename"/>
+			<arg value="${distname_exe}"/>
+			
+			<arg value="--set-version-string"/>
+			<arg value="LegalCopyright"/>
+			<arg value="Copyright ® Lars-Flemming Clausen"/>
+		</exec>
+		
+		<echo message="Execute signtool"/>
+		<exec executable="C:\Program Files (x86)\Windows Kits\8.1\bin\x86\signtool" failonerror="true" failifexecutionfails="true">
+			<arg value="sign"/>
+			
+			<arg value="/v"/>
+			
+			<arg value="/t"/>
+			<arg value="http://timestamp.digicert.com"/>
+			
+			<arg value="/d"/>
+			<arg value="${distname}"/>
+			
+			<arg value="/n"/>
+			<arg value="Clausen Lars-Flemming [t505327]"/>
+			
+			<arg value="${distdir_win64}/${distfullname}/${distname_exe}"/>
+		</exec>
+		
+		<!-- Create application zip file -->
+		<echo message="Create zip file"/>
+		<zip destfile="${distdir_win64}/${distfullname}.zip">
+			<zipfileset dir="${distdir_win64}/${distfullname}" prefix="${distfullname}"/>
+		</zip>		
+		
+	</target>  
+		
+	<target name="clean_win32" description="clean up" >
+		<delete dir="${distdir_win64}/windeployqt"/>
+		<delete dir="${distdir_win64}/${distfullname}"/>
+		<delete file="${distdir_win64}/${distfullname}.zip"/>
+	</target>
+
+</project>

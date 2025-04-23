@@ -1,2 +1,2 @@
-call ant -f build_qt5140_vc2017_win10_32.xml
+call ant -f build_qt690_vc2022_win10_64.xml
 pause

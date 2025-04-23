@@ -511,7 +511,7 @@ void ATMainWindow_c::slotShowAbout()
 	
 	strAbout += QString( "%1 %2 - Freeware\n" ).arg( APP_NICE_NAME ).arg( APP_VERSION );
     strAbout += "http://sourceforge.net/p/doffensshtunnel\n";
-    strAbout += "2019 Lars-Flemming Clausen <lars.flemming.clausen@gmail.com>\n";
+    strAbout += "2025 Lars-Flemming Clausen <lars.flemming.clausen@gmail.com>\n";
 	strAbout += "Qt " QT_VERSION_STR;
     strAbout += "\n";
     strAbout += QString("Data location: %1").arg( g_strDataDirectoryPath );
