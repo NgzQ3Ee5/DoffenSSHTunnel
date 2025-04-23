@@ -2608,7 +2608,9 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         //If I execute through the shell with process->setProgram("/bin/sh") then Kill process
         //will kill the shell only. The actual program running in the shell will not be killed
         //e.g. on windows cmd /c <long running program>
-        process->setArguments(QStringList() << sCmd);
+        QStringList parts = QProcess::splitCommand(sCmd);
+        process->setProgram(parts.takeFirst());
+        process->setArguments(parts);
         pOutputWindow->addProcess( process );
         pOutputWindow->noMoreProcesses();
     } else {
