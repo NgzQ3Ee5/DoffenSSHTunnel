@@ -375,7 +375,7 @@ void TreeWidget::slotDelete()
  	if ( iRet == QMessageBox::Yes )
  	{
 		if(m_bUsingStandardControls) {
-            ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+            ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 		}
 
 		deleteItems(twiList);
@@ -1185,7 +1185,7 @@ QList<QTreeWidgetItem*> TreeWidget::pasteAtItem(QTreeWidgetItem *twiPasteAt, int
 	QList<QTreeWidgetItem*> pastedItems;
 
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	for(int i=0; i<m_listItemsToPaste.size(); i++) {
@@ -1279,7 +1279,7 @@ void TreeWidget::handleModifiedAndSave()
 void TreeWidget::insertAtCurrentItem(QTreeWidgetItem* twiInsert, int insertMode)
 {
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	QTreeWidgetItem *twiInsertAt = currentItem();
@@ -1457,7 +1457,7 @@ bool TreeWidget::moveItemsUp(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsUp(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	clearPasteItems();
@@ -1529,7 +1529,7 @@ bool TreeWidget::moveItemsDown(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsDown(twiList);
 
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	clearPasteItems();
@@ -1598,7 +1598,7 @@ bool TreeWidget::moveItemsLeft(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsLeft(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	clearPasteItems();
@@ -1684,7 +1684,7 @@ bool TreeWidget::moveItemsRight(QList<QTreeWidgetItem*> twiList)
 	emit signalBeforeMoveItemsRight(twiListNorm);
 
 	if(m_bUsingStandardControls) {
-        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, nullptr, nullptr ) );
+        ATVERIFY ( disconnect( this, &TreeWidget::itemSelectionChanged, this, &TreeWidget::slotUpdateControls ) );
 	}
 
 	clearPasteItems();

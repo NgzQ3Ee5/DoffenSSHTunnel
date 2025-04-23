@@ -1356,7 +1356,7 @@ void VariableSettingsDialog::slotExecBrowse(int row, int column)
 void VariableSettingsDialog::slotExecAdd()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged );
 
 	int row = tableExecutables->addRowBelowSelected();
 	QTableWidgetItem *itemInUse = tableExecutables->item(row,EXECUTABLES_COL_INUSE);
@@ -1404,7 +1404,7 @@ void VariableSettingsDialog::slotExecDelete()
 void VariableSettingsDialog::slotExecMoveUp()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged );
 
 	tableExecutables->moveSelectedRowUp();
 
@@ -1417,7 +1417,7 @@ void VariableSettingsDialog::slotExecMoveUp()
 void VariableSettingsDialog::slotExecMoveDown()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged );
 
 	tableExecutables->moveSelectedRowDown();
 
@@ -1454,7 +1454,7 @@ void VariableSettingsDialog::slotExecItemChanged(QTableWidgetItem *item)
 	qDebug() << "slotExecItemChanged slotExecItemChanged slotExecItemChanged " << item->text();
 
 	//since we change ourselves, _DO_NOT_ trigger change event while we are in here
-    disconnect( tableExecutables, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableExecutables, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotExecItemChanged );
 
 	//Trim
 	QString itemText = item->text();
@@ -1564,7 +1564,7 @@ void VariableSettingsDialog::slotUserBrowse(int row, int column)
 void VariableSettingsDialog::slotUserAdd()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged );
 
 	int row = tableUser->addRowBelowSelected();
 	QTableWidgetItem *itemInUse = tableUser->item(row,USERDEF_COL_INUSE);
@@ -1609,7 +1609,7 @@ void VariableSettingsDialog::slotUserDelete()
 void VariableSettingsDialog::slotUserMoveUp()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged );
 
 	tableUser->moveSelectedRowUp();
 
@@ -1622,7 +1622,7 @@ void VariableSettingsDialog::slotUserMoveUp()
 void VariableSettingsDialog::slotUserMoveDown()
 {
 	if(!m_bEditingEnabled) return;
-    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged );
 
 	tableUser->moveSelectedRowDown();
 
@@ -1665,7 +1665,7 @@ void VariableSettingsDialog::slotUserItemChanged(QTableWidgetItem *item)
 	qDebug() << "slotUserItemChanged slotUserItemChanged slotUserItemChanged " << item->text();
 
 	//since we change ourselves, _DO_NOT_ trigger change event while we are in here
-    disconnect( tableUser, &TableWidget::itemChanged, nullptr, nullptr );
+    disconnect( tableUser, &TableWidget::itemChanged, this, &VariableSettingsDialog::slotUserItemChanged );
 
 	//Trim
 	QString itemText = item->text();

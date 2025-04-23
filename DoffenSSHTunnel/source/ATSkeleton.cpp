@@ -1944,9 +1944,9 @@ void ATSkeletonWindow::restoreBackup(QString backupInfoFilePath)
 	enableTreeTunnelsPaste(false);
 	m_bAutoBackupSettingsDisabled = true; //stop readSettings() from backing up
 
-    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::itemSelectionChanged, nullptr, nullptr )  );
-    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::activated, nullptr, nullptr ) );
-    ATVERIFY( disconnect( this, &ATSkeletonWindow::signalAutoConnect, nullptr, nullptr )  );
+    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::itemSelectionChanged,	this, &ATSkeletonWindow::slotSelectTunnel ) );
+    ATVERIFY( disconnect( ui.treeTunnels, &TunnelTreeWidget::activated, this, &ATSkeletonWindow::slotItemActivated ) );
+    ATVERIFY( disconnect( this, &ATSkeletonWindow::signalAutoConnect, this, &ATSkeletonWindow::slotAutoConnect ) );
 
 	while(ui.treeTunnels->topLevelItemCount() > 0) {
 		QTreeWidgetItem* twi = ui.treeTunnels->topLevelItem(0);
@@ -3640,7 +3640,7 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     if(pt == NULL) return;
 
     if(pt->pPopulateChildNodesProcess != NULL) {
-        disconnect( pt->pPopulateChildNodesProcess, 0, 0, 0 );
+        pt->pPopulateChildNodesProcess->disconnect();
         pt->pPopulateChildNodesProcess->kill();
         bool bOk = pt->pPopulateChildNodesProcess->waitForFinished( WAIT_FOR_FINISHED_TIMEOUT );
         Q_UNUSED(bOk)
@@ -3648,7 +3648,7 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         pt->pPopulateChildNodesProcess = NULL;
     }
     if(pt->pPopulateChildNodesConnector != NULL) {
-        disconnect( pt->pPopulateChildNodesConnector, 0, 0, 0 );
+        pt->pPopulateChildNodesConnector->disconnect();
         pt->pPopulateChildNodesConnector->deleteLater();
         pt->pPopulateChildNodesConnector = NULL;
     }
@@ -3921,13 +3921,13 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
 
 
     if(pt->pPopulateChildNodesProcess != NULL) {
-        ATVERIFY( disconnect( pt->pPopulateChildNodesProcess, 0, 0, 0 ) );
+        pt->pPopulateChildNodesProcess->disconnect();
         pt->pPopulateChildNodesProcess->deleteLater();
         pt->pPopulateChildNodesProcess = NULL;
     }
 
     if(pt->pPopulateChildNodesConnector != NULL) {
-        ATVERIFY( disconnect( pt->pPopulateChildNodesConnector, 0, 0, 0 ) );
+        pt->pPopulateChildNodesConnector->disconnect();
         pt->pPopulateChildNodesConnector->deleteLater();
         pt->pPopulateChildNodesConnector = NULL;
     }
@@ -4120,15 +4120,10 @@ void ATSkeletonWindow::recursiveDisconnectTunnelSignals( QTreeWidgetItem* twi )
 	{
 		qDebug() << Q_FUNC_INFO << pt->strName;
 		if(pt->pProcess != NULL) {
-            ATVERIFY( disconnect( pt->pProcess, &QProcess::readyReadStandardOutput, nullptr, nullptr ) );
-            ATVERIFY( disconnect( pt->pProcess, &QProcess::readyReadStandardError, nullptr, nullptr ) );
-            ATVERIFY( disconnect( pt->pProcess, &QProcess::errorOccurred, nullptr, nullptr ) );
-            ATVERIFY( disconnect( pt->pProcess, &QProcess::finished, nullptr, nullptr ) );
+            pt->pProcess->disconnect();
 		}
 		if(pt->pConnector != NULL) {
-            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::finished, nullptr, nullptr ) );
-            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::signalConnected, nullptr, nullptr ) );
-            ATVERIFY( disconnect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, nullptr, nullptr ) );
+            pt->pConnector->disconnect();
         }
 	}
 
@@ -4276,7 +4271,7 @@ void ATSkeletonWindow::disconnectAllTunnelsSilent()
 	qDebug() << "disconnectAllTunnelsSilent()";
 
 	// Make sure we won't try to reconnect
-    ATVERIFY( disconnect( this, &ATSkeletonWindow::signalAutoConnect, nullptr, nullptr ) );
+    disconnect( this, &ATSkeletonWindow::signalAutoConnect, this, &ATSkeletonWindow::slotAutoConnect );
 
     QList<QTreeWidgetItem*> treeTunnelItems = ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
 	for(int i=0;i<treeTunnelItems.size();i++)
@@ -4285,16 +4280,12 @@ void ATSkeletonWindow::disconnectAllTunnelsSilent()
 		Tunnel_c *it = getTunnel(twi);
 
 		// Make sure we don't process any stdout,stderr from ssh process
+        // NOTE! Even though this is the old-style, Qt 6 still allows it — and only this version behaves like "disconnect all slots from this signal".
 		if(it->pProcess != NULL) {
-            ATVERIFY( disconnect( it->pProcess, &QProcess::readyReadStandardOutput, nullptr, nullptr ) );
-            ATVERIFY( disconnect( it->pProcess, &QProcess::readyReadStandardError, nullptr, nullptr ) );
-            ATVERIFY( disconnect( it->pProcess, &QProcess::errorOccurred, nullptr, nullptr ) );
-            ATVERIFY( disconnect( it->pProcess, &QProcess::finished, nullptr, nullptr ) );
+            it->pProcess->disconnect();
 		}
 		if(it->pConnector != NULL) {
-            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::finished, nullptr, nullptr ) );
-            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::signalConnected, nullptr, nullptr ) );
-            ATVERIFY( disconnect( it->pConnector, &ATTunnelConnector_c::signalKillConnection, nullptr, nullptr ) );
+            it->pConnector->disconnect();
         }
 		disconnectTunnelSilent( twi );
 		ATASSERT( it->pProcess == NULL );
@@ -5613,7 +5604,7 @@ void ATSkeletonWindow::slotFocusChanged(QWidget* oldFocus, QWidget* newFocus)
 	qDebug("oldFocus: %s", oldFocus != NULL ? qPrintable(oldFocus->objectName()) : "NULL" );
 	qDebug("newFocus: %s", newFocus != NULL ? qPrintable(newFocus->objectName()) : "NULL" );
 
-    ATVERIFY( disconnect( qApp, &QApplication::focusChanged, nullptr, nullptr ) );
+    ATVERIFY( disconnect(qApp, &QApplication::focusChanged, this, &ATSkeletonWindow::slotFocusChanged) );
 	
 	if(oldFocus == ui.treeTunnels) {
 		//Hosts tree: clear paste status and disable paste in context menu
