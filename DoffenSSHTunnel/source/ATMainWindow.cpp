@@ -406,7 +406,7 @@ void ATMainWindow_c::readWindowSettings()
 	QPoint pos = settings.value( "pos", QPoint(0, 0) ).toPoint();
     QSize size = settings.value( "size", QSize(964, 648) ).toSize();
 	int bMax = settings.value( "maximized", 0 ).toInt();
-	m_strStyle = settings.value( "qtstyle", "" ).toString();
+    m_strStyle = settings.value( "qtstyle", "Fusion" ).toString();
 	m_strIconTheme = settings.value( "icons", ICON_THEME_CUSTOM ).toString();
 
 	bool bEnableEditing = settings.value( "enabled_editing", true ).toBool();
