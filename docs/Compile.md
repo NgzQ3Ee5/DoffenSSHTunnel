@@ -22,27 +22,28 @@ Win32: Qt Creator and Visual Studio 2013 Express Desktop compiler (vs2013)
 
 MSVC2013 makes it very easy for you to get started, just install the pre-compiled binary package and start Qt Creator, the remainder works as if by magic (once you have any version of MSVC2013 installed, even the Express edition will do).
 
-  * Install Collabnet Subversion Client
+  * Install Git Client
 
   * Checkout source
-    * Create directory `C:\QtProjects\DoffenSSHTunnel`
+    * Create directory `C:\QtProjects`
     * Open command prompt cmd.exe
-    * `cd \QtProjects\DoffenSSHTunnel`
-    * `svn checkout https://svn.code.sf.net/p/doffensshtunnel/code/trunk --username <sourceforge username>`
+    * `cd \QtProjects`
+    * `git clone git@github.com:NgzQ3Ee5/DoffenSSHTunnel.git`
 
-  * Install Microsoft Visual Studio 2017 Express Desktop compiler (vs2017)
+  * Install Microsoft Visual Studio Community (vs2022)
+    * Choose Desktop development with C++
 
   * Install Qt
-    * Download and execute 'Qt Online Installer for Windows' http://qt-project.org/downloads 
+    * Download and execute 'Qt Online Installer for Windows' https://www.qt.io/download-dev
     * Select components
-      * `Qt / Qt 5.12 / msvc2017 32-bit`
-      * `Qt / Tools / Qt Creator`
+      * `Qt / Qt 6.9.0 / MSVC 2022 64-bit`
+      * `Qt Creator / Qt Creator 16.0.1`
 
   * Launch Qt Creator
     * `File » Open File or Project`
     * Select `C:\QtProjects\DoffenSSHTunnel/trunk/DoffenSSHTunnel/DoffenSSHTunnel.pro`
-    * Set Debug Build Directory: `C:\QtProjects\build-DoffenSSHTunnel_32bit-Debug`
-    * Set Release Build Directory: `C:\QtProjects\build-DoffenSSHTunnel_32bit-Release`
+    * Set Debug Build Directory: `C:\QtProjects\build-DoffenSSHTunnel_64bit-Debug`
+    * Set Release Build Directory: `C:\QtProjects\build-DoffenSSHTunnel_64bit-Release`
     * Click button `Configure Project`
     * Select menu item: `Build » Open Build and Run Kit Selector`
     * Select `Release`
