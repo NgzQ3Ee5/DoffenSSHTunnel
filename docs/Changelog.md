@@ -1,5 +1,15 @@
 Changelog
 ==================
+v0.9.55 Apr 24, 2025
+------------------
++ Update Windows: New developement environment
+    + Visual Studio 2022 Community
+    + Qt 6.9.0 libraries for MSVC 2022 64-bit
+    + Qt Creator 16.0.1
+* Update: App now uses Fusion style by default on first run
++ New: Dark/light theme that adapts to your system settings
++ Rewrote all signal/slot connections for Qt 6.9.0 upgrade. If anything acts up, roll back to version 0.9.54.
+
 v0.9.54 Apr 16, 2025
 ------------------
 + Update: Improved command-line help descriptions for clarity and readability.
