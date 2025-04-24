@@ -1,6 +1,5 @@
 Changelog
 ==================
-
 v0.9.54 Apr 16, 2025
 ------------------
 + Update: Improved command-line help descriptions for clarity and readability.
@@ -29,7 +28,7 @@ v0.9.51 Apr 17, 2024
 	+ Updated bundled putty.exe from 0.78 to 0.81
 	+ Updated bundled winscp.exe from 5.21.7 to 6.3.3
 	+ Updated Code Signing Cert
-	
+
 v0.9.50 Mar 15, 2023
 ------------------
 + Windows
@@ -43,18 +42,18 @@ v0.9.49 Aug 28, 2021
 ------------------
 + Fixed: Able to use the same port number for both -L and -R like Cygwin and Linux allows
     Thanks to Richard who suggested this in https://sourceforge.net/p/doffensshtunnel/tickets/60/
-	
+    
 v0.9.48 Mar 18, 2020
 ------------------
 + Update: Keep tree node 'lock' icon colored red when reconnection timer is active
     Thanks to biece who suggested this in https://sourceforge.net/p/doffensshtunnel/tickets/59/
-
+    
 v0.9.47 Feb 5, 2020
 ------------------
 + Update: Auto reconnect max attempts in preferences have been increased from 99 to 9999999 
 	Thanks to biece who suggested this in https://sourceforge.net/p/doffensshtunnel/tickets/58/
 + Fixed: Auto reconnect interval in seconds set in preferences is now actually used. It was previously hard-coded to 10 seconds.
-	
+
 v0.9.46 Jan 23, 2020
 ------------------
 + New: You can now configure auto reconnect in preferences. 
@@ -62,7 +61,7 @@ v0.9.46 Jan 23, 2020
 	Thanks to biece who suggested this in https://sourceforge.net/p/doffensshtunnel/tickets/58/
 + Windows: Updated Qt libraries from 5.12.6 to 5.14.0
 	There should now be better support for High DPI screens as well as better support for Windows 150% zoom on such screens.
-
+    
 v0.9.45 Jan 20, 2020
 ------------------
 + Maintenance update that has new versions of 3'part sw.
@@ -74,7 +73,6 @@ v0.9.45 Jan 20, 2020
 	+ removed msvcp120.dll and msvcr120.dll
 	+ added msvcp140.dll and vcruntime140.dll
 
-	
 v0.9.44 Jan 15, 2020
 ------------------
 + Update Windows: New developement environment
@@ -82,6 +80,8 @@ v0.9.44 Jan 15, 2020
     + Visual Studio 2017 Express Desktop
     + Qt 5.12.6 libraries for MSVC 2017 32-bit
     + Qt Creator 4.11.0
+
+Note there is a known error in this version. If you put the program in a directory path that contains spaces then SSH Term and SSH FTP may not work.
 
 v0.9.43 Okt 24, 2019
 ------------------
@@ -92,11 +92,15 @@ v0.9.43 Okt 24, 2019
 + Update macOS: Moved my .sh files from MacOS dir to Resources dir
 + Update macOS: From now on the executable is signed
 
+Note there is a known error in this version. If you put the program in a directory path that contains spaces then SSH Term and SSH FTP may not work.
+
 v0.9.42 Okt 20, 2019
 ------------------
 + New: New built-in variable $datadir that points to the directory for where data files are stored. 
 + Update Windows: From now on the executable is signed
 + Update macOS: Add quotes to execucatble var
+
+Note there is a known error in this version. If you put the program in a directory path that contains spaces then SSH Term and SSH FTP may not work.
 
 v0.9.41 Okt 4, 2019
 ------------------
@@ -158,60 +162,61 @@ v0.9.34 Jan, 2019
 + Update: Fixed compiler warnings in connection with c ++ compiler update
 + Update Windows: Updated bundled winscp.exe from 5.13.2 to 5.13.7 portable
 
+
 v0.9.33 Jan, 2019
 ------------------
 + New: MacOS version. Compiled on Mojave (10.14)
     + Unlike on windows where the data files are stored in the same place as DoffenSSHTunnel.exe, the files are stored in ~ /Library/Application Support/ DoffenSSHTunnel
-	
+ 
 v0.9.32 Jun 18, 2018
 ------------------
 + New: Support for Google Two Factor Authentication
 + Update: Updated bundled plink.exe from 0.67 to 0.70
 + Update: Updated bundled putty.exe from 0.67 to 0.70
 + Update: Updated bundled winscp.exe from 5.9.3 to 5.13.2 portable
-
+ 
 v0.9.31 Jan 29, 2017
 ------------------
 + Update: Updated bundled plink.exe from 0.64 to 0.67
 + Update: Updated bundled putty.exe from 0.64 to 0.67
 + Update: Updated bundled winscp.exe from 4.4.0 to 5.9.3 portable
 
-v0.9.30 Jan 19, 2017
+v0.9.30 Jan 19, 2017 
 ------------------
-+ New developement environment
-  + NOTE! Starting with this version Windows XP is not supported
-  + Moved from WinXP 32bit to Win7 64bit (vmware)
-  + Visual Studio 2013 Express Desktop
-  + Qt 5.5.0 libraries for VS 2013 Express 32bit
-  + Qt Creator 3.4.2
-+ New: Folders can have custom actions
-+ New: Populate Hosts inside folders using an external command. I used this new feature and nodejs to get a list of Instances from Amazon AWS.
- + On the Edit tab when a folder is selected
- + Command: $node myfiles/nodejs/aws_ec2_instances.js ${ae_aws_read.uid} ${ae_aws_read.pwd}
- + ${ae_aws_read.uid} is the AWS access key
- + ${ae_aws_read.pwd} is the AWS secret key
- + The script uses the aws sdk to fetch all AWS Instances and then prints the result as a JSON string to stdout
-+ New: Set tree foreground and background color per host (click My Name in the edit pane)
-+ Update: Added icons in search toolbar completer
-+ Update: Updated bundled plink.exe from 0.63 to 0.64
-+ Update: Updated bundled putty.exe from 0.63 to 0.64
-+ Update: Moved the Clear Log button. Now click the Log... title above the log window. 
-+ Update: Updated icons documentation
-+ Update: No longer show search completer on focus. Show on Ctrl+F and Key_Up/Key_Down
-+ Update: Increased max number of hosts from 999 to 999999. It is absolutely ridiculous high. It's just to have no limit.
- + 5000 is the practical limit really considering responsiveness in the GUI
-+ Update: Improved '...' button next to a variable in Settings -> Passwords and Variables -> Executable Applications
- + When clicking the '...' button next to a variable
-   + If variable value is filled in _and_ it is an existing directory: 
-     + show directory select dialog
-     + in any other case show file select dialog
-   + Resolve variables
-+ Fixed: Search toolbar could cause app to crash
-+ Fixed: Search toolbar popup completer too eager
-+ Fixed: Password variable usage counter not incremented when referring to ${varname.uid}
-+ Fixed: Did not ask for save when turning off 'autosave' in options
-+ Fixed: A little too eager to autosave edit pane
-+ Fixed: Newline sometimes disappeared in log
+* New developement environment
+    * NOTE! Starting with this version Windows XP is not supported
+    * Moved from WinXP 32bit to Win7 64bit (vmware)
+    * Visual Studio 2013 Express Desktop
+    * Qt 5.5.0 libraries for VS 2013 Express 32bit
+    * Qt Creator 3.4.2
+* New: Folders can have custom actions
+* New: Populate Hosts inside folders using an external command. I used this new feature and nodejs to get a list of Instances from Amazon AWS.
+    * On the Edit tab when a folder is selected
+    * Command: $node myfiles/nodejs/aws_ec2_instances.js ${ae_aws_read.uid} ${ae_aws_read.pwd}
+ ${ae_aws_read.uid} is the AWS access key
+ ${ae_aws_read.pwd} is the AWS secret key
+    * The script uses the aws sdk to fetch all AWS Instances and then prints the result as a JSON string to stdout
+* New: Set tree foreground and background color per host (click My Name in the edit pane)
+* Update: Added icons in search toolbar completer
+* Update: Updated bundled plink.exe from 0.63 to 0.64
+* Update: Updated bundled putty.exe from 0.63 to 0.64
+* Update: Moved the Clear Log button. Now click the Log... title above the log window. 
+* Update: Updated icons documentation
+* Update: No longer show search completer on focus. Show on Ctrl+F and Key_Up/Key_Down
+* Update: Increased max number of hosts from 999 to 999999. It is absolutely ridiculous high. It's just to have no limit.
+* 5000 is the practical limit really considering responsiveness in the GUI
+* Update: Improved '...' button next to a variable in Settings -> Passwords and Variables -> Executable Applications
+    * When clicking the '...' button next to a variable
+        * If variable value is filled in _and_ it is an existing directory: 
+        * show directory select dialog
+        * in any other case show file select dialog
+    * Resolve variables
+* Fixed: Search toolbar could cause app to crash
+* Fixed: Search toolbar popup completer too eager
+* Fixed: Password variable usage counter not incremented when referring to ${varname.uid}
+* Fixed: Did not ask for save when turning off 'autosave' in options
+* Fixed: A little too eager to autosave edit pane
+* Fixed: Newline sometimes disappeared in log
 
 v0.9.29 May 28, 2015
 ------------------
@@ -222,17 +227,17 @@ v0.9.29 May 28, 2015
 v0.9.28 Dec 5, 2014
 ------------------
 + Fixed:  Displaying the wrong custom icons name
-+ Update: Update bundled plink.exe to v0.63
-+ Update: Update bundled putty.exe to v0.63
++ Update: Updated bundled plink.exe to v0.63
++ Update: Updated bundled putty.exe to v0.63
 + Update: Updated bundled winscp.exe to v4.40
 + Update: Added handdrawn icons Settings -> Icons -> Hand Drawn 1
 + Update: Updated URL shown in Help -> About: https//sourceforge.net/p/doffensshtunnel
-
 
 v0.9.27 Nov 30, 2014
 ------------------
 + Fixed: If you typed the wrong password when you start the app then executable variables would reset to default 
 + Update: Rewritten parts of the code to be platform independent 
++ Update: Updated from Qt 4.8.4 to Qt 5.2.0
 
 v0.9.26 May 2, 2013
 ------------------
@@ -246,24 +251,24 @@ v0.9.25 January 23, 2013
 + Update: Default disabled Preferences -> 'Enable auto reconnect tunnels'
 + Update: Menu item Settings -> 'Password and Variables' is allways available even when editing is turned off (unchecked File -> 'Editing Enbaled').
 
-v0.9.24
+v0.9.24 September 14, 2012
 ------------------
 + Fixed: Cut/Paste custom actions not working properly 
 + Fixed: Backing up when changing icon theme 
 + Fixed: New SSH Host sets the custom action command as the name 
 
-v0.9.23
+v0.9.23 June 4, 2012
 ------------------
 + Update: Icons themes can be installed inside the icons folder ./DoffeSSHTunnel/themes/icons/My Icons
 + Update: Updated bundled putty.exe to latest release (v0.62). This is the modified putty from http://jakub.kotrla.net/putty/ that stores session data i files.
 + Update: Updated bundled plink.exe to latest release (v0.62)
 + Update: Updated bundled winscp.exe to latest release (v4.3.7)
 
-v0.9.22
+v0.9.22 June 3, 2012
 ------------------
 + New: Support for multiple icon themes. See IconThemes
 
-v0.9.21
+v0.9.21 May 25, 2012
 ------------------
 + New: More Tunnels in the Edit pane. 
 + New: Use your own icons. Create folder themes/icons/. An icon found in that folder overrides the built in icon. Download built in icons from here: http://code.google.com/p/doffensshtunnel/source/browse/trunk/res
@@ -272,7 +277,7 @@ v0.9.21
 + Update: Moved Options to Menu -> Settings -> Preferences...
 + Update: Moved Passwords to Menu -> Settings -> Passwords & Variables...
 
-v0.9.20
+v0.9.20 
 ------------------
 + Fixed: User defined variables disappeared
 
@@ -288,7 +293,7 @@ v0.9.18
 + New: Propose tunnel remote port 22 - http://code.google.com/p/doffensshtunnel/issues/detail?id=39
 + New: Restore dialog: filter on manual and auto backup. - http://code.google.com/p/doffensshtunnel/issues/detail?id=32
 
-v0.9.17
+v0.9.17 May 3, 2012
 ------------------
 + New: Get help while creating custom actions - http://code.google.com/p/doffensshtunnel/issues/detail?id=37
 + New: Support for user defined variables - http://code.google.com/p/doffensshtunnel/issues/detail?id=34
@@ -297,7 +302,7 @@ v0.9.17
 + Update: Automatically save changes - http://code.google.com/p/doffensshtunnel/issues/detail?id=35
 + Update: Ask for username and password if not stored - http://code.google.com/p/doffensshtunnel/issues/detail?id=33 
 
-v0.9.16
+v0.9.16 April 16, 2012
 ------------------
 + New: Sortable columns in Tools->View configured local ports - http://code.google.com/p/doffensshtunnel/issues/detail?id=18
 + New: Drag&Drop in tree tunnel - http://code.google.com/p/doffensshtunnel/issues/detail?id=17
@@ -312,7 +317,7 @@ v0.9.16
 + Update: Do not require a tunnel to be defined. - http://code.google.com/p/doffensshtunnel/issues/detail?id=19
 
 
-v0.9.15
+v0.9.15 April 10, 2012
 ------------------
 + New: Added support for backup/restore. Automatic backup enabled by default. Creates folder 'DoffenSSHTunnelBackup' in same dir as ini file
 + New: checkbox in the Options pane 'Auto backup enabled'. Enabled by default
@@ -324,34 +329,34 @@ v0.9.15
 + New: Tools -> Disconnect all tunnels
 + New: Show Count in 'Tools'->'View configured local ports'.
 
-v0.9.14
+v0.9.14 Mars 29, 2012
 ------------------
 + New: Added support for folders.
 
-v0.9.13
+v0.9.13 February 10, 2012
 ------------------
 + New: Added new button 'Clear Log' in the Connect pane.
 + New: Added new checkbox in the Options pane 'Clear log automatically' (default enabled). Clear the log window before trying to connect.
 
-v0.9.12
+v0.9.12 May 24, 2011
 ------------------
 + New: Added new custom command variable in Edit pane: $kfile . Note that you must quote it if the key file path contains spaces: "$kfile"
 
-v0.9.11
+v0.9.11 September 16, 2010
 ------------------
 + New: Context menu item 'Clear log' in tunnel tree. Right click tunnel in tree and select Clear log. Clears the log on the Connect tab.
 + New: Menu item 'Clear all logs' in the Tools menu.
 
-v0.9.10
+v0.9.10 August 27, 2010
 ------------------
 + New: Support for challenge response password prompt. A password dialog appears when the server says %enter challenge response%
 + New: Support for personal code prompt. A password dialog appears when the server says %enter personal code%
 
-v0.9.9
+v0.9.9 
 ------------------
 + Fixed: Added missing files to the QT project file ATSkeleton.pri
 
-v0.9.8
+v0.9.8 May 20, 2010
 ------------------
 + New: When connecting a child tunnel, automatically connect parent tunnels if they are disconnected.
 + New: Intentionally disconnecting parent tunnel disconnects all child tunnels.
@@ -366,20 +371,20 @@ v0.9.8
 + New: Tools -> View configured local ports. Show distinct list of local ports in ascending order.
 + Fixed: Duplicate tunnel and copy/paste caused memory leaks since the QTreeWidgetItemiterator traversed the whole tree and created copies of too many internal tunnel objects.
 
-v0.9.7
+v0.9.7 May 8, 2010
 ------------------
 + New: Support for several SSH hosts in the tunnel. On the Edit tab, Click the [...] button next to the SSH Host
     textbox to open the edit dialog. Insert multiple hosts by pressing the enter key. One host per line. The textbox on
     the Edit tab turns into a combobox where you select the one to be active. This feature will be utilized by
     autoconnect in a future version. 
 
-v0.9.6
+v0.9.6 May 6, 2010
 ------------------
 + New: Origanizing the tunnels in a treview 
 + New: Right click context menu in treeview with copy/paste etc...
 + Fixed: Duplicate tunnel did not copy the custom button labels
 
-v0.9.5
+v0.9.5 Mars 26, 2010
 ------------------
 + New: Customizable label on the 'SSH Term' and 'SSH FTP' buttons
   + On the Edit tab, click the [...] button next to the Cmd text box
@@ -390,11 +395,11 @@ v0.9.5
   + added property CustomButton2Label
 + Fixed: Update info in about dialog
 
-v0.9.4
+v0.9.4 February 5, 2010
 ------------------
 + Minor improvements
 
-v0.9.3
+v0.9.3 January 25, 2010
 ------------------
 + New: Option to specify the amount of spaces used to indent the tunnel name in the tree view when clicking left/right
 + New: Option turn on/off the masking of passwords in the log
@@ -426,4 +431,3 @@ v0.9.0
 + Port of ezTunnel SSH to Doffen SSH Tunnel
 + Added ability to move tunnel up/down/left/right in the tree view
 + Minor bug fixes
-
