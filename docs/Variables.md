@@ -12,7 +12,7 @@ Tip!
 System Variables
 ------------------
 *Variable*  | *Description*
--------------------|------------|--------------
+-------------------|------------
 $appdir | The directory that contains the application executable ||
 $datadir | The directory that contains the application data ||
 
