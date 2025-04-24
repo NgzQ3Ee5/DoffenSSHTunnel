@@ -1,6 +1,6 @@
 Upgrade on Windows
 ==================
-Read [Upgrade-Windows] if you already have a previous release
+Read [Upgrade-Windows](Upgrade-Windows.md) if you already have a previous release
 
 Install on Windows
 ==================
