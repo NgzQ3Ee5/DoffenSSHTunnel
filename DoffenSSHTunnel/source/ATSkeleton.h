@@ -393,6 +393,7 @@ public:
 	bool	bIsExpanded;	//expanded in the tree ?
 	int     iSSH1or2;
 	QString strExtraArguments;
+    QString strNote;
 
 	QProcess *pProcess;
     TunnelLog log;

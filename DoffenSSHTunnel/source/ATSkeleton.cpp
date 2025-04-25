@@ -278,7 +278,7 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.comboKeyPasswordSelect, &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged ) );
 	ui.widgetEditTunnel->wireSignals();
     ATVERIFY( connect( ui.widgetEditTunnel,		&Widget::signalChildWidgetModified, this, &ATSkeletonWindow::slotHostModified ) );
-	
+
     // Edit host widget - returnPressed() - capture return key and save
     ATVERIFY( connect( ui.editTunnelName,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editSSHHost,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
@@ -664,6 +664,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 		tunnel->strSSHKeyFilePassword    = settings.value( "SSHKeyFilePassword" ).toString();
 		tunnel->strSSHKeyFile     = settings.value( "SSHKeyFile" ).toString();
 		tunnel->strExtraArguments = settings.value( "ExtraArguments" ).toString();
+        tunnel->strNote           = settings.value( "Note" ).toString();
 		tunnel->strLocalIP	      = settings.value( "LocalIP","localhost" ).toString();
 		tunnel->iLocalPort        = settings.value( "LocalPort" ).toInt();
 		tunnel->iRemotePort       = settings.value( "RemotePort" ).toInt();
@@ -784,6 +785,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
         tunnel->strSSHKeyFilePassword    = json.value( "SSHKeyFilePassword" ).toString();
         tunnel->strSSHKeyFile     = json.value( "SSHKeyFile" ).toString();
         tunnel->strExtraArguments = json.value( "ExtraArguments" ).toString("-N");
+        tunnel->strNote           = json.value( "Note" ).toString();
         tunnel->strLocalIP	      = json.value( "LocalIP" ).toString("localhost");
         tunnel->iLocalPort        = json.value( "LocalPort" ).toInt();
         tunnel->iRemotePort       = json.value( "RemotePort" ).toInt();
@@ -1784,6 +1786,7 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
 		settings.setValue( "AutoReconnect",   it->bAutoReconnect );
 		settings.setValue( "SSH1or2",         it->iSSH1or2 );
 		settings.setValue( "ExtraArguments",  it->strExtraArguments );
+        settings.setValue( "Note",            it->strNote );
 
 		settings.beginWriteArray("PortForward");
 		for(int j=0;j<it->portForwardList.size();j++) {
@@ -4332,6 +4335,7 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         pt->setSelectedRemoteHost(editGetSelectedRemoteHost());
         pt->iRemotePort = ui.editRemotePort->text().toInt();
         pt->strExtraArguments = ui.editExtraArguments->text();
+        pt->strNote = ui.editNote->toPlainText();
         pt->strUsername = ui.editUsername->text();
         pt->strPassword = ui.editPassword->text();
         pt->strSSHKeyFile = ui.editSSHKeyFile->text();
@@ -5501,6 +5505,7 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         editSetRemoteHost( pt->getRemoteHostList() );
         editSetSelectedRemoteHost( pt->getSelectedRemoteHost() );
         ui.editExtraArguments->setText( pt->strExtraArguments );
+        ui.editNote->setPlainText( pt->strNote );
         ui.editUsername->setText( pt->strUsername );
         ui.editPassword->setText( pt->strPassword );
         ui.editSSHKeyFile->setText( pt->strSSHKeyFile );
