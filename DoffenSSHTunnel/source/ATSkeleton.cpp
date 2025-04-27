@@ -2594,7 +2594,11 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         sCmd = sCmd.replace(QRegularExpression("^OW\\s*"),"");
     }
 
-    AddToLog( *pt, QString("Launching %1: %2\n").arg(cas.sLabel).arg(sCmdLog) );
+    AddToLog( *pt, QString("Launching %1: %2\n").arg(cas.sLabel, sCmdLog) );
+
+    QStringList parts = QProcess::splitCommand(sCmd);
+    QStringList partsLog = QProcess::splitCommand(sCmdLog);
+    AddToLog( *pt, QString("Parts: [%1]\n").arg( partsLog.join("],[") ) );
 
     if(bOutputWindow) {
         OutputWindow * pOutputWindow = new OutputWindow(qApp->activeWindow());
@@ -2608,13 +2612,11 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         //If I execute through the shell with process->setProgram("/bin/sh") then Kill process
         //will kill the shell only. The actual program running in the shell will not be killed
         //e.g. on windows cmd /c <long running program>
-        QStringList parts = QProcess::splitCommand(sCmd);
         process->setProgram(parts.takeFirst());
         process->setArguments(parts);
         pOutputWindow->addProcess( process );
         pOutputWindow->noMoreProcesses();
     } else {
-        QStringList parts = QProcess::splitCommand(sCmd);
         bool startResult = QProcess::startDetached( parts.takeFirst(), parts );
         if(!startResult) {
             AddToLog( *pt, QString("Failed to start") );
@@ -2903,7 +2905,7 @@ QString ATSkeletonWindow::replaceExecutableVariables( QString str )
             }
         }
         if(var.strExecutable.contains(" ") && !var.strExecutable.contains("$")
-                && !var.strExecutable.contains("\"") && !str.contains("\"")) {
+                && !var.strExecutable.contains("\"")) {
             if(!var.strExecutable.startsWith("\"")) {
                 var.strExecutable = "\"" + var.strExecutable;
             }
@@ -3318,6 +3320,8 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
  		return;
  	}
  
+    QStringList arguments;
+
  #ifdef WIN32
     QString strPlink = "";
     for(int i = 0; i < m_listExecutableVariables.size(); i++) {
@@ -3325,6 +3329,7 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
         QString name = var.strName.trimmed();
         if(name == "plink") {
             strPlink = var.strValue.trimmed();
+            arguments << QProcess::splitCommand(var.strArgs.trimmed());
         }
     }
     // Check that the executable is found if set in var executables
@@ -3391,17 +3396,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
     bool usingPlink = strPlink.toLower().contains("plink");
 
  	if ( pt->pProcess != NULL ) return; // already connected?
- 
-    if(usingPlink) {
-        QVersionNumber pLinkVersion = getPlinkVersion(strPlink, tunnel);
-        if(pLinkVersion.isNull()) {
-            AddToLog( tunnel, "Failed to detect plink version!" );
-        } else {
-            AddToLog( tunnel, "Detected plink version: " + pLinkVersion.toString());
-        }
-    }
-
-    QStringList arguments;
  
     arguments << "-v"; // increase verbosity
  
@@ -3538,11 +3532,29 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
         arguments << "-i" << keyFile;
 	}
  
-    arguments << pt->strExtraArguments;
+    if(!pt->strExtraArguments.trimmed().isEmpty()) {
+        arguments << QProcess::splitCommand(pt->strExtraArguments);
+    }
 
-    QString strCommandLog = replaceVarsLog(*pt, QString("%1 %2")
-        .arg(replaceVarsLog(*pt, strPlink), replaceVarsLog(*pt, arguments).join(' ')) );
-    AddToLog( tunnel, QString("%1\n").arg( strCommandLog ) );
+    if(usingPlink && !arguments.contains("-N")) {
+        arguments << "-N";
+    }
+
+    QStringList plinkArgumentsLog = replaceVarsLog(*pt, arguments);
+    for (QString &arg : plinkArgumentsLog) {
+        if (arg.contains(' ')) {
+            if(!arg.startsWith('\"')) {
+                arg = '\"' + arg;
+            }
+            if(!arg.endsWith('\"')) {
+                arg = arg + '\"';
+            }
+        }
+    }
+
+    QString strPlinkLog = replaceVarsLog(*pt, strPlink);
+    AddToLog( tunnel, QString("Starting: %1 %2\n").arg( strPlinkLog, plinkArgumentsLog.join(" ") ) );
+    AddToLog( tunnel, QString("Parts: [%1],[%2]\n").arg( strPlinkLog, plinkArgumentsLog.join("],[") ) );
 
 	//--- setup plink command string
 
@@ -3667,9 +3679,25 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         clearTunnelLog(pt);
     }
 
-    QString strCommand = pt->strChildNodesCommand;
+    QString sCmd = replaceVars(*pt, pt->strChildNodesCommand);
+    QString sCmdLog = replaceVarsLog(*pt, pt->strChildNodesCommand);
 
-    AddToLog( *pt, QString("> %1\n").arg( replaceVarsLog(*pt, strCommand) ) );
+    QStringList parts = QProcess::splitCommand(sCmd);
+    QStringList partsLog = QProcess::splitCommand(sCmdLog);
+
+    for (QString &arg : partsLog) {
+        if (arg.contains(' ')) {
+            if(!arg.startsWith('\"')) {
+                arg = '\"' + arg;
+            }
+            if(!arg.endsWith('\"')) {
+                arg = arg + '\"';
+            }
+        }
+    }
+
+    AddToLog( *pt, QString("Starting %1\n").arg( partsLog.join(' ') ) );
+    AddToLog( *pt, QString("Parts: [%1]\n").arg( partsLog.join("],[") ) );
 
     pt->pPopulateChildNodesConnector = new ATPopulateChildNodesConnector_c( this, twi );
 
@@ -3687,7 +3715,8 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     ATVERIFY( connect( pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::finished,
                        this, &ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinished, Qt::QueuedConnection ) );
 
-    pt->pPopulateChildNodesProcess->start( replaceVars(*pt, strCommand) );
+
+    pt->pPopulateChildNodesProcess->start( parts.takeFirst(), parts );
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
         ATVERIFY( connect( pt->pPopulateChildNodesProcess, &QProcess::finished, pd, &QProgressDialog::cancel ) );
