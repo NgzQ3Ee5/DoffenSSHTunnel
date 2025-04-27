@@ -48,7 +48,8 @@ QMainWindow( vpParent )
 	preferencesDialog = new PreferencesDialog(this, m_pSkeletonWindow);
     ATVERIFY( connect( preferencesDialog, &PreferencesDialog::accepted, this, &ATMainWindow_c::slotPreferencesDialogAccepted ) );
 
-    setWindowTitle( QString( "%1[*] - %2 %3 " ).arg( g_strWindowTitle ).arg( APP_NICE_NAME ).arg( APP_VERSION ) );
+    //setWindowTitle( QString( "%1[*] - %2 %3 " ).arg( g_strWindowTitle ).arg( APP_NICE_NAME ).arg( APP_VERSION ) );
+    setWindowTitle( g_strWindowTitle );
 
 	InitMenusAndActions();
 
