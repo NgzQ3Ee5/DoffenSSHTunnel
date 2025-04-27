@@ -5495,13 +5495,12 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         if(ptParent != NULL && ptParent->iType == TUNNEL_TYPE_TUNNEL) {
             ui.btnEditSSHHost->setEnabled(false);
             ui.editSSHHost->setReadOnly(true);
-            QPalette pal;
-            pal.setColor(QPalette::Text, Qt::gray);
+            QPalette pal = ui.editSSHHost->palette();
+            pal.setColor(QPalette::Text, pal.color(QPalette::Disabled, QPalette::Text));
             ui.editSSHHost->setPalette(pal);
         } else {
-            QPalette pal;
-            pal.setColor(QPalette::Text, Qt::black);
-            ui.editSSHHost->setPalette(pal);
+            // Reset palette to the app's palette
+            ui.editSSHHost->setPalette(qApp->palette(ui.editSSHHost));
             ui.editSSHHost->setReadOnly(false);
             ui.btnEditSSHHost->setEnabled(true);
         }
