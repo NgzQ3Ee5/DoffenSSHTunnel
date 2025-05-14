@@ -205,11 +205,11 @@ win* {
     message($$CMD_THEMES)
     system($$CMD_THEMES)
     #DoffenSSHTunnel/plink.exe & putty.exe
-    CMD_PLINK = $$quote(robocopy /S $$shell_path($${PWD})\..\..\deps\putty_v0.81\release_win32 $$shell_path($$OUT_PWD)\\$$DEBUG_OR_RELASE *.*)
+    CMD_PLINK = $$quote(robocopy /S $$shell_path($${PWD})\..\..\deps\putty_v0.83\release_win32 $$shell_path($$OUT_PWD)\\$$DEBUG_OR_RELASE *.*)
     message($$CMD_PLINK)
     system($$CMD_PLINK)
     #DoffenSSHTunnel/winscp.exe
-    CMD_WINSCP = $$quote(robocopy /S $$shell_path($${PWD})\..\..\deps\winscp_v6.3.3\release_win32 $$shell_path($$OUT_PWD)\\$$DEBUG_OR_RELASE *.*)
+    CMD_WINSCP = $$quote(robocopy /S $$shell_path($${PWD})\..\..\deps\winscp_v6.5\release_win32 $$shell_path($$OUT_PWD)\\$$DEBUG_OR_RELASE *.*)
     message($$CMD_WINSCP)
     system($$CMD_WINSCP)
     #DoffenSSHTunnel/<script files>

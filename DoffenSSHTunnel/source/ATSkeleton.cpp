@@ -2594,10 +2594,9 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         sCmd = sCmd.replace(QRegularExpression("^OW\\s*"),"");
     }
 
-    AddToLog( *pt, QString("Launching %1: %2\n").arg(cas.sLabel, sCmdLog) );
-
     QStringList parts = QProcess::splitCommand(sCmd);
     QStringList partsLog = QProcess::splitCommand(sCmdLog);
+    AddToLog( *pt, QString("Launching: %1\n").arg(sCmdLog) );
     AddToLog( *pt, QString("Parts: [%1]\n").arg( partsLog.join("],[") ) );
 
     if(bOutputWindow) {
@@ -2904,14 +2903,8 @@ QString ATSkeletonWindow::replaceExecutableVariables( QString str )
                 var.strExecutable = var.strExecutable.replace(name2, var2.strExecutable, Qt::CaseInsensitive).trimmed();
             }
         }
-        if(var.strExecutable.contains(" ") && !var.strExecutable.contains("$")
-                && !var.strExecutable.contains("\"")) {
-            if(!var.strExecutable.startsWith("\"")) {
-                var.strExecutable = "\"" + var.strExecutable;
-            }
-            if(!var.strExecutable.endsWith("\"")) {
-                var.strExecutable = var.strExecutable + "\"";
-            }
+        if(!var.strExecutable.contains("$")) {
+            var.strExecutable = addQuotesIfNeeded(var.strExecutable);
         }
         variablesResolved.replace(i,var);
     }
@@ -3045,6 +3038,34 @@ QStringList ATSkeletonWindow::replaceVarsLog( Tunnel_c &tunnel, QStringList strL
     }
 
     return replaced;
+}
+
+//static
+QString ATSkeletonWindow::addQuotesIfNeeded(QString str) {
+    QString ret = removeQuotes(str);
+    if(ret.contains(' ')) {
+        if(!ret.startsWith('"')) {
+            ret = '"' + ret;
+        }
+        if(!ret.endsWith('"')) {
+            ret = ret + '"';
+        }
+    }
+    return ret;
+}
+
+//static
+QStringList ATSkeletonWindow::addQuotesIfNeeded(QStringList strList) {
+    QStringList ret;
+    for (QString &str : strList) {
+        ret << addQuotesIfNeeded(str);
+    }
+    return ret;
+}
+
+//static
+QString ATSkeletonWindow::removeQuotes(QString str) {
+    return str.replace("\"","").replace("'","");
 }
 
 void ATSkeletonWindow::slotConnected( QTreeWidgetItem *twi )
@@ -3326,22 +3347,25 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
     QString strPlink = "";
     for(int i = 0; i < m_listExecutableVariables.size(); i++) {
         VariableStruct var = m_listExecutableVariables.at(i);
-        QString name = var.strName.trimmed();
+        QString name = var.strName.trimmed().toLower();
         if(name == "plink") {
-            strPlink = var.strValue.trimmed();
+            strPlink = removeQuotes(var.strValue.trimmed());
             arguments << QProcess::splitCommand(var.strArgs.trimmed());
+            break;
         }
     }
+
+
     // Check that the executable is found if set in var executables
     if(!strPlink.isEmpty()) {
-        QString strPlinkLog = replaceVarsLog(*pt, strPlink);
-        strPlink = replaceVars(*pt, strPlink);
+        strPlink = removeQuotes(replaceVars(*pt, strPlink));
         QFileInfo qfi = QFileInfo(strPlink);
         if(!qfi.exists()) {
-            qDebug( "Error: Could not find plink executable %s. Verfiy the executable variable plink in settings.", qPrintable( strPlinkLog ) );
-            AddToLog( tunnel, QString("Error: Could not find %1. Verfiy the executable variable plink in settings.\n").arg( strPlinkLog ) );
+            qDebug( "Error: Could not find plink executable '%s'. Verify the executable variable plink in settings.", qPrintable( qfi.absoluteFilePath() ) );
+            AddToLog( tunnel, QString("Error: Could not find '%1'. Verify the executable variable plink in settings.\n").arg( qfi.absoluteFilePath() ) );
             return;
         }
+        strPlink = qfi.absoluteFilePath();
     }
     // plink executable var NOT set, use default plink.exe in DoffenSSHTunnel app directory
     if(strPlink.isEmpty()) {
@@ -3355,14 +3379,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
  		}
         strPlink = QFileInfo(dir, strPlink).absoluteFilePath();
  	}
-    if(strPlink.contains(" ")) {
-        if(!strPlink.startsWith("\"")) {
-            strPlink = "\"" + strPlink;
-        }
-        if(!strPlink.endsWith("\"")) {
-            strPlink = strPlink + "\"";
-        }
-    }
  #else
     QString strPlink = "";
     for(int i = 0; i < m_listExecutableVariables.size(); i++) {
@@ -3483,8 +3499,7 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 
 	if ( !pt->strSSHKeyFile.trimmed().isEmpty() ) {
         QString keyFile = replaceVars(*pt, pt->strSSHKeyFile.trimmed());
-        keyFile = keyFile.replace("\"","");
-        keyFile = keyFile.replace("''","");
+        keyFile = removeQuotes(keyFile);
         QFileInfo keyFileInfo = QFileInfo(keyFile);
         //When moving the .ini file between OS'es there are certain things that
         //that must be converted on the fly. For instance the private key file
@@ -3521,14 +3536,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
             keyFileInfo = QFileInfo(keyFile);
         }
         keyFile = keyFileInfo.filePath();
-        if(keyFile.indexOf(" ") != -1) {
-            if(!keyFile.startsWith("\"")) {
-                keyFile = "\"" + keyFile;
-            }
-            if(!keyFile.endsWith("\"")) {
-                keyFile = keyFile + "\"";
-            }
-        }
         arguments << "-i" << keyFile;
 	}
  
@@ -3541,20 +3548,8 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
     }
 
     QStringList plinkArgumentsLog = replaceVarsLog(*pt, arguments);
-    for (QString &arg : plinkArgumentsLog) {
-        if (arg.contains(' ')) {
-            if(!arg.startsWith('\"')) {
-                arg = '\"' + arg;
-            }
-            if(!arg.endsWith('\"')) {
-                arg = arg + '\"';
-            }
-        }
-    }
-
-    QString strPlinkLog = replaceVarsLog(*pt, strPlink);
-    AddToLog( tunnel, QString("Starting: %1 %2\n").arg( strPlinkLog, plinkArgumentsLog.join(" ") ) );
-    AddToLog( tunnel, QString("Parts: [%1],[%2]\n").arg( strPlinkLog, plinkArgumentsLog.join("],[") ) );
+    AddToLog( tunnel, QString("Starting: %1 %2\n").arg( addQuotesIfNeeded(strPlink), addQuotesIfNeeded(plinkArgumentsLog).join(" ") ) );
+    AddToLog( tunnel, QString("Parts: [%1],[%2]\n").arg( strPlink, plinkArgumentsLog.join("],[") ) );
 
 	//--- setup plink command string
 
@@ -3609,7 +3604,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 
 	//--- setup the process
 
-    //QString strCommand = replaceVars(*pt, QString("%1 %2").arg(strPlink).arg(arguments.join(' ')) );
     pt->pProcess->start( replaceVars(*pt, strPlink), replaceVars(*pt, arguments) );
 }
 
@@ -3618,7 +3612,7 @@ QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunne
     QStringList arguments;
     arguments << "--version";
 
-    AddToLog(tunnel, QString("\"%1\" %2").arg(plinkPath, arguments.join(' ')));
+    AddToLog(tunnel, QString("%1 %2").arg(addQuotesIfNeeded(plinkPath), addQuotesIfNeeded(arguments.join(' '))));
 
     QProcess versionProcess;
     versionProcess.start(plinkPath, arguments);
@@ -3685,19 +3679,8 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     QStringList parts = QProcess::splitCommand(sCmd);
     QStringList partsLog = QProcess::splitCommand(sCmdLog);
 
-    for (QString &arg : partsLog) {
-        if (arg.contains(' ')) {
-            if(!arg.startsWith('\"')) {
-                arg = '\"' + arg;
-            }
-            if(!arg.endsWith('\"')) {
-                arg = arg + '\"';
-            }
-        }
-    }
-
-    AddToLog( *pt, QString("Starting %1\n").arg( partsLog.join(' ') ) );
-    AddToLog( *pt, QString("Parts: [%1]\n").arg( partsLog.join("],[") ) );
+    AddToLog( *pt, QString("Starting %1\n").arg( addQuotesIfNeeded(partsLog).join(' ') ) );
+    AddToLog( *pt, QString("Parts : [%1]\n").arg( partsLog.join("],[") ) );
 
     pt->pPopulateChildNodesConnector = new ATPopulateChildNodesConnector_c( this, twi );
 

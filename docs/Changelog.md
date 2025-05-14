@@ -1,5 +1,9 @@
 Changelog
 ==================
+v0.9.57 May 11, 2025
+------------------
++ Fixed: Resolved an issue where file paths containing spaces could fail to process correctly.
+
 v0.9.56 Apr 27, 2025
 ------------------
 + Fixed: Properly use QProcess::splitCommand.

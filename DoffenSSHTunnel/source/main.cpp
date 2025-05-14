@@ -9,7 +9,7 @@
 #include "pch.h"
 
 // For the about box
-const char *APP_VERSION = "0.9.56";
+const char *APP_VERSION = "0.9.57";
 const char *APP_NICE_NAME = "Doffen SSH Tunnel";
 
 // For the registry
@@ -225,6 +225,7 @@ int main(int argc, char *argv[])
     }
 
     qDebug() << "main() logFile = " << strLogFile;
+    qDebug() << "main() g_strDataDirectoryPath = " << g_strDataDirectoryPath;
     qDebug() << "main() g_strTunnelIniFile = " << g_strTunnelIniFile;
     qDebug() << "main() g_strAppIniFile = " << g_strAppIniFile;
     qDebug() << "main() g_strPwdFile = " << g_strPwdFile;
