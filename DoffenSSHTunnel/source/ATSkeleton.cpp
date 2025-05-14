@@ -3830,8 +3830,7 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
                     if(!newTunnel->strFgColor.isEmpty()) {
                         QColor color = QColor(newTunnel->strFgColor);
                         if(color.isValid()) {
-                            QBrush brush = newTunnel->twi->foreground(0);
-                            brush.setColor(color);
+                            QBrush brush(color);
                             newTwi->setForeground(0,brush);
                         }
                     }
@@ -3839,7 +3838,7 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
                     if(!newTunnel->strBgColor.isEmpty()) {
                         QColor color = QColor(newTunnel->strBgColor);
                         if(color.isValid()) {
-                            QBrush brush = QBrush(color);
+                            QBrush brush(color);
                             newTwi->setBackground(0,brush);
                         }
                     }
