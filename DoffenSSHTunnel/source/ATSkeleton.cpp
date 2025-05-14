@@ -2586,12 +2586,21 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
     sCmd = replaceVars(*pt, sCmd);
 
     bool bOutputWindow = false;
+    bool bOutputWindowAutoClose = false;
     if(sCmd.startsWith("OutputWindow ")) {
         bOutputWindow = true;
         sCmd = sCmd.replace(QRegularExpression("^OutputWindow\\s*"),"");
     } else if(sCmd.startsWith("OW ")) {
         bOutputWindow = true;
         sCmd = sCmd.replace(QRegularExpression("^OW\\s*"),"");
+    } else if(sCmd.startsWith("OutputWindowAutoClose ")) {
+        bOutputWindow = true;
+        bOutputWindowAutoClose = true;
+        sCmd = sCmd.replace(QRegularExpression("^OutputWindowAutoClose\\s*"),"");
+    } else if(sCmd.startsWith("OWAC ")) {
+        bOutputWindow = true;
+        bOutputWindowAutoClose = true;
+        sCmd = sCmd.replace(QRegularExpression("^OWAC\\s*"),"");
     }
 
     QStringList parts = QProcess::splitCommand(sCmd);
@@ -2602,8 +2611,8 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
     if(bOutputWindow) {
         OutputWindow * pOutputWindow = new OutputWindow(qApp->activeWindow());
         pOutputWindow->setModal(true);
-        pOutputWindow->setAutoClose(false);
-        pOutputWindow->setAutoCloseVisible(false);
+        pOutputWindow->setAutoClose(bOutputWindowAutoClose);
+        pOutputWindow->setAutoCloseVisible(bOutputWindowAutoClose);
         pOutputWindow->show();
         QProcess * process = new QProcess( parent() );
         //My hack not using setProgram. Setting arguments only

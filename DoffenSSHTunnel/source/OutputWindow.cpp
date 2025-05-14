@@ -22,7 +22,7 @@
 OutputWindow::OutputWindow(QWidget *parent)
     : QDialog(parent), _ui(new Ui::OutputWindow), _showOnStderr(true),
       _noMoreProcesses(false), _closed(false), _killedAll(false),
-      _errorCount(0) {
+      _errorCount(0), _exitCode(0) {
   _ui->setupUi(this);
   qDebug() << __FUNCTION__ << "Creating" << Qt::endl;
   readSettings();
@@ -176,6 +176,10 @@ void OutputWindow::processFinished(int exitCode,
     break;
   }
 
+  if(exitCode != 0) {
+      _exitCode = exitCode;
+  }
+
   QProcess *process = senderProcess(__FUNCTION__);
 
   if (process) {
@@ -249,7 +253,7 @@ void OutputWindow::processError(QProcess::ProcessError error) {
 
 void OutputWindow::closeIfDone() {
   if (_processList.isEmpty() && _noMoreProcesses) {
-    if ((autoClose() && _errorCount == 0) || _closed || !isVisible()) {
+    if ((autoClose() && _errorCount == 0 && _exitCode == 0) || _closed || !isVisible()) {
       qDebug() << "No more processes to watch. Auto-closing." << Qt::endl;
       this->deleteLater(); // It is safe to call this multiple times
     }

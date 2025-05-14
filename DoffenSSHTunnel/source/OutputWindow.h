@@ -68,6 +68,11 @@ public:
   int errorCount() const { return _errorCount; }
 
   /**
+   * If all process exited with code 0 then return 0, else return last known exitCode
+   */
+  int exitCode() const { return _exitCode; }
+
+  /**
    * Return 'true' if this dialog closes itself automatically after the last
    * process finished successfully.
    **/
@@ -366,6 +371,7 @@ protected:
   bool _closed;
   bool _killedAll;
   int _errorCount;
+  int _exitCode;
   QString _lastWorkingDir;
   QColor _terminalBackground;
   QColor _commandTextColor;
