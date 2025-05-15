@@ -2791,11 +2791,13 @@ QString ATSkeletonWindow::replaceBuiltinVars( QString str )
     if(!str.contains("$")) {
         return str;
     }
+    QString appDirPath = addQuotesIfNeeded(removeQuotes(g_strAppDirectoryPath));
+    QString dataDirPath = addQuotesIfNeeded(removeQuotes(g_strDataDirectoryPath));
     QString replaced = str;
-    replaced = replaced.replace("${appdir}", g_strAppDirectoryPath, Qt::CaseInsensitive);
-    replaced = replaced.replace("$appdir", g_strAppDirectoryPath, Qt::CaseInsensitive);
-    replaced = replaced.replace("${datadir}", g_strDataDirectoryPath, Qt::CaseInsensitive);
-    replaced = replaced.replace("$datadir", g_strDataDirectoryPath, Qt::CaseInsensitive);
+    replaced = replaced.replace("${appdir}", appDirPath, Qt::CaseInsensitive);
+    replaced = replaced.replace("$appdir", appDirPath, Qt::CaseInsensitive);
+    replaced = replaced.replace("${datadir}", dataDirPath, Qt::CaseInsensitive);
+    replaced = replaced.replace("$datadir", dataDirPath, Qt::CaseInsensitive);
     return replaced;
 }
 
@@ -2804,6 +2806,8 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     if(!str.contains("$")) {
         return str;
     }
+
+    QString kfile = addQuotesIfNeeded(removeQuotes(pt->strSSHKeyFile));
     QString replaced = replaceBuiltinVars(str);
 	replaced = replaced.replace("${host}", pt->getSelectedSSHHost(), Qt::CaseInsensitive);
 	replaced = replaced.replace("$host", pt->getSelectedSSHHost(), Qt::CaseInsensitive);
@@ -2815,8 +2819,8 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
 	replaced = replaced.replace("$pwd", pt->strPassword, Qt::CaseInsensitive);
 	replaced = replaced.replace("${kpwd}", pt->strSSHKeyFilePassword, Qt::CaseInsensitive);
 	replaced = replaced.replace("$kpwd", pt->strSSHKeyFilePassword, Qt::CaseInsensitive);
-	replaced = replaced.replace("${kfile}", pt->strSSHKeyFile, Qt::CaseInsensitive);
-	replaced = replaced.replace("$kfile", pt->strSSHKeyFile, Qt::CaseInsensitive);
+    replaced = replaced.replace("${kfile}", kfile, Qt::CaseInsensitive);
+    replaced = replaced.replace("$kfile", kfile, Qt::CaseInsensitive);
     replaced = replaced.replace("${name}", pt->strName.replace("\"",""), Qt::CaseInsensitive);
     replaced = replaced.replace("$name", pt->strName.replace("\"",""), Qt::CaseInsensitive);
 	QString strIP = pt->strLocalIP;
@@ -2913,7 +2917,7 @@ QString ATSkeletonWindow::replaceExecutableVariables( QString str )
             }
         }
         if(!var.strExecutable.contains("$")) {
-            var.strExecutable = addQuotesIfNeeded(var.strExecutable);
+            var.strExecutable = addQuotesIfNeeded(removeQuotes(var.strExecutable));
         }
         variablesResolved.replace(i,var);
     }
