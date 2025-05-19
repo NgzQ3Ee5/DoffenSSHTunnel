@@ -270,6 +270,7 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.treeTunnels,	  &TunnelTreeWidget::signalDragMoveFinished,this, &ATSkeletonWindow::slotDragMoveFinished ) );
 
     // Edit host widget
+    ATVERIFY( connect( ui.comboTunnelType,	    &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboTunnelTypeSelectionChanged ) );
     ATVERIFY( connect( ui.btnEditSSHHost,		&QToolButton::clicked, this, &ATSkeletonWindow::slotEditSSHHost ) );
     ATVERIFY( connect( ui.btnEditRemoteHost,	&QToolButton::clicked, this, &ATSkeletonWindow::slotEditRemoteHost ) );
     ATVERIFY( connect( ui.btnSave,				&QToolButton::clicked, this, &ATSkeletonWindow::slotSave ) );
@@ -625,6 +626,10 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 	//default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
 	tunnel->iType	          = settings.value( "Type", "0" ).toInt();
 
+    //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 5 = TUNNEL_TYPE_TUNNEL_SSM
+    tunnel->iType2	          = settings.value( "Type2", "1" ).toInt();
+
+
 	int customActionsCount = settings.beginReadArray("CustomActions");
 	for(int j=0;j<customActionsCount;j++) {
 		settings.setArrayIndex(j);
@@ -743,6 +748,9 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
 
     //default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
     tunnel->iType	          = json.value( "Type" ).toInt(0);
+
+    //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 2 = TUNNEL_TYPE_TUNNEL_SSH
+    tunnel->iType2	          = json.value( "Type2" ).toInt(1);
 
     QJsonArray jsonActions = json["CustomActions"].toArray();
     for(int j=0;j<jsonActions.size();j++) {
@@ -1757,6 +1765,7 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
     settings.setValue( "ExtID",			  it->strExtID);
 	settings.setValue( "Name",            it->strName );
 	settings.setValue( "Type",            it->iType );
+    settings.setValue( "Type2",           it->iType2 );
 	settings.setValue( "Level",			  it->iLevel );
 	settings.setValue( "Expanded",		  it->bIsExpanded );
     settings.setValue( "FgColor", it->strFgColor );
@@ -4386,6 +4395,8 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
             pt->strBgColor = bgBrush.color().name();
         }
 
+        pt->iType2 = ui.comboTunnelType->currentData().toInt(); // TUNNEL_TYPE_TUNNEL_SSH (1) OR TUNNEL_TYPE_TUNNEL_SSM (2)
+
     } else {
 
         pt->strName = ui.editFolderName->text().trimmed();
@@ -4424,6 +4435,7 @@ void ATSkeletonWindow::saveEditPane()
 	ATASSERT(pt);
     if(pt == NULL) return;
     ATASSERT(pt->iType == TUNNEL_TYPE_TUNNEL || pt->iType == TUNNEL_TYPE_FOLDER);
+    ATASSERT(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSH || pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM);
     if(pt->iType != TUNNEL_TYPE_TUNNEL && pt->iType != TUNNEL_TYPE_FOLDER) return;
 
     if(pt->iType == TUNNEL_TYPE_TUNNEL) {
@@ -4463,6 +4475,22 @@ void ATSkeletonWindow::saveEditPane()
     ui.treeTunnels->blockSignals(blocked);
 
 	writeSettings();
+}
+
+void ATSkeletonWindow::slotComboTunnelTypeSelectionChanged(int index)
+{
+    qDebug( "%s", Q_FUNC_INFO );
+    if(index >= 0) {
+        m_pMainWindow->setDetectSaveTunnel(false);
+        int type = ui.comboTunnelType->itemData(index).toInt(); // TUNNEL_TYPE_TUNNEL_SSH (1) or TUNNEL_TYPE_TUNNEL_SSM (2)
+        if(type == TUNNEL_TYPE_TUNNEL_SSM) {
+            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSM);
+        } else {
+            // SSH is the default
+            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSH);
+        }
+        m_pMainWindow->setDetectSaveTunnel(true);
+    }
 }
 
 void ATSkeletonWindow::slotComboPasswordSelectSelectionChanged(int index)
@@ -5487,6 +5515,18 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
 
         bool wasBlocked = ui.widgetEditTunnel->blockSignals(true);
 
+        ui.comboTunnelType->clear();
+        ui.comboTunnelType->addItem("Secure Shell (SSH)", TUNNEL_TYPE_TUNNEL_SSH);
+        ui.comboTunnelType->addItem("AWS Session Manager (SSM)", TUNNEL_TYPE_TUNNEL_SSM);
+        if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM) {
+            ui.comboTunnelType->setCurrentIndex(ui.comboTunnelType->findData(TUNNEL_TYPE_TUNNEL_SSM));
+            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSM);
+        } else {
+            ui.comboTunnelType->setCurrentIndex(ui.comboTunnelType->findData(TUNNEL_TYPE_TUNNEL_SSH));
+            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSH);
+        }
+
+
         if(ptParent != NULL && ptParent->iType == TUNNEL_TYPE_TUNNEL) {
             ui.btnEditSSHHost->setEnabled(false);
             ui.editSSHHost->setReadOnly(true);
@@ -6443,6 +6483,7 @@ Tunnel_c::Tunnel_c()
 	iLevel = 0;
 	iConnectStatus = DISCONNECTED;
 	twi = NULL;
+    iType2 = TUNNEL_TYPE_TUNNEL_SSH;
 
 	init();
 }
@@ -6468,6 +6509,7 @@ void Tunnel_c::init()
     strExtID = "";
 	strName = "Untitled";
 	iType = TUNNEL_TYPE_TUNNEL;
+    iType2 = TUNNEL_TYPE_TUNNEL_SSH;
 	bCompression = false;
 	bDoKeepAlivePing = false;
 	bAutoReconnect = false;
@@ -6494,6 +6536,7 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
 
 	strName = orig->strName;
 	iType = orig->iType;
+    iType2 = orig->iType2;
 	iLevel = orig->iLevel;
 
 	pProcess = NULL;
@@ -6534,6 +6577,9 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
 bool Tunnel_c::isConnectionDetailsEqual(const Tunnel_c *other)
 {
     if(iType != other->iType) {
+        return false;
+    }
+    if(iType2 != other->iType2) {
         return false;
     }
     if(strSSHHostList.size() != other->strSSHHostList.size()) {

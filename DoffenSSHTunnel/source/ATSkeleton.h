@@ -13,6 +13,8 @@ class ImportHostsDialog;
 class BackupInfo;
 
 #define TUNNEL_TYPE_TUNNEL	(0)
+#define TUNNEL_TYPE_TUNNEL_SSH (1)
+#define TUNNEL_TYPE_TUNNEL_SSM (2)
 #define TUNNEL_TYPE_FOLDER	(5)
 
 #define IMPORT_AFTER	(0)
@@ -370,11 +372,12 @@ public:
 	QUuid   uUid;
     QString strExtID; //External ID. I.e. Amazon EC2 instance ID
 	QString strName;
-	int		iType;
+    int		iType;   //TUNNEL_TYPE_TUNNEL or TUNNEL_TYPE_FOLDER
+    int		iType2;  //TUNNEL_TYPE_TUNNEL_SSH or TUNNEL_TYPE_TUNNEL_SSM
 	QStringList strSSHHostList;
 	int		iSSHHost;
 	QString strLocalIP;
-	int     iLocalPort;
+    int     iLocalPort;
 	QStringList strRemoteHostList;
 	int		iRemoteHost;
 	int     iRemotePort;
@@ -524,6 +527,7 @@ public slots:
 	void slotSelectTunnel();
     void slotSave();
 	void slotCancel();
+    void slotComboTunnelTypeSelectionChanged(int index);
 	void slotComboPasswordSelectSelectionChanged(int index);
 	void slotComboKeyPasswordSelectSelectionChanged(int index);
 	void slotEditSSHHost();
