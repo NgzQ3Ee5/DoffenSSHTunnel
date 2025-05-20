@@ -55,3 +55,7 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# Libre office
+docs/misc/.~lock.doc.odg\#
+docs/misc/.~lock.icons.odg\#
