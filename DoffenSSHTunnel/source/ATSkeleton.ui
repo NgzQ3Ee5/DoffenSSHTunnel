@@ -2355,7 +2355,7 @@
                 <item row="0" column="0">
                  <widget class="QGroupBox" name="groupBoxSSMSettings">
                   <property name="title">
-                   <string>SSM Session Setup - The machine we are connecting to</string>
+                   <string>SSM Session Setup - The EC2 Jumphost</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -2382,24 +2382,37 @@
                       <property name="bottomMargin">
                        <number>0</number>
                       </property>
-                      <item row="2" column="0">
-                       <widget class="QLabel" name="labelExtraArgumentsSSM">
+                      <item row="1" column="0">
+                       <widget class="QLabel" name="labelEditSSMHost">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${host}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;InstanceID of the EC2 server to connect to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                         <string>EC2 InstanceID:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="4" column="0">
+                       <widget class="QLabel" name="labelExtraSSMArguments">
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional additional AWS SSM parameters&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
-                         <string>Extra SSM arguments:</string>
+                         <string>Extra arguments:</string>
                         </property>
                        </widget>
                       </item>
-                      <item row="3" column="0">
-                       <widget class="QLineEdit" name="editExtraArgumentsSSM">
+                      <item row="2" column="0">
+                       <widget class="QLabel" name="labelEditSSMRegion">
                         <property name="toolTip">
-                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional additional AWS SSM parameters&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;E.g. eu-north-1, eu-west-1, eu-central-1 etc..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                         <string>AWS Region:</string>
                         </property>
                        </widget>
                       </item>
-                      <item row="1" column="0">
+                      <item row="1" column="1">
                        <widget class="QWidget" name="widgetEditSSMHost" native="true">
                         <layout class="QHBoxLayout" name="horizontalLayout_17">
                          <property name="leftMargin">
@@ -2414,16 +2427,6 @@
                          <property name="bottomMargin">
                           <number>0</number>
                          </property>
-                         <item>
-                          <widget class="QLabel" name="labelEditSSMHost">
-                           <property name="toolTip">
-                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${host}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;InstanceID of the EC2 server to connect to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                           </property>
-                           <property name="text">
-                            <string>EC2 InstanceID:</string>
-                           </property>
-                          </widget>
-                         </item>
                          <item>
                           <widget class="QStackedWidget" name="stackedWidgetSSMHost">
                            <property name="sizePolicy">
@@ -2508,6 +2511,29 @@
                           </widget>
                          </item>
                         </layout>
+                       </widget>
+                      </item>
+                      <item row="4" column="1">
+                       <widget class="QLineEdit" name="editExtraSSMArguments">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional additional AWS SSM parameters&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="1">
+                       <widget class="QLineEdit" name="editSSMRegion"/>
+                      </item>
+                      <item row="3" column="1">
+                       <widget class="QLineEdit" name="editSSMProfile"/>
+                      </item>
+                      <item row="3" column="0">
+                       <widget class="QLabel" name="labelEditSSMProfile">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Profile found in C:/Users/&amp;lt;your username/.aws/config&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                         <string>AWS Profile:</string>
+                        </property>
                        </widget>
                       </item>
                      </layout>
