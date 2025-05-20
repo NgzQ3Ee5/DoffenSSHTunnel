@@ -628,7 +628,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 	//default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
 	tunnel->iType	          = settings.value( "Type", "0" ).toInt();
 
-    //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 5 = TUNNEL_TYPE_TUNNEL_SSM
+    //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 2 = TUNNEL_TYPE_TUNNEL_SSM
     tunnel->iType2	          = settings.value( "Type2", "1" ).toInt();
 
 
@@ -4422,6 +4422,7 @@ void ATSkeletonWindow::saveEditPane()
     ATASSERT(pt->iType == TUNNEL_TYPE_TUNNEL || pt->iType == TUNNEL_TYPE_FOLDER);
     ATASSERT(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSH || pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM);
     if(pt->iType != TUNNEL_TYPE_TUNNEL && pt->iType != TUNNEL_TYPE_FOLDER) return;
+    if(pt->iType2 != TUNNEL_TYPE_TUNNEL_SSH && pt->iType2 != TUNNEL_TYPE_TUNNEL_SSM) return;
 
     if(pt->iType == TUNNEL_TYPE_TUNNEL) {
         autoBackupSettings( BackupInfo(BACKUP_BEFORE_EDITTUNNEL,"Before saving edited tunnel [%1]",m_pTreeTunnelsItemEdit->text(0) ) );   
