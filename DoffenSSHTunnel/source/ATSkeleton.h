@@ -390,7 +390,6 @@ public:
 	QString strSSHKeyFilePassword;
 	int     iDirection;
 	bool    bAutoConnect;
-	bool    bCompression;
 	bool    bDoKeepAlivePing;
 	bool    bAutoReconnect;
 	bool	bIsExpanded;	//expanded in the tree ?

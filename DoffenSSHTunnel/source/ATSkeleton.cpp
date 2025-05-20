@@ -678,7 +678,6 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 		tunnel->iRemotePort       = settings.value( "RemotePort" ).toInt();
 		tunnel->iDirection        = settings.value( "Direction" ).toInt();
 		tunnel->bAutoConnect      = settings.value( "AutoConnect" ).toBool();
-		tunnel->bCompression      = settings.value( "Compression" ).toBool();
 		tunnel->bDoKeepAlivePing  = settings.value( "DoKeepAlivePing" ).toBool();
 		tunnel->bAutoReconnect    = settings.value( "AutoReconnect" ).toBool();
 
@@ -799,7 +798,6 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
         tunnel->iRemotePort       = json.value( "RemotePort" ).toInt();
         tunnel->iDirection        = json.value( "Direction" ).toInt();
         tunnel->bAutoConnect      = json.value( "AutoConnect" ).toBool();
-        tunnel->bCompression      = json.value( "Compression" ).toBool();
         tunnel->bDoKeepAlivePing  = json.value( "DoKeepAlivePing" ).toBool();
         tunnel->bAutoReconnect    = json.value( "AutoReconnect" ).toBool();
 
@@ -1786,7 +1784,6 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
 		settings.setValue( "SSHKeyFile",      it->strSSHKeyFile );
 		settings.setValue( "Direction",       it->iDirection );
 		settings.setValue( "AutoConnect",     it->bAutoConnect );
-		settings.setValue( "Compression",     it->bCompression );
 		settings.setValue( "DoKeepAlivePing", it->bDoKeepAlivePing );
 		settings.setValue( "AutoReconnect",   it->bAutoReconnect );
 		settings.setValue( "ExtraArguments",  it->strExtraArguments );
@@ -3465,10 +3462,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
     if ( !pt->strUsername.isEmpty() ) {
         arguments << "-l" << pt->strUsername;
     }
- 
-    if ( pt->bCompression ) {
-        arguments <<  "-C";
-    }
 	
 	if ( !pt->getSelectedRemoteHost().isEmpty() && pt->iLocalPort > 0 && pt->iRemotePort > 0 )
 	{
@@ -4368,7 +4361,6 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         //TODO removed from UI
         //pt->iDirection = ui.comboDirection->currentIndex();
         pt->bAutoConnect = ui.checkAutoConnect->isChecked();
-        pt->bCompression = ui.checkCompression->isChecked();
         //TODO removed from UI
         //pt->bDoKeepAlivePing = ui.checkDoKeepAlivePing->isChecked();
         pt->bAutoReconnect = ui.checkAutoReconnect->isChecked();
@@ -5564,7 +5556,6 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         ui.editSSHKeyFile->setText( pt->strSSHKeyFile );
         ui.editSSHKeyFilePassword->setText( pt->strSSHKeyFilePassword );
         ui.checkAutoConnect->setChecked( pt->bAutoConnect );
-        ui.checkCompression->setChecked( pt->bCompression );
         ui.checkAutoReconnect->setChecked( pt->bAutoReconnect );
 
         ui.editLocalIP->setText( pt->strLocalIP );
@@ -6513,7 +6504,6 @@ void Tunnel_c::init()
 	strName = "Untitled";
 	iType = TUNNEL_TYPE_TUNNEL;
     iType2 = TUNNEL_TYPE_TUNNEL_SSH;
-	bCompression = false;
 	bDoKeepAlivePing = false;
 	bAutoReconnect = false;
 	strLocalIP = "localhost";
@@ -6565,7 +6555,6 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
 	strSSHKeyFilePassword = orig->strSSHKeyFilePassword;
 	iDirection = orig->iDirection;
 	bAutoConnect = orig->bAutoConnect;
-	bCompression = orig->bCompression;
 	bDoKeepAlivePing = orig->bDoKeepAlivePing;
 	bAutoReconnect = orig->bAutoReconnect;
 	strExtraArguments = orig->strExtraArguments;	
