@@ -23,8 +23,8 @@ class BackupInfo;
 
 struct VariableStatTunnelStruct
 {
-	enum {FIELD_SSH_HOST, FIELD_USER_NAME, FIELD_PASSWORD, FIELD_SSH_KEY_FILE, 
-        FIELD_KEY_PASSWORD, FIELD_DESTINATION_HOST, FIELD_EXTRA_ARGUMENTS,FIELD_CHILDNODES_COMMAND};
+    enum {FIELD_SSH_HOST, FIELD_USER_NAME, FIELD_PASSWORD, FIELD_SSH_KEY_FILE,
+        FIELD_KEY_PASSWORD, FIELD_DESTINATION_HOST, FIELD_EXTRA_ARGUMENTS, FIELD_SSM_REGION,FIELD_SSM_PROFILE, FIELD_CHILDNODES_COMMAND};
 	QUuid   uUidVariable;	//points to the VariableStruct. Below we have the overview of where that variable are used.
 	QList<int> listFields;
 	QList<CustomActionStruct> listCustomActions;
@@ -418,6 +418,9 @@ public:
     QString strBgColor;
 
     bool bActivateDisconnects;
+
+    QString strSSMRegion;
+    QString strSSMProfile;
 
 protected:
     QTimer m_timerDelayRetryConnect;

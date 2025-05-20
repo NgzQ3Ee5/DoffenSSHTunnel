@@ -292,6 +292,8 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.editRemoteHost,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editRemotePort,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editExtraArguments,		&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editSSMRegion,            &QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editSSMProfile,           &QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
 
     // Edit folder widget
     ATVERIFY( connect( ui.btnSaveFolder,			&QAbstractButton::clicked, this, &ATSkeletonWindow::slotSave ) );
@@ -669,6 +671,8 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 		tunnel->strSSHKeyFilePassword    = settings.value( "SSHKeyFilePassword" ).toString();
 		tunnel->strSSHKeyFile     = settings.value( "SSHKeyFile" ).toString();
 		tunnel->strExtraArguments = settings.value( "ExtraArguments" ).toString();
+        tunnel->strSSMRegion      = settings.value( "SSMRegion" ).toString();
+        tunnel->strSSMProfile     = settings.value( "SSMProfile" ).toString();
 		tunnel->strLocalIP	      = settings.value( "LocalIP","localhost" ).toString();
 		tunnel->iLocalPort        = settings.value( "LocalPort" ).toInt();
 		tunnel->iRemotePort       = settings.value( "RemotePort" ).toInt();
@@ -791,7 +795,9 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
         tunnel->strPassword       = json.value( "Password" ).toString();
         tunnel->strSSHKeyFilePassword    = json.value( "SSHKeyFilePassword" ).toString();
         tunnel->strSSHKeyFile     = json.value( "SSHKeyFile" ).toString();
-        tunnel->strExtraArguments = json.value( "ExtraArguments" ).toString("-N");
+        tunnel->strExtraArguments = json.value( "ExtraArguments" ).toString();
+        tunnel->strSSMRegion      = json.value( "SSMRegion" ).toString();
+        tunnel->strSSMProfile     = json.value( "SSMProfile" ).toString();
         tunnel->strLocalIP	      = json.value( "LocalIP" ).toString("localhost");
         tunnel->iLocalPort        = json.value( "LocalPort" ).toInt();
         tunnel->iRemotePort       = json.value( "RemotePort" ).toInt();
@@ -1793,6 +1799,8 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
 		settings.setValue( "AutoReconnect",   it->bAutoReconnect );
 		settings.setValue( "SSH1or2",         it->iSSH1or2 );
 		settings.setValue( "ExtraArguments",  it->strExtraArguments );
+        settings.setValue( "SSMRegion",       it->strSSMRegion );
+        settings.setValue( "SSMProfile",      it->strSSMProfile );
 
 		settings.beginWriteArray("PortForward");
 		for(int j=0;j<it->portForwardList.size();j++) {
@@ -4365,6 +4373,9 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         pt->setSelectedRemoteHost(editGetSelectedRemoteHost());
         pt->iRemotePort = ui.editRemotePort->text().toInt();
         pt->strExtraArguments = ui.editExtraArguments->text();
+        pt->strSSMRegion = ui.editSSMRegion->text();
+        pt->strSSMProfile = ui.editSSMProfile->text();
+        pt->iType2 = ui.comboTunnelType->currentData().toInt(); // TUNNEL_TYPE_TUNNEL_SSH (1) OR TUNNEL_TYPE_TUNNEL_SSM (2)
         pt->strUsername = ui.editUsername->text();
         pt->strPassword = ui.editPassword->text();
         pt->strSSHKeyFile = ui.editSSHKeyFile->text();
@@ -4394,8 +4405,6 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         if(bgBrush.style() != Qt::NoBrush) {
             pt->strBgColor = bgBrush.color().name();
         }
-
-        pt->iType2 = ui.comboTunnelType->currentData().toInt(); // TUNNEL_TYPE_TUNNEL_SSH (1) OR TUNNEL_TYPE_TUNNEL_SSM (2)
 
     } else {
 
@@ -5564,6 +5573,8 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         editSetRemoteHost( pt->getRemoteHostList() );
         editSetSelectedRemoteHost( pt->getSelectedRemoteHost() );
         ui.editExtraArguments->setText( pt->strExtraArguments );
+        ui.editSSMRegion->setText( pt->strSSMRegion );
+        ui.editSSMProfile->setText( pt->strSSMProfile );
         ui.editUsername->setText( pt->strUsername );
         ui.editPassword->setText( pt->strPassword );
         ui.editSSHKeyFile->setText( pt->strSSHKeyFile );
@@ -6211,6 +6222,14 @@ VariableStatTunnelStruct ATSkeletonWindow::getVariableUsageInTunnel(Tunnel_c *it
 		varTS.listFields.append(VariableStatTunnelStruct::FIELD_EXTRA_ARGUMENTS);
 	}
 
+    if(it->strSSMRegion.contains(varName1) || it->strSSMRegion.contains(varName2)) {
+        varTS.listFields.append(VariableStatTunnelStruct::FIELD_SSM_REGION);
+    }
+
+    if(it->strSSMProfile.contains(varName1) || it->strSSMProfile.contains(varName2)) {
+        varTS.listFields.append(VariableStatTunnelStruct::FIELD_SSM_PROFILE);
+    }
+
     if(it->strChildNodesCommand.contains(varName1) || it->strChildNodesCommand.contains(varName2)) {
         varTS.listFields.append(VariableStatTunnelStruct::FIELD_CHILDNODES_COMMAND);
     }
@@ -6303,6 +6322,8 @@ void ATSkeletonWindow::changeTunnelVarNames(QList<QPair<QString,QString> > & var
 			it->strSSHKeyFile = it->strSSHKeyFile.replace(origVarName, newVarName);
 			it->strSSHKeyFilePassword = it->strSSHKeyFilePassword.replace(origVarName, newVarName);
 			it->strExtraArguments = it->strExtraArguments.replace(origVarName, newVarName);	
+            it->strSSMRegion = it->strSSMRegion.replace(origVarName, newVarName);
+            it->strSSMProfile = it->strSSMProfile.replace(origVarName, newVarName);
 
             it->strChildNodesCommand = it->strChildNodesCommand.replace(origVarName, newVarName);
 
@@ -6519,7 +6540,9 @@ void Tunnel_c::init()
 	iRemotePort = 0;
 	iDirection = 0;
 	bAutoConnect = false;
-	strExtraArguments = "-N";
+    strExtraArguments = "";
+    strSSMRegion = "";
+    strSSMProfile = "";
     strChildNodesCommand = "";
     bChildNodesCommandType = false;
     strFgColor = "";
@@ -6566,6 +6589,8 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
 	bAutoReconnect = orig->bAutoReconnect;
 	iSSH1or2 = orig->iSSH1or2;
 	strExtraArguments = orig->strExtraArguments;	
+    strSSMRegion = orig->strSSMRegion;
+    strSSMProfile = orig->strSSMProfile;
 	strPassword = orig->strPassword;
     strChildNodesCommand = orig->strChildNodesCommand;
     bChildNodesCommandType = orig->bChildNodesCommandType;
@@ -6644,6 +6669,12 @@ bool Tunnel_c::isConnectionDetailsEqual(const Tunnel_c *other)
         return false;
     }
     if(strExtraArguments != other->strExtraArguments) {
+        return false;
+    }
+    if(strSSMRegion != other->strSSMRegion) {
+        return false;
+    }
+    if(strSSMProfile != other->strSSMProfile) {
         return false;
     }
     if(strPassword != other->strPassword) {
