@@ -1719,9 +1719,9 @@
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
+                       <y>-4</y>
                        <width>237</width>
-                       <height>204</height>
+                       <height>148</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout">
@@ -1775,32 +1775,6 @@
                        <widget class="QLineEdit" name="editExtraArguments">
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;-X -x : enable / disable X11 forwarding&lt;/p&gt;&lt;p&gt;-A -a : enable / disable agent forwarding&lt;/p&gt;&lt;p&gt;-t -T : enable / disable pty allocation&lt;/p&gt;&lt;p&gt;-4 -6 : force use of IPv4 or IPv6&lt;/p&gt;&lt;p&gt;-noagent : disable use of Pageant&lt;/p&gt;&lt;p&gt;-agent : enable use of Pageant&lt;/p&gt;&lt;p&gt;-m file : read remote command(s) from file&lt;/p&gt;&lt;p&gt;-s : remote command is an SSH subsystem (SSH-2 only)&lt;/p&gt;&lt;p&gt;-N : don't start a shell/command (SSH-2 only)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Please note that the -N option should allways be specified&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioSSH1">
-                        <property name="enabled">
-                         <bool>true</bool>
-                        </property>
-                        <property name="toolTip">
-                         <string>Force SSH version 1</string>
-                        </property>
-                        <property name="text">
-                         <string>SSH v1</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioSSH2">
-                        <property name="enabled">
-                         <bool>true</bool>
-                        </property>
-                        <property name="toolTip">
-                         <string>Use SSH version 2</string>
-                        </property>
-                        <property name="text">
-                         <string>SSH v2</string>
                         </property>
                        </widget>
                       </item>

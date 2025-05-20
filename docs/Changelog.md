@@ -1,5 +1,10 @@
 Changelog
 ==================
+v0.9.58 May 20, 2025
+------------------
++ Update: Removed the radio group for selecting SSH version 1 or 2. To override the default SSH version, use the Extra Arguments field instead.
+
+
 v0.9.57 May 19, 2025
 ------------------
 + Fixed: Resolved an issue where file paths containing spaces could fail to process correctly.

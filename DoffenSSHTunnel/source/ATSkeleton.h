@@ -394,7 +394,6 @@ public:
 	bool    bDoKeepAlivePing;
 	bool    bAutoReconnect;
 	bool	bIsExpanded;	//expanded in the tree ?
-	int     iSSH1or2;
 	QString strExtraArguments;
 
 	QProcess *pProcess;

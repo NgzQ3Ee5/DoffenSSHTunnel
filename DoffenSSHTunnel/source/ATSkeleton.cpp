@@ -681,10 +681,6 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 		tunnel->bCompression      = settings.value( "Compression" ).toBool();
 		tunnel->bDoKeepAlivePing  = settings.value( "DoKeepAlivePing" ).toBool();
 		tunnel->bAutoReconnect    = settings.value( "AutoReconnect" ).toBool();
-        tunnel->iSSH1or2          = settings.value( "SSH1or2" ).toInt();
-        if(tunnel->iSSH1or2 != 1 && tunnel->iSSH1or2 != 2) {
-            tunnel->iSSH1or2 = 2;
-        }
 
 		int portForwardCount = settings.beginReadArray("PortForward");
 		for(int j=0;j<portForwardCount;j++) {
@@ -806,10 +802,6 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
         tunnel->bCompression      = json.value( "Compression" ).toBool();
         tunnel->bDoKeepAlivePing  = json.value( "DoKeepAlivePing" ).toBool();
         tunnel->bAutoReconnect    = json.value( "AutoReconnect" ).toBool();
-        tunnel->iSSH1or2          = json.value( "SSH1or2" ).toInt(2);
-        if(tunnel->iSSH1or2 != 1 && tunnel->iSSH1or2 != 2) {
-            tunnel->iSSH1or2 = 2;
-        }
 
         QJsonArray jsonPortForwards = json["PortForward"].toArray();
         for(int j=0;j<jsonPortForwards.size();j++) {
@@ -1797,7 +1789,6 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
 		settings.setValue( "Compression",     it->bCompression );
 		settings.setValue( "DoKeepAlivePing", it->bDoKeepAlivePing );
 		settings.setValue( "AutoReconnect",   it->bAutoReconnect );
-		settings.setValue( "SSH1or2",         it->iSSH1or2 );
 		settings.setValue( "ExtraArguments",  it->strExtraArguments );
         settings.setValue( "SSMRegion",       it->strSSMRegion );
         settings.setValue( "SSMProfile",      it->strSSMProfile );
@@ -3478,12 +3469,6 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
     if ( pt->bCompression ) {
         arguments <<  "-C";
     }
- 
-    if(pt->iSSH1or2 == 1) {
-        arguments << "-1";
-    } else {
-        arguments << "-2";
-    }
 	
 	if ( !pt->getSelectedRemoteHost().isEmpty() && pt->iLocalPort > 0 && pt->iRemotePort > 0 )
 	{
@@ -4387,7 +4372,6 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         //TODO removed from UI
         //pt->bDoKeepAlivePing = ui.checkDoKeepAlivePing->isChecked();
         pt->bAutoReconnect = ui.checkAutoReconnect->isChecked();
-        pt->iSSH1or2 = ui.radioSSH1->isChecked() ? 1 : 2;
 
         pt->portForwardList.clear();
         pt->portForwardList.append(ui.widgetMoreTunnels->getData());
@@ -5582,8 +5566,6 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         ui.checkAutoConnect->setChecked( pt->bAutoConnect );
         ui.checkCompression->setChecked( pt->bCompression );
         ui.checkAutoReconnect->setChecked( pt->bAutoReconnect );
-        ui.radioSSH1->setChecked( pt->iSSH1or2 == 1 );
-        ui.radioSSH2->setChecked( pt->iSSH1or2 != 1 );
 
         ui.editLocalIP->setText( pt->strLocalIP );
 
@@ -6534,7 +6516,6 @@ void Tunnel_c::init()
 	bCompression = false;
 	bDoKeepAlivePing = false;
 	bAutoReconnect = false;
-	iSSH1or2 = 2;
 	strLocalIP = "localhost";
 	iLocalPort = 0;
 	iRemotePort = 0;
@@ -6587,7 +6568,6 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
 	bCompression = orig->bCompression;
 	bDoKeepAlivePing = orig->bDoKeepAlivePing;
 	bAutoReconnect = orig->bAutoReconnect;
-	iSSH1or2 = orig->iSSH1or2;
 	strExtraArguments = orig->strExtraArguments;	
     strSSMRegion = orig->strSSMRegion;
     strSSMProfile = orig->strSSMProfile;
@@ -6663,9 +6643,6 @@ bool Tunnel_c::isConnectionDetailsEqual(const Tunnel_c *other)
         return false;
     }
     if(iDirection != other->iDirection) {
-        return false;
-    }
-    if(iSSH1or2 != other->iSSH1or2) {
         return false;
     }
     if(strExtraArguments != other->strExtraArguments) {
