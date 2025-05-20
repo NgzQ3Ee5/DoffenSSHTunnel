@@ -4417,7 +4417,8 @@ void ATSkeletonWindow::disconnectTunnel( Tunnel_c &tunnel )
 	//TODO qApp->processEvents();
 
 #ifdef _WIN32
-    pt->pProcess->kill();
+    //pt->pProcess->kill();
+    QProcess::execute("taskkill", {"/pid", QString::number(pt->pProcess->processId()), "/t", "/f"});
 #else
     pt->pProcess->terminate(); //use SIGTERM with sspass on MAC so it can kill it's child tty and take down the ssh process
 #endif
