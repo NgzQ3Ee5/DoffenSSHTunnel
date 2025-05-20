@@ -3238,34 +3238,38 @@ QTreeWidgetItem* ATSkeletonWindow::markConnect( QTreeWidgetItem* twi )
 		treeTunnelSetIcon(twi, Images::icon("ht_130_host_connecting"));
 		pt->iConnectStatus = MARKCONNECT;
 		updateControlsTunnel(pt);
-		Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
-		if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
-            AddToLog( *pt, "Waiting for parent to get connected...\n" );
-		}	
-	}
-
-	while(findParentTunnelNode(twi) != NULL) {
-		twi = findParentTunnelNode(twi);
-		pt = getTunnel(twi);
-		if( pt->iConnectStatus == CONNECTED || pt->iConnectStatus == CONNECTING ) break; // parent already connected or connecting/retrying
-		if ( pt->iConnectStatus == DISCONNECTED ) {
-			qDebug() << "setIcon 6";
-			treeTunnelSetIcon(twi, Images::icon("ht_130_host_connecting"));
-			pt->iConnectStatus = MARKCONNECT;
-			updateControlsTunnel(pt);
-			Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
-			if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
+        if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSH) {
+            Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
+            if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
                 AddToLog( *pt, "Waiting for parent to get connected...\n" );
-			}
-		}
+            }
+        }
 	}
 
-	if(findParentTunnelNode(twi) != NULL) {
-		pt = getTunnel(findParentTunnelNode(twi));
-		if(pt->iConnectStatus == MARKCONNECT || pt->iConnectStatus == CONNECTING) {
-			twi = NULL;
-		}
-	}
+    if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSH) {
+        while(findParentTunnelNode(twi) != NULL) {
+            twi = findParentTunnelNode(twi);
+            pt = getTunnel(twi);
+            if( pt->iConnectStatus == CONNECTED || pt->iConnectStatus == CONNECTING ) break; // parent already connected or connecting/retrying
+            if ( pt->iConnectStatus == DISCONNECTED ) {
+                qDebug() << "setIcon 6";
+                treeTunnelSetIcon(twi, Images::icon("ht_130_host_connecting"));
+                pt->iConnectStatus = MARKCONNECT;
+                updateControlsTunnel(pt);
+                Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
+                if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
+                    AddToLog( *pt, "Waiting for parent to get connected...\n" );
+                }
+            }
+        }
+
+        if(findParentTunnelNode(twi) != NULL) {
+            pt = getTunnel(findParentTunnelNode(twi));
+            if(pt->iConnectStatus == MARKCONNECT || pt->iConnectStatus == CONNECTING) {
+                twi = NULL;
+            }
+        }
+    }
 
 	return twi;
 }
@@ -3313,9 +3317,181 @@ void ATSkeletonWindow::crawlConnect( QTreeWidgetItem* twi )
 	}
 }
 
-
 void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 {
+    if(tunnel.iType2 == TUNNEL_TYPE_TUNNEL_SSM) {
+        connectSSMTunnel(tunnel); // AWS Session Manager (SSM)
+    } else {
+        connectSSHTunnel(tunnel); // Secure Shell (SSH)
+    }
+}
+
+void ATSkeletonWindow::connectSSMTunnel( Tunnel_c &tunnel )
+{
+    // AWS Session Manager (SSM)
+
+    tunnel.stopTimerDelayRetryConnect();
+
+    ATASSERT(tunnel.twi);
+    if ( !tunnel.twi ) return;
+
+    Tunnel_c *pt = &tunnel;
+    QTreeWidgetItem *twi = pt->twi;
+
+    if(m_pMainWindow->preferences()->autoClearLogEnabled()) {
+        clearTunnelLog(pt);
+    }
+
+    //+++ setup aws ssm command string
+
+    qDebug() << "connectTunnel()" << pt->strName;
+
+    qDebug( "Connecting %s...", qPrintable( pt->strName ) );
+    AddToLog( tunnel, QString("Connecting %1...\n").arg( pt->strName ) );
+    qDebug( "Host: %s", qPrintable( pt->getSelectedSSHHost() ) );
+    AddToLog( tunnel, QString("Host: %1\n").arg( pt->getSelectedSSHHost() ) );
+
+    if ( !pt->getSelectedRemoteHost().isEmpty() )
+    {
+        if(pt->strLocalIP.isEmpty()) {
+            qDebug( "Tunnel: %d:%s:%d", pt->iLocalPort, qPrintable( pt->getSelectedRemoteHost() ), pt->iRemotePort );
+            AddToLog( tunnel, QString("Tunnel: %1:%2:%3\n").arg(pt->iLocalPort).arg( pt->getSelectedRemoteHost() ).arg(pt->iRemotePort) );
+        } else {
+            qDebug( "Tunnel: %s:%d:%s:%d", qPrintable( pt->strLocalIP ), pt->iLocalPort, qPrintable( pt->getSelectedRemoteHost() ), pt->iRemotePort );
+            AddToLog( tunnel, QString("Tunnel: %1:%2:%3:%4\n").arg( pt->strLocalIP ).arg(pt->iLocalPort).arg( pt->getSelectedRemoteHost() ).arg(pt->iRemotePort) );
+        }
+    }
+
+    if ( pt->getSelectedSSHHost().isEmpty() )
+    {
+        qDebug( "Error: Tunnel %s has no host, please check the settings.", qPrintable( pt->strName ) );
+        AddToLog( tunnel, QString("Error: Tunnel %1 has no host, please check the settings.\n").arg( pt->strName ) );
+        return;
+    }
+
+    QStringList arguments;
+
+    QString strAws = "";
+    for(int i = 0; i < m_listExecutableVariables.size(); i++) {
+        VariableStruct var = m_listExecutableVariables.at(i);
+        QString name = var.strName.trimmed().toLower();
+        if(name == "aws") {
+            strAws = removeQuotes(var.strValue.trimmed());
+            arguments << QProcess::splitCommand(var.strArgs.trimmed());
+            break;
+        }
+    }
+
+    // Check that the executable is found if set in var executables
+    if(!strAws.isEmpty()) {
+        strAws = removeQuotes(replaceVars(*pt, strAws));
+        QFileInfo qfi = QFileInfo(strAws);
+        if(!qfi.exists()) {
+            qDebug( "Error: Could not find aws cli executable '%s'. Verify the executable variable 'aws' in settings.", qPrintable( qfi.absoluteFilePath() ) );
+            AddToLog( tunnel, QString("Error: Could not find '%1'. Verify the executable variable 'aws' in settings.\n").arg( qfi.absoluteFilePath() ) );
+            return;
+        }
+        strAws = qfi.absoluteFilePath();
+    }
+
+    // aws cli executable var NOT set, use default command 'aws' in DoffenSSHTunnel app directory
+    if(strAws.isEmpty()) {
+        strAws = "aws";
+    }
+
+    if ( pt->pProcess != NULL ) return; // already connected?
+
+    arguments << "ssm";
+    arguments << "start-session";
+
+    if(!pt->strSSMProfile.isEmpty()) {
+        arguments << "--profile";
+        arguments << pt->strSSMProfile;
+    }
+
+    if(!pt->strSSMRegion.isEmpty()) {
+        arguments << "--region";
+        arguments << pt->strSSMRegion;
+    }
+
+    arguments << "--target";
+    arguments << pt->getSelectedSSHHost();
+
+    arguments << "--document-name";
+    arguments << "AWS-StartPortForwardingSessionToRemoteHost";
+
+    arguments << "--parameters";
+    arguments << QString("localPortNumber=%1,portNumber=%2,host=%3").arg(pt->iLocalPort).arg(pt->iRemotePort).arg(pt->getSelectedRemoteHost());
+
+    if(!pt->strExtraArguments.trimmed().isEmpty()) {
+        arguments << QProcess::splitCommand(pt->strExtraArguments);
+    }
+
+    QStringList awsArgumentsLog = replaceVarsLog(*pt, arguments);
+    AddToLog( tunnel, QString("Starting: %1 %2\n").arg( addQuotesIfNeeded(strAws), addQuotesIfNeeded(awsArgumentsLog).join(" ") ) );
+    AddToLog( tunnel, QString("Parts: [%1],[%2]\n").arg( strAws, awsArgumentsLog.join("],[") ) );
+
+    //--- setup aws ssm command string
+
+    //+++ check that tunnel local port is free
+
+    if ( true )
+    {
+        //User configured the default Tunnel
+        //Key: port number, Value: connect status (CONNECTED, CONNECTING)
+        QList<int> portList = getLocalTunnelPortsInUse(pt);
+        if(portList.size() > 0) {
+            QStringList sPortList;
+            for(int i=0;i<portList.size()&&i<5;i++) {
+                sPortList.append(QString("%1").arg(portList.at(i)));
+            }
+            if(portList.size()>5) {
+                sPortList.append("...");
+            }
+            QString errMsg = QString("Cannot connect host %1.\nLocal tunnel port(s) %2 already in use.")
+                    .arg(pt->strName, sPortList.join(","));
+            qDebug( "Error: %s", qPrintable( errMsg ) );
+            AddToLog( tunnel, QString("Error: %1\n").arg( errMsg ) );
+            recursiveDisconnectTunnelSignals(twi);
+            recursiveDisconnectTunnel(twi);
+            QMessageBox::warning(this, "Oops!", errMsg);
+            return;
+        }
+    }
+
+    //--- check that tunnel local port is free
+
+    //+++ setup the process
+
+    treeTunnelSetIcon(twi, Images::icon("ht_130_host_connecting"));
+
+    ATASSERT( pt->pConnector == NULL );
+    pt->pConnector = new ATTunnelConnector_c( this, tunnel.twi );
+
+    pt->iConnectStatus = CONNECTING;
+    updateControlsTunnel(pt);
+
+    pt->pProcess = new QProcess;
+    pt->pProcess->setProcessChannelMode( QProcess::MergedChannels );
+
+    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
+    ATVERIFY( connect( pt->pProcess, &QProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::finished, this, &ATSkeletonWindow::slotConnectorFinished, Qt::QueuedConnection ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalConnected, this, &ATSkeletonWindow::slotConnected, Qt::QueuedConnection ) );
+    ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, this, &ATSkeletonWindow::slotKillConnection, Qt::QueuedConnection ) );
+
+    //--- setup the process
+
+    pt->pProcess->start( replaceVars(*pt, strAws), replaceVars(*pt, arguments) );
+
+}
+
+void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
+{
+    // Secure Shell (SSH)
+
     tunnel.stopTimerDelayRetryConnect();
 
 	ATASSERT(tunnel.twi);
@@ -3614,6 +3790,9 @@ void ATSkeletonWindow::connectTunnel( Tunnel_c &tunnel )
 
     pt->pProcess->start( replaceVars(*pt, strPlink), replaceVars(*pt, arguments) );
 }
+
+
+
 
 QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunnel_c &tunnel)
 {
@@ -6763,7 +6942,11 @@ void ATTunnelConnector_c::slotProcessReadStandardOutput()
     for(int i=0;i<lines.size();i++) {
         QString line = lines.at(i);
         m_pParent->AddToLog( *pt, QString("1> %1").arg(line) );
-        processPlinkOutput( line );
+        if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM) {
+            processSSMOutput( line );
+        } else {
+            processPlinkOutput( line );
+        }
     }
 }
 
@@ -6783,7 +6966,11 @@ void ATTunnelConnector_c::slotProcessReadStandardError()
     for(int i=0;i<lines.size();i++) {
         QString line = lines.at(i);
         m_pParent->AddToLog( *pt, QString("2> %1").arg(line) );
-        processPlinkOutput( line );
+        if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM) {
+            processSSMOutput( line );
+        } else {
+            processPlinkOutput( line );
+        }
     }
 }
 
@@ -6813,6 +7000,25 @@ void ATTunnelConnector_c::slotProcessFinished(int exitCode, QProcess::ExitStatus
     m_pParent->AddToLog( *pt, QString("Process exit: %1\n").arg(exitCode) );
 
 	emit finished( pt );
+}
+
+void ATTunnelConnector_c::processSSMOutput( QString &str )
+{
+    qDebug() << Q_FUNC_INFO;
+
+    if ( !m_pParent ) return;
+    if ( !m_pTreeTunnelsItem ) return;
+
+    QString strTest = QString(str).replace("\r","").replace("\n","").trimmed();
+
+    if ( strTest.contains( "Waiting for connections", Qt::CaseInsensitive ) )
+    {
+        //Waiting for connections
+        if ( m_pTreeTunnelsItem )
+        {
+            emit signalConnected( m_pTreeTunnelsItem );
+        }
+    }
 }
 
 void ATTunnelConnector_c::processPlinkOutput( QString &str )

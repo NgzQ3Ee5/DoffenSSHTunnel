@@ -279,6 +279,7 @@ signals:
 
 protected:
     void processPlinkOutput( QString &str );
+    void processSSMOutput( QString &str );
 };
 
 class ATPopulateChildNodesConnector_c : public QObject
@@ -631,6 +632,8 @@ private:
 	QTreeWidgetItem* markConnect( QTreeWidgetItem* twi );
 	void crawlConnect( QTreeWidgetItem* twi );
 	void connectTunnel( Tunnel_c &tunnel );
+    void connectSSHTunnel( Tunnel_c &tunnel );
+    void connectSSMTunnel( Tunnel_c &tunnel );
 	void disconnectTunnel( Tunnel_c &tunnel );
 	void disconnectTunnelSilent( QTreeWidgetItem* twi );
 	void disconnectAllTunnelsSilent();
