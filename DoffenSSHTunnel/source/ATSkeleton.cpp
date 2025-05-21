@@ -24,7 +24,7 @@
 #define PAGE_CONNECT	(0)
 #define PAGE_EDIT		(1)
 
-#define LOG_MAX_BUFFER_SIZE (8*1024)
+#define LOG_MAX_BUFFER_SIZE (200*1024)
 #define WAIT_FOR_FINISHED_TIMEOUT (100)
 #define CONNECTION_RETRIES (10)
 #define PASSWORD_RETRIES (0)
@@ -3988,111 +3988,7 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
                 //Add the new hosts
                 int levelOffset = TreeWidget::getItemLevel(twi) + 1;
 
-                for(int jsonHostsIndex = 0; jsonHostsIndex < jsonHosts.size(); jsonHostsIndex++) {
-
-                    //insert new host in the tree
-
-                    QJsonObject jsonHost = jsonHosts[jsonHostsIndex].toObject();
-                    Tunnel_c *newTunnel = readSettingsHost(jsonHost);
-                    newTunnel->bChildNodesCommandType = true; //Allows it to be deleted whenever we refresh this list
-                    newTunnel->iLevel += levelOffset;
-
-                    QTreeWidgetItem *newTwi = new QTreeWidgetItem();
-                    newTunnel->twi = newTwi;
-
-                    twi->insertChild(twi->childCount(), newTunnel->twi);
-
-                    newTwi->setExpanded(newTunnel->bIsExpanded);
-
-                    if(newTunnel->iType == TUNNEL_TYPE_TUNNEL)	{
-                        treeTunnelSetIcon(newTwi, Images::icon("ht_120_host_disconnected"));
-                    } else if(newTunnel->iType == TUNNEL_TYPE_FOLDER) {
-                        if(newTunnel->twi->isExpanded()) {
-                            treeTunnelSetIcon(newTwi, Images::icon("ht_150_folder_open_disconnected"));
-                        } else {
-                            treeTunnelSetIcon(newTwi, Images::icon("ht_170_folder_closed_disconnected"));
-                        }
-                    }
-
-                    if(!newTunnel->strFgColor.isEmpty()) {
-                        QColor color = QColor(newTunnel->strFgColor);
-                        if(color.isValid()) {
-                            QBrush brush(color);
-                            newTwi->setForeground(0,brush);
-                        }
-                    }
-
-                    if(!newTunnel->strBgColor.isEmpty()) {
-                        QColor color = QColor(newTunnel->strBgColor);
-                        if(color.isValid()) {
-                            QBrush brush(color);
-                            newTwi->setBackground(0,brush);
-                        }
-                    }
-
-                    newTwi->setFlags(newTunnel->twi->flags() | Qt::ItemIsEditable);
-                    newTwi->setText( 0, newTunnel->strName );
-
-                    QString tooltip = jsonHost.value("Tooltip").toString().trimmed();
-                    newTwi->setToolTip(0,tooltip);
-
-                    setTunnel(newTwi, newTunnel);
-                    treeTunnelUpdateFromParent(newTwi);
-
-                    if(newTunnel->iLocalPort == 0) {
-                        setNewLocalPort(newTwi, false, excludePorts);
-                    }
-
-                    //keep connected ?
-
-                    if(!newTunnel->strExtID.isEmpty() && jsonHost.value("KeepConn").toBool(false)) {
-
-                        Tunnel_c *ptToKeepConn = NULL;
-                        for(int k=0;k<toRemove.size();k++) {
-                            QTreeWidgetItem *twiToRemove = toRemove.at(k);
-                            Tunnel_c *ptToRemove = getTunnel(twiToRemove);
-                            if(ptToRemove == NULL) {
-                                continue;
-                            }
-                            if(ptToRemove->iConnectStatus != CONNECTED) {
-                                continue;
-                            }
-                            if(ptToRemove->pProcess == NULL) {
-                                continue;
-                            }
-                            if(ptToRemove->pConnector == NULL) {
-                                continue;
-                            }
-                            if(ptToRemove->strExtID != newTunnel->strExtID) {
-                                continue;
-                            }
-                            if(twiToRemove->childCount() != 0) {
-                                continue;
-                            }
-                            if(!ptToRemove->isConnectionDetailsEqual(newTunnel)) {
-                                continue;
-                            }
-                            ptToKeepConn = ptToRemove;
-                            break;
-                        }
-
-                        if(ptToKeepConn != NULL) {
-                            newTwi->setIcon(0, ptToKeepConn->twi->icon(0));
-                            newTunnel->iLocalPort = ptToKeepConn->iLocalPort;
-                            newTunnel->iConnectStatus = ptToKeepConn->iConnectStatus;
-                            newTunnel->pProcess = ptToKeepConn->pProcess;
-                            newTunnel->pConnector = ptToKeepConn->pConnector;
-                            newTunnel->pConnector->m_pTreeTunnelsItem = newTwi;
-                            newTunnel->log = ptToKeepConn->log;
-                            ptToKeepConn->iConnectStatus = DISCONNECTED;
-                            ptToKeepConn->pProcess = NULL;
-                            ptToKeepConn->pConnector = NULL;
-                        }
-
-                    }//end - if keep conn
-
-                } // end - for each Tunnel
-
+                addHostsRecursively(jsonHosts, twi, levelOffset, toRemove, excludePorts);
 
                 //Remove old
                 for (int i = 0; i < toRemove.size(); i++) {
@@ -4142,6 +4038,92 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
         QMessageBox::warning(this, "Oops!", "It went bad !");
     }
 }
+
+void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWidgetItem* parentItem, int levelOffset, const QList<QTreeWidgetItem*>& toRemove, QList<int>& excludePorts) {
+    for (const QJsonValue& hostVal : jsonHosts) {
+        QJsonObject jsonHost = hostVal.toObject();
+
+        Tunnel_c* newTunnel = readSettingsHost(jsonHost);
+        newTunnel->bChildNodesCommandType = true;
+        newTunnel->iLevel += levelOffset;
+
+        QTreeWidgetItem* newTwi = new QTreeWidgetItem();
+        newTunnel->twi = newTwi;
+        parentItem->addChild(newTwi);
+        newTwi->setExpanded(newTunnel->bIsExpanded);
+
+        // Set icon
+        if (newTunnel->iType == TUNNEL_TYPE_TUNNEL) {
+            treeTunnelSetIcon(newTwi, Images::icon("ht_120_host_disconnected"));
+        } else if (newTunnel->iType == TUNNEL_TYPE_FOLDER) {
+            treeTunnelSetIcon(newTwi, Images::icon(
+                newTwi->isExpanded() ?
+                "ht_150_folder_open_disconnected" :
+                "ht_170_folder_closed_disconnected"
+            ));
+        }
+
+        // Colors
+        if (!newTunnel->strFgColor.isEmpty()) {
+            QColor color(newTunnel->strFgColor);
+            if (color.isValid()) newTwi->setForeground(0, QBrush(color));
+        }
+
+        if (!newTunnel->strBgColor.isEmpty()) {
+            QColor color(newTunnel->strBgColor);
+            if (color.isValid()) newTwi->setBackground(0, QBrush(color));
+        }
+
+        // Text
+        newTwi->setFlags(newTwi->flags() | Qt::ItemIsEditable);
+        newTwi->setText(0, newTunnel->strName);
+        newTwi->setToolTip(0, jsonHost.value("Tooltip").toString().trimmed());
+
+        setTunnel(newTwi, newTunnel);
+        treeTunnelUpdateFromParent(newTwi);
+
+        if (newTunnel->iLocalPort == 0) {
+            setNewLocalPort(newTwi, false, excludePorts);
+        }
+
+        // KeepConn logic
+        if (!newTunnel->strExtID.isEmpty() && jsonHost.value("KeepConn").toBool(false)) {
+            Tunnel_c* ptToKeepConn = nullptr;
+            for (QTreeWidgetItem* twiToRemove : toRemove) {
+                Tunnel_c* ptToRemove = getTunnel(twiToRemove);
+                if (!ptToRemove || ptToRemove->iConnectStatus != CONNECTED ||
+                    !ptToRemove->pProcess || !ptToRemove->pConnector ||
+                    ptToRemove->strExtID != newTunnel->strExtID ||
+                    twiToRemove->childCount() != 0 ||
+                    !ptToRemove->isConnectionDetailsEqual(newTunnel)) {
+                    continue;
+                }
+                ptToKeepConn = ptToRemove;
+                break;
+            }
+
+            if (ptToKeepConn) {
+                newTwi->setIcon(0, ptToKeepConn->twi->icon(0));
+                newTunnel->iLocalPort = ptToKeepConn->iLocalPort;
+                newTunnel->iConnectStatus = ptToKeepConn->iConnectStatus;
+                newTunnel->pProcess = ptToKeepConn->pProcess;
+                newTunnel->pConnector = ptToKeepConn->pConnector;
+                newTunnel->pConnector->m_pTreeTunnelsItem = newTwi;
+                newTunnel->log = ptToKeepConn->log;
+
+                ptToKeepConn->iConnectStatus = DISCONNECTED;
+                ptToKeepConn->pProcess = nullptr;
+                ptToKeepConn->pConnector = nullptr;
+            }
+        }
+
+        // Recursively handle children
+        if (jsonHost.contains("Hosts")) {
+            addHostsRecursively(jsonHost["Hosts"].toArray(), newTwi, levelOffset + 1, toRemove, excludePorts);
+        }
+    }
+}
+
 
 void ATSkeletonWindow::slotUpdateTrayIcon()
 {
