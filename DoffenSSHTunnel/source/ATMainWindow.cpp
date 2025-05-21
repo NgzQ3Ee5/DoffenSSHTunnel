@@ -197,14 +197,16 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	pFileMenu->addSeparator();
 
+    bool bRet = false;
+
 	//File -> Change Master &Password...
-	m_pActionChangeMasterPassword = new QAction(QObject::tr("Change Master &Password..."), this);
-    bool bRet = QObject::connect(m_pActionChangeMasterPassword, &QAction::triggered, this, &ATMainWindow_c::slotChangeMasterPassword);
-	ATASSERT( bRet );
-
-	pFileMenu->addAction( m_pActionChangeMasterPassword );
-
-	pFileMenu->addSeparator();
+    m_pActionChangeMasterPassword = new QAction(QObject::tr("Change Master &Password..."), this);
+    if(g_bPwdFileEnabled) {
+        bRet = QObject::connect(m_pActionChangeMasterPassword, &QAction::triggered, this, &ATMainWindow_c::slotChangeMasterPassword);
+        ATASSERT( bRet );
+        pFileMenu->addAction( m_pActionChangeMasterPassword );
+        pFileMenu->addSeparator();
+    }
 
 	//File -> &Backup now...
 	m_pActionBackupTunnelSettings = new QAction(QObject::tr("&Backup now..."), this);
@@ -312,7 +314,7 @@ bool ATMainWindow_c::InitMenusAndActions()
 	pSettingsMenu->addSeparator();
 
 	//Settings -> Setup &Variables...
-	m_pActionSetupVariables	= new QAction(QObject::tr("Passwords and &Variables..."), this);
+    m_pActionSetupVariables	= new QAction(QObject::tr("&Variables..."), this);
     bRet				= QObject::connect(m_pActionSetupVariables, &QAction::triggered, this, &ATMainWindow_c::slotVariablesSetup,Qt::QueuedConnection );
 	ATASSERT( bRet );
 
@@ -532,7 +534,9 @@ void ATMainWindow_c::slotChangeMasterPassword()
     try
     {
         PasswordDb *pdb = PasswordDb::getInstance();
-        pdb->saveFile(dlg.password);
+        if(g_bPwdFileEnabled) {
+            pdb->saveFile(dlg.password);
+        }
     }
     catch(std::exception &ex) {
         QMessageBox::critical(this, "Oops!", QString::fromStdString(ex.what()));
@@ -933,7 +937,9 @@ void ATMainWindow_c::slotVariableSettingsDialogAccepted()
                 throw ExBad("You edited passwords but did not get promptet for the master password. This should not happen. Please make sure to click the button 'click me to enable editing' below the password list.");
             }
 
-            pdb->saveFile(masterPassword);
+            if(g_bPwdFileEnabled) {
+                pdb->saveFile(masterPassword);
+            }
 
 			// UPDATE USER/PASS COMBO BOX's IN EDIT TAB
 			bool blocked1 = m_pSkeletonWindow->ui.comboPasswordSelect->blockSignals(true);

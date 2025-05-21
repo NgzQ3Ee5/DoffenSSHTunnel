@@ -55,6 +55,7 @@ extern QString g_strDataDirectoryPath;
 extern QString g_strAppIniFile;
 extern QString g_strTunnelIniFile;
 extern QString g_strPwdFile;
+extern bool g_bPwdFileEnabled;
 extern QString g_strWindowTitle;
 
 #endif //__DOFFENSSHTUNNEL_PCH__

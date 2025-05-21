@@ -12,7 +12,12 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	m_bEditingEnabled = true;
     m_masterPassword = "";
 
-	tabWidget->setCurrentIndex(0);
+    if(g_bPwdFileEnabled) {
+        tabWidget->setCurrentIndex(0);
+    } else {
+        tabPasswords->setEnabled(false);
+        tabWidget->setCurrentIndex(1);
+    }
 
     //Dialog
     ATVERIFY( connect( this, &VariableSettingsDialog::accepted, this, &VariableSettingsDialog::slotAccepted ) );

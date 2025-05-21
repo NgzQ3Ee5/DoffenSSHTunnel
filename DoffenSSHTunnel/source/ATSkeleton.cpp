@@ -6516,52 +6516,54 @@ void ATSkeletonWindow::slotPasswordDialog()
 	m_pMainWindow->menuBar()->setEnabled(false);
 	setEnabled(false);
 
-    QFileInfo pwdFileInfo(g_strPwdFile);
-    if(pwdFileInfo.exists())
-    {
-        //Ask for password
-        PasswordDialog dlg(this);
-        int dlgStatus = dlg.exec();
-        if(dlgStatus != QDialog::Accepted) {
-            qApp->exit(0);
-            return;
-        }
-
-        try
+    if(g_bPwdFileEnabled) {
+        QFileInfo pwdFileInfo(g_strPwdFile);
+        if(pwdFileInfo.exists())
         {
-            PasswordDb* pdb = PasswordDb::getInstance();
-            pdb->openFile(g_strPwdFile, dlg.password);
-        }
-        catch(std::exception &ex) {
-            QMessageBox::critical(this, "Oops!", QString::fromStdString(ex.what()));
-            qApp->exit(0);
-            return;
-        }
-    }
-    else //end if -- password db file exists
-    {
-        //Ask user to choose a password to create password db file
-        CreatePasswordDialog dlg(this);
-        bool rejected = (dlg.exec()!=QDialog::Accepted);
-        if(rejected) {
-            qApp->exit(0);
-            return;
-        }
+            //Ask for password
+            PasswordDialog dlg(this);
+            int dlgStatus = dlg.exec();
+            if(dlgStatus != QDialog::Accepted) {
+                qApp->exit(0);
+                return;
+            }
 
-        try
+            try
+            {
+                PasswordDb* pdb = PasswordDb::getInstance();
+                pdb->openFile(g_strPwdFile, dlg.password);
+            }
+            catch(std::exception &ex) {
+                QMessageBox::critical(this, "Oops!", QString::fromStdString(ex.what()));
+                qApp->exit(0);
+                return;
+            }
+        }
+        else //end if -- password db file exists
         {
-            PasswordDb* pdb = PasswordDb::getInstance();
-            pdb->createEmptyFile(g_strPwdFile, dlg.password);
-        }
-        catch(ExBadFileFormat &ex) {     
-            QMessageBox::critical(this, "Wrong password", QString::fromStdString(ex.what()));
-            qApp->exit(0);
-            return;
-        }
-        catch(std::exception &ex) {
-            QMessageBox::critical(this, "Oops!", QString::fromStdString(ex.what()));
-            qApp->exit(0);
-            return;
+            //Ask user to choose a password to create password db file
+            CreatePasswordDialog dlg(this);
+            bool rejected = (dlg.exec()!=QDialog::Accepted);
+            if(rejected) {
+                qApp->exit(0);
+                return;
+            }
+
+            try
+            {
+                PasswordDb* pdb = PasswordDb::getInstance();
+                pdb->createEmptyFile(g_strPwdFile, dlg.password);
+            }
+            catch(ExBadFileFormat &ex) {
+                QMessageBox::critical(this, "Wrong password", QString::fromStdString(ex.what()));
+                qApp->exit(0);
+                return;
+            }
+            catch(std::exception &ex) {
+                QMessageBox::critical(this, "Oops!", QString::fromStdString(ex.what()));
+                qApp->exit(0);
+                return;
+            }
         }
     }
 

@@ -3,6 +3,7 @@
 #include "ATMainWindow.h"
 #include "ATSkeleton.h"
 #include "CustomAction.h"
+#include "PasswordDb.h"
 #include <QApplication>
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
@@ -24,6 +25,7 @@ QString g_strDataDirectoryPath;
 QString g_strAppIniFile;
 QString g_strTunnelIniFile;
 QString g_strPwdFile;
+bool g_bPwdFileEnabled;
 QString g_strWindowTitle;
 
 static void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -114,7 +116,8 @@ int main(int argc, char *argv[])
     // --pwd-file
     QCommandLineOption passwordsOption(QStringList() << "p" << "pwd-file",
         QCoreApplication::translate("main",
-            "Path to the password file."),
+            "Path to the password database file.\n"
+            "Use 'disabled' to disable password db usage entirely."),
         QCoreApplication::translate("main", "file"), "");
     commandLineParser.addOption(passwordsOption);
 
@@ -212,8 +215,12 @@ int main(int argc, char *argv[])
         }
     }
 
+    g_bPwdFileEnabled = true;
     if(!commandLineParser.value(passwordsOption).isEmpty()) {
         g_strPwdFile = commandLineParser.value(passwordsOption);
+        if(g_strPwdFile == "disabled") {
+            g_bPwdFileEnabled = false;
+        }
     }
 
 
