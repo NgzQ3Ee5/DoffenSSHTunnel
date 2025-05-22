@@ -849,8 +849,8 @@ QString VariableSettingsDialog::ensureIsValidVarName(QTableWidgetItem *currTwi, 
 	//These variable names MUST be unique. We just change it here.
 	QString itemTextUnique = itemText;
 	for(int i=2 ; isDuplicateVarName(currTwi, itemTextUnique) 
-		|| m_pSkeletonWindow->isDuplicateBuiltinVariableName(itemTextUnique) 
-		|| m_pSkeletonWindow->isDuplicatePortForwardVariableName(itemTextUnique); i++) {
+		|| m_pSkeletonWindow->isDuplicateBuiltinVariableName(itemTextUnique)
+        || m_pSkeletonWindow->isDuplicatePortForwardVariableName(itemTextUnique, true); i++) {
 		itemTextUnique = QString("%1_%2").arg(itemText).arg(i);
 	}
     return itemTextUnique;

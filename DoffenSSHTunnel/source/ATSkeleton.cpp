@@ -1451,6 +1451,7 @@ bool ATSkeletonWindow::isDuplicateBuiltinVariableName(const QString& name)
 {
 	QString varName = name.trimmed().toLower();
     if(varName == "appdir") return true;
+    if(varName == "datadir") return true;
     if(varName == "name") return true;
 	if(varName == "host") return true;
 	if(varName == "shost") return true;
@@ -1500,26 +1501,30 @@ bool ATSkeletonWindow::isDuplicateVariableName(const QString& name)
 	return false;
 }
 
-bool ATSkeletonWindow::isDuplicatePortForwardVariableName(const QString& name, QTableWidgetItem *ignorethis)
+
+bool ATSkeletonWindow::isDuplicatePortForwardVariableName(const QString& name, bool checkGlobally, QTableWidgetItem *ignorethis)
 {
 	QString varName = name.trimmed().toUpper();
 	if(varName.isEmpty()) return false;
 
-    QList<QTreeWidgetItem*> treeTunnelItems = ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
-	for(int i=0;i<treeTunnelItems.size();i++) {
-		QTreeWidgetItem *twi = treeTunnelItems.at(i);
-		if(twi == m_pTreeTunnelsItemEdit && ui.widgetEditTunnel->isVisible()) continue; //we will check this below
-		Tunnel_c *pt = getTunnel(twi);
-		ATASSERT(pt);
-		if(pt == NULL) continue;
-		for(int j=0;j<pt->portForwardList.size();j++) {
-			PortForwardStruct pfs = pt->portForwardList.at(j);
-			if(pfs.strName.trimmed().toUpper() == varName) {
-				return true;
-			}
-		}
-	}
-	
+
+    if(checkGlobally) {
+        QList<QTreeWidgetItem*> treeTunnelItems = ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
+        for(int i=0;i<treeTunnelItems.size();i++) {
+            QTreeWidgetItem *twi = treeTunnelItems.at(i);
+            if(twi == m_pTreeTunnelsItemEdit && ui.widgetEditTunnel->isVisible()) continue; //we will check this below
+            Tunnel_c *pt = getTunnel(twi);
+            ATASSERT(pt);
+            if(pt == NULL) continue;
+            for(int j=0;j<pt->portForwardList.size();j++) {
+                PortForwardStruct pfs = pt->portForwardList.at(j);
+                if(pfs.strName.trimmed().toUpper() == varName) {
+                    return true;
+                }
+            }
+        }
+    }
+
 	if(ui.widgetEditTunnel->isVisible()) {
 		for(int i=0;i<ui.tableMoreTunnels->rowCount();i++) {
 			QTableWidgetItem *twi = ui.tableMoreTunnels->item(i,MoreTunnelsEditWidget::COL_NAME);

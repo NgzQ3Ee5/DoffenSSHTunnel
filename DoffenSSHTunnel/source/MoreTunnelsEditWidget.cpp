@@ -253,7 +253,7 @@ QString MoreTunnelsEditWidget::ensureIsValidVarName(QTableWidgetItem *currTwi, c
 	}
 
 	QString itemTextUnique = itemText;
-	for(int i=2 ; m_pSkeletonWindow->isDuplicatePortForwardVariableName(itemTextUnique,currTwi) 
+    for(int i=2 ; m_pSkeletonWindow->isDuplicatePortForwardVariableName(itemTextUnique, false, currTwi)
 		|| m_pSkeletonWindow->isDuplicateBuiltinVariableName(itemTextUnique) 
 		|| m_pSkeletonWindow->isDuplicateVariableName(itemTextUnique); i++) {
 		itemTextUnique = QString("%1_%2").arg(itemText).arg(i);

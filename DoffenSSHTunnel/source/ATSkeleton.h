@@ -478,8 +478,8 @@ public:
 	static bool variableNameExists(VariableStruct var, QList<VariableStruct> &varList);
 	static bool variableNameExists(const QString& name, QList<VariableStruct> &varList);
 	bool isDuplicateVariableName(const QString& name); //Passwords, Executables, Userdefined
-	bool isDuplicateBuiltinVariableName(const QString& name); 
-	bool isDuplicatePortForwardVariableName(const QString& name, QTableWidgetItem *ignore=NULL); 
+	bool isDuplicateBuiltinVariableName(const QString& name);
+    bool isDuplicatePortForwardVariableName(const QString& name, bool checkGlobally, QTableWidgetItem *ignore=NULL);
     void replaceExecutableVariables(QList<VariableStruct> &varList);
 	static void resolveVariable(VariableStruct var, QList<VariableStruct> &addToList, QList<VariableStruct> &checkList);
     void setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChildren);
