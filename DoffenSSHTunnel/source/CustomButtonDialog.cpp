@@ -94,6 +94,14 @@ void CustomButtonDialog::setVarTableData()
 
     specialListEditPane.append(
         VariableStruct(QUuid(),
+       "Executes the command in the built-in output window and automatically closes it if the command exits with code 0",
+       "OWAC",
+       "OutputWindowAutoClose",
+       "",
+       VariableStruct::NONE));
+
+    specialListEditPane.append(
+        VariableStruct(QUuid(),
         "The directory that contains the application executable",
         "${appdir}",
         g_strAppDirectoryPath,
