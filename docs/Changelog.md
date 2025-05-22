@@ -6,6 +6,8 @@ v0.9.58 May 20, 2025
 + Update: Removed the radio group for selecting SSH version 1 or 2. To override the default SSH version, use the Extra Arguments field instead.
 + Update: Removed the Compression checkbox. To override the default SSH compression, use the Extra Arguments field instead.
 + New: Added support for disabling the password database file feature by specifying `disabled` as the value for the -p / --pwd-file option.
++ New: Added support for naming tunnels in the More Tunnels table.
++ New: Named tunnels can now be referenced as variables using ${thename.port} and ${thename.ip}.
 
 v0.9.57 May 19, 2025
 ------------------

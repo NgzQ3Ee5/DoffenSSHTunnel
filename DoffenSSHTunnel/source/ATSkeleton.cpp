@@ -2838,6 +2838,16 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     replaced = replaced.replace("$rport", QString("%1").arg(pt->iRemotePort), Qt::CaseInsensitive);
 	replaced = replaced.replace("${port}", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
 	replaced = replaced.replace("$port", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
+    for(int i=0; i<pt->portForwardList.size(); i++) {
+        PortForwardStruct pf = pt->portForwardList.at(i);
+        QString name = pf.strName.trimmed();
+        if(!name.isEmpty()) {
+            replaced = replaced.replace("${" + name + ".port}", QString::number(pf.nLocalPort), Qt::CaseInsensitive);
+            replaced = replaced.replace("$" + name + ".port", QString::number(pf.nLocalPort), Qt::CaseInsensitive);
+            replaced = replaced.replace("${" + name + ".ip}", pf.strLocalIP, Qt::CaseInsensitive);
+            replaced = replaced.replace("$" + name + ".ip", pf.strLocalIP, Qt::CaseInsensitive);
+        }
+    }
 	return replaced;
 }
 

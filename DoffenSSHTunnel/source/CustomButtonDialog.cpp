@@ -196,6 +196,29 @@ void CustomButtonDialog::setVarTableData()
         "",
 		VariableStruct::EDITPANE));
 
+    //Variables from EditPane More Tunnels
+
+    QList<VariableStruct> helpListEditPaneMoreTunnels;
+
+    for(int i=0;i<m_pTunnel->portForwardList.size();i++) {
+        PortForwardStruct varIn = m_pTunnel->portForwardList.at(i);
+        if(!varIn.strName.trimmed().isEmpty()) {
+            helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
+              "Local Port",
+              "${" + varIn.strName.trimmed() +  + ".port}",
+              QString::number(varIn.nLocalPort),
+              "",
+              VariableStruct::EDITPANE));
+
+            helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
+              "Local IP",
+              "${" + varIn.strName.trimmed() +  + ".ip}",
+              varIn.strLocalIP,
+              "",
+              VariableStruct::EDITPANE));
+        }
+    }
+
 	//Variable help Executables
 	QList<VariableStruct> helpListExecutables;
 	for(int i=0;i<m_pMainWindow->m_listExecutableVariables.size();i++) {
@@ -270,6 +293,9 @@ void CustomButtonDialog::setVarTableData()
     if(m_pTunnel->iType == TUNNEL_TYPE_TUNNEL) {
         addHeaderToVarTable("Built in variables from the Edit pane (Selected Host)");
         addDataToVarTable(helpListEditPane);
+
+        addHeaderToVarTable("More Tunnels from the Edit pane (Selected Host)");
+        addDataToVarTable(helpListEditPaneMoreTunnels);
     }
 
 	addHeaderToVarTable("Executable Applications (go to Settings -> Passwords & variables... to edit them)");

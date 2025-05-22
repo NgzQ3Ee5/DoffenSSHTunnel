@@ -61,7 +61,7 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
     ATVERIFY( connect( m_pTable,        &TableWidget::signalModified,           this, &MoreTunnelsEditWidget::slotModified ) );
 
 	m_pBtnMoreTunnelsMore->setVisible(false);
-	m_pTable->hideColumn(COL_NAME);
+    //m_pTable->hideColumn(COL_NAME);
 	//slotMoreToggled(false);
 	slotUpdateControls();
 
