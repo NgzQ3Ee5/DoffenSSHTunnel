@@ -4101,6 +4101,18 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
             setNewLocalPort(newTwi, false, excludePorts);
         }
 
+        // Set 'more tunnels' ports
+        if(newTunnel->iType == TUNNEL_TYPE_TUNNEL) {
+            for(int i=0;i<newTunnel->portForwardList.length();i++) {
+                // PortForwardStruct pfs = newTunnel->portForwardList.at(i); // I was getting a copy here
+                PortForwardStruct &pfs = newTunnel->portForwardList[i]; // Use reference
+                if(pfs.nLocalPort == 0) {
+                    // I set lport: 0 in my populateFolder nodejs script when I want to autoassign the port
+                    pfs.nLocalPort = proposeNewLocalPort(newTwi, excludePorts);
+                }
+            }
+        }
+
         // KeepConn logic
         if (!newTunnel->strExtID.isEmpty() && jsonHost.value("KeepConn").toBool(false)) {
             Tunnel_c* ptToKeepConn = nullptr;

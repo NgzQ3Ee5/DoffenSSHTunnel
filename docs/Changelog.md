@@ -8,6 +8,7 @@ v0.9.58 May 23, 2025
 + New: Added support for disabling the password database file feature by specifying `disabled` as the value for the -p / --pwd-file option.
 + New: Added support for naming tunnels in the More Tunnels table.
 + New: Named tunnels can now be referenced as variables using ${thename.port} and ${thename.ip}.
++ New: PopulateChildNodesWithExternalCommand now automatically assigns a local port for tunnels in the "More Tunnels" table if the external script leaves it unspecified.
 
 v0.9.57 May 19, 2025
 ------------------
