@@ -2,6 +2,7 @@
 #define ATSKELETONWINDOW_H
 
 #include "CustomAction.h"
+#include "ManagedProcess.h"
 #include "ui_ATSkeleton.h"
 
 class CustomActionsEditWidget;
@@ -269,8 +270,8 @@ public:
 public slots:
 	void slotProcessReadStandardOutput();
 	void slotProcessReadStandardError();
-	void slotProcessError(QProcess::ProcessError error);
-	void slotProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void slotProcessError(ManagedProcess::ProcessError error);
+    void slotProcessFinished(int exitCode, ManagedProcess::ExitStatus exitStatus);
 
 signals:
 	void finished( Tunnel_c * );
@@ -303,8 +304,8 @@ private:
 public slots:
     void slotProcessReadStandardOutput();
     void slotProcessReadStandardError();
-    void slotProcessError(QProcess::ProcessError error);
-    void slotProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void slotProcessError(ManagedProcess::ProcessError error);
+    void slotProcessFinished(int exitCode, ManagedProcess::ExitStatus exitStatus);
     void slotCancel();
 
 signals:
@@ -396,7 +397,7 @@ public:
 	bool	bIsExpanded;	//expanded in the tree ?
 	QString strExtraArguments;
 
-	QProcess *pProcess;
+    ManagedProcess *pProcess;
     TunnelLog log;
 	ATTunnelConnector_c *pConnector;
 
@@ -409,7 +410,7 @@ public:
 	QTreeWidgetItem *twi;
 
     QString strChildNodesCommand;
-    QProcess *pPopulateChildNodesProcess;
+    ManagedProcess *pPopulateChildNodesProcess;
     ATPopulateChildNodesConnector_c *pPopulateChildNodesConnector;
     bool bChildNodesCommandType; //returned by childnodes command (e.g nodejs script retrieved hosts from aws)
 

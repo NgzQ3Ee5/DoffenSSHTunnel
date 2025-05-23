@@ -1,6 +1,7 @@
 PRECOMPILED_HEADER = pch.h
 
 SOURCES += main.cpp\
+    $$PWD/ManagedProcess.cpp \
     Paths.cpp \
     identifier.cpp \
     pch.h.cpp \
@@ -39,6 +40,7 @@ SOURCES += main.cpp\
     OutputWindow.cpp
 
 HEADERS  += \
+    $$PWD/ManagedProcess.h \
     Paths.h \
     identifier.h \
     exceptions.h \

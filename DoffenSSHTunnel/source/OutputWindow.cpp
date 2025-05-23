@@ -53,7 +53,7 @@ OutputWindow::~OutputWindow() {
   if (!_processList.isEmpty()) {
     qWarning() << _processList.size() << " processes left over" << Qt::endl;
 
-    foreach ( QProcess * process, _processList )
+    foreach ( ManagedProcess * process, _processList )
         qWarning() << "Left over: " << process << Qt::endl;
 
     qDeleteAll(_processList);
@@ -62,7 +62,7 @@ OutputWindow::~OutputWindow() {
   //writeSettings();
 }
 
-void OutputWindow::addProcess(QProcess *process) {
+void OutputWindow::addProcess(ManagedProcess *process) {
   //    CHECK_PTR( process );
 
   if (_killedAll) {
@@ -74,10 +74,10 @@ void OutputWindow::addProcess(QProcess *process) {
   _processList << process;
   qDebug() << "Adding process" << Qt::endl;
 
-  connect(process, &QProcess::readyReadStandardOutput, this, &OutputWindow::readStdout);
-  connect(process, &QProcess::readyReadStandardError,  this, &OutputWindow::readStderr);
-  connect(process, &QProcess::errorOccurred,           this, &OutputWindow::processError);
-  connect(process, &QProcess::finished,                this, &OutputWindow::processFinished);
+  connect(process, &ManagedProcess::readyReadStandardOutput, this, &OutputWindow::readStdout);
+  connect(process, &ManagedProcess::readyReadStandardError,  this, &OutputWindow::readStderr);
+  connect(process, &ManagedProcess::errorOccurred,           this, &OutputWindow::processError);
+  connect(process, &ManagedProcess::finished,                this, &OutputWindow::processFinished);
 
   if (!hasActiveProcess())
     startNextProcess();
@@ -120,12 +120,12 @@ void OutputWindow::addText(const QString &rawText, const QColor &textColor) {
 
 void OutputWindow::clearOutput() { _ui->terminal->clear(); }
 
-QProcess *OutputWindow::senderProcess(const char *function) const {
-  QProcess *process = qobject_cast<QProcess *>(sender());
+ManagedProcess *OutputWindow::senderProcess(const char *function) const {
+  ManagedProcess *process = qobject_cast<ManagedProcess *>(sender());
 
   if (!process) {
     if (sender()) {
-      qWarning() << "Expecting QProcess as sender() in " << function
+      qWarning() << "Expecting ManagedProcess as sender() in " << function
                      <<" , got "
                      << sender()->metaObject()->className() << Qt::endl;
     } else {
@@ -137,28 +137,28 @@ QProcess *OutputWindow::senderProcess(const char *function) const {
 }
 
 void OutputWindow::readStdout() {
-  QProcess *process = senderProcess(__FUNCTION__);
+  ManagedProcess *process = senderProcess(__FUNCTION__);
 
   if (process)
     addStdout(QString::fromUtf8(process->readAllStandardOutput()));
 }
 
 void OutputWindow::readStderr() {
-  QProcess *process = senderProcess(__FUNCTION__);
+  ManagedProcess *process = senderProcess(__FUNCTION__);
 
   if (process)
     addStderr(QString::fromUtf8(process->readAllStandardError()));
 }
 
 void OutputWindow::processFinished(int exitCode,
-                                   QProcess::ExitStatus exitStatus) {
+                                   ManagedProcess::ExitStatus exitStatus) {
   switch (exitStatus) {
-  case QProcess::NormalExit:
+  case ManagedProcess::NormalExit:
     qDebug() << "Process finished normally." << Qt::endl;
     addCommandLine(tr("Process finished."));
     break;
 
-  case QProcess::CrashExit:
+  case ManagedProcess::CrashExit:
 
     if (exitCode == 0) {
       // Don't report an exit code of 0: Since we are starting all
@@ -180,7 +180,7 @@ void OutputWindow::processFinished(int exitCode,
       _exitCode = exitCode;
   }
 
-  QProcess *process = senderProcess(__FUNCTION__);
+  ManagedProcess *process = senderProcess(__FUNCTION__);
 
   if (process) {
     _processList.removeAll(process);
@@ -198,30 +198,30 @@ void OutputWindow::processFinished(int exitCode,
   startNextProcess(); // this also calls updateActions()
 }
 
-void OutputWindow::processError(QProcess::ProcessError error) {
+void OutputWindow::processError(ManagedProcess::ProcessError error) {
   QString msg;
 
   switch (error) {
-  case QProcess::FailedToStart:
+  case ManagedProcess::FailedToStart:
     msg = tr("Error: Process failed to start.");
     break;
 
-  case QProcess::Crashed: // Already reported via processFinished()
+  case ManagedProcess::Crashed: // Already reported via processFinished()
     break;
 
-  case QProcess::Timedout:
+  case ManagedProcess::Timedout:
     msg = tr("Error: Process timed out.");
     break;
 
-  case QProcess::ReadError:
+  case ManagedProcess::ReadError:
     msg = tr("Error reading output from the process.");
     break;
 
-  case QProcess::WriteError:
+  case ManagedProcess::WriteError:
     msg = tr("Error writing data to the process.");
     break;
 
-  case QProcess::UnknownError:
+  case ManagedProcess::UnknownError:
     msg = tr("Unknown error.");
     break;
   }
@@ -231,7 +231,7 @@ void OutputWindow::processError(QProcess::ProcessError error) {
     addStderr(msg);
   }
 
-  QProcess *process = senderProcess(__FUNCTION__);
+  ManagedProcess *process = senderProcess(__FUNCTION__);
 
   if (process) {
     _processList.removeAll(process);
@@ -310,7 +310,7 @@ void OutputWindow::enableWrap(bool enable) {
 void OutputWindow::killAll() {
   int killCount = 0;
 
-  foreach (QProcess *process, _processList) {
+  foreach (ManagedProcess *process, _processList) {
     qInfo() << "Killing process " << process << Qt::endl;
     process->kill();
     _processList.removeAll(process);
@@ -333,9 +333,9 @@ void OutputWindow::setTerminalBackground( const QColor & newColor )
 #endif
 
 bool OutputWindow::hasActiveProcess() const {
-  foreach (QProcess *process, _processList) {
-    if (process->state() == QProcess::Starting ||
-        process->state() == QProcess::Running) {
+  foreach (ManagedProcess *process, _processList) {
+    if (process->state() == ManagedProcess::Starting ||
+        process->state() == ManagedProcess::Running) {
       return true;
     }
   }
@@ -343,17 +343,17 @@ bool OutputWindow::hasActiveProcess() const {
   return false;
 }
 
-QProcess *OutputWindow::pickQueuedProcess() {
-  foreach (QProcess *process, _processList) {
-    if (process->state() == QProcess::NotRunning)
+ManagedProcess *OutputWindow::pickQueuedProcess() {
+  foreach (ManagedProcess *process, _processList) {
+    if (process->state() == ManagedProcess::NotRunning)
       return process;
   }
 
   return 0;
 }
 
-QProcess *OutputWindow::startNextProcess() {
-  QProcess *process = pickQueuedProcess();
+ManagedProcess *OutputWindow::startNextProcess() {
+  ManagedProcess *process = pickQueuedProcess();
 
   if (process) {
     QString dir = process->workingDirectory();
@@ -380,7 +380,7 @@ QProcess *OutputWindow::startNextProcess() {
   return process;
 }
 
-QString OutputWindow::command(QProcess *process) {
+QString OutputWindow::command(ManagedProcess *process) {
 
   QString prog = process->program();
   QStringList args = process->arguments();

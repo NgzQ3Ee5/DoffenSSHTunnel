@@ -11,19 +11,19 @@
 
 #include <QDialog>
 #include <QList>
-#include <QProcess>
 #include <QStringList>
 #include <QTextStream>
 
 
 #include "pch.h"
 #include "ui_OutputWindow.h"
+#include "ManagedProcess.h"
 
 class QCloseEvent;
 
 /**
  * Terminal-like window to watch output of external processes started via
- * QProcess. The command invoked by the process, its stdout and stderr output
+ * ManagedProcess. The command invoked by the process, its stdout and stderr output
  * are displayed in different colors.
  *
  * This class can watch more than one process: It can watch a sequence of
@@ -53,7 +53,7 @@ public:
    * object. If the process is not started yet, it will be started as soon as
    * there is no other one running.
    **/
-  void addProcess(QProcess *process);
+  void addProcess(ManagedProcess *process);
 
   /**
    * Tell this dialog that no more processes will be added, so when the last
@@ -175,7 +175,7 @@ public:
   /**
    * Return the internal process list.
    **/
-  const QList<QProcess *> &processList() const { return _processList; }
+  const QList<ManagedProcess *> &processList() const { return _processList; }
 
   /**
    * Return 'true' if any process in the internal process is still active.
@@ -185,9 +185,9 @@ public:
   /**
    * Get the command of the process. Since usually processes are started via
    * a shell ("/bin/sh -c theRealCommand arg1 arg2 ..."), this is typically
-   * not QProcess::program(), but the arguments minus the "-c".
+   * not ManagedProcess::program(), but the arguments minus the "-c".
    **/
-  static QString command(QProcess *process);
+  static QString command(ManagedProcess *process);
 
 public slots:
 
@@ -252,12 +252,12 @@ protected slots:
   /**
    * One of the watched processes finished.
    **/
-  void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  void processFinished(int exitCode, ManagedProcess::ExitStatus exitStatus);
 
   /**
    * One of the watched processes terminated with an error.
    **/
-  void processError(QProcess::ProcessError error);
+  void processError(ManagedProcess::ProcessError error);
 
   /**
    * Zoom the output area in, i.e. make its font larger.
@@ -334,21 +334,21 @@ protected:
 
   /**
    * Obtain the process to use from sender(). Return 0 if this is not a
-   * QProcess.
+   * ManagedProcess.
    **/
-  QProcess *senderProcess(const char *callingFunctionName) const;
+  ManagedProcess *senderProcess(const char *callingFunctionName) const;
 
   /**
    * Pick the next inactive process that can be started. Return 0 if there is
    * none.
    **/
-  QProcess *pickQueuedProcess();
+  ManagedProcess *pickQueuedProcess();
 
   /**
    * Try to start the next inactive process, if there is any. Return that
    * process or 0 if there is none.
    **/
-  QProcess *startNextProcess();
+  ManagedProcess *startNextProcess();
 
   /**
    * Zoom the terminal font by the specified factor.
@@ -365,7 +365,7 @@ protected:
   //
 
   Ui::OutputWindow *_ui;
-  QList<QProcess *> _processList;
+  QList<ManagedProcess *> _processList;
   bool _showOnStderr;
   bool _noMoreProcesses;
   bool _closed;
@@ -382,11 +382,11 @@ protected:
 
 }; // class OutputWindow
 #if 0
-inline QTextStream &operator<<(QTextStream &stream, QProcess *process) {
+inline QTextStream &operator<<(QTextStream &stream, ManagedProcess *process) {
   if (process)
     stream << OutputWindow::command(process);
   else
-    stream << "<NULL QProcess>";
+    stream << "<NULL ManagedProcess>";
 
   return stream;
 }

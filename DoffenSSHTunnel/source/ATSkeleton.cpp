@@ -2613,8 +2613,8 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         sCmd = sCmd.replace(QRegularExpression("^OWAC\\s*"),"");
     }
 
-    QStringList parts = QProcess::splitCommand(sCmd);
-    QStringList partsLog = QProcess::splitCommand(sCmdLog);
+    QStringList parts = ManagedProcess::splitCommand(sCmd);
+    QStringList partsLog = ManagedProcess::splitCommand(sCmdLog);
     AddToLog( *pt, QString("Launching: %1\n").arg(sCmdLog) );
     AddToLog( *pt, QString("Parts: [%1]\n").arg( partsLog.join("],[") ) );
 
@@ -2624,9 +2624,9 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         pOutputWindow->setAutoClose(bOutputWindowAutoClose);
         pOutputWindow->setAutoCloseVisible(bOutputWindowAutoClose);
         pOutputWindow->show();
-        QProcess * process = new QProcess( parent() );
+        ManagedProcess * process = new ManagedProcess( parent() );
         //My hack not using setProgram. Setting arguments only
-        //causes pOutputWindow->addProcess to call QProcess::start(process->arguments())
+        //causes pOutputWindow->addProcess to call ManagedProcess::start(process->arguments())
         //If I execute through the shell with process->setProgram("/bin/sh") then Kill process
         //will kill the shell only. The actual program running in the shell will not be killed
         //e.g. on windows cmd /c <long running program>
@@ -2635,7 +2635,7 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
         pOutputWindow->addProcess( process );
         pOutputWindow->noMoreProcesses();
     } else {
-        bool startResult = QProcess::startDetached( parts.takeFirst(), parts );
+        bool startResult = ManagedProcess::startDetached( parts.takeFirst(), parts );
         if(!startResult) {
             AddToLog( *pt, QString("Failed to start") );
         }
@@ -3392,7 +3392,7 @@ void ATSkeletonWindow::connectSSMTunnel( Tunnel_c &tunnel )
         QString name = var.strName.trimmed().toLower();
         if(name == "aws") {
             strAws = removeQuotes(var.strValue.trimmed());
-            arguments << QProcess::splitCommand(var.strArgs.trimmed());
+            arguments << ManagedProcess::splitCommand(var.strArgs.trimmed());
             break;
         }
     }
@@ -3439,7 +3439,7 @@ void ATSkeletonWindow::connectSSMTunnel( Tunnel_c &tunnel )
     arguments << QString("localPortNumber=%1,portNumber=%2,host=%3").arg(pt->iLocalPort).arg(pt->iRemotePort).arg(pt->getSelectedRemoteHost());
 
     if(!pt->strExtraArguments.trimmed().isEmpty()) {
-        arguments << QProcess::splitCommand(pt->strExtraArguments);
+        arguments << ManagedProcess::splitCommand(pt->strExtraArguments);
     }
 
     QStringList awsArgumentsLog = replaceVarsLog(*pt, arguments);
@@ -3486,20 +3486,26 @@ void ATSkeletonWindow::connectSSMTunnel( Tunnel_c &tunnel )
     pt->iConnectStatus = CONNECTING;
     updateControlsTunnel(pt);
 
-    pt->pProcess = new QProcess;
-    pt->pProcess->setProcessChannelMode( QProcess::MergedChannels );
+    pt->pProcess = new ManagedProcess;
+    pt->pProcess->setProcessChannelMode( ManagedProcess::MergedChannels );
 
-    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::finished, this, &ATSkeletonWindow::slotConnectorFinished, Qt::QueuedConnection ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalConnected, this, &ATSkeletonWindow::slotConnected, Qt::QueuedConnection ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, this, &ATSkeletonWindow::slotKillConnection, Qt::QueuedConnection ) );
 
     //--- setup the process
 
-    pt->pProcess->start( replaceVars(*pt, strAws), replaceVars(*pt, arguments) );
+    try {
+        pt->pProcess->startWithJob( replaceVars(*pt, strAws), replaceVars(*pt, arguments) );
+    } catch (const ManagedProcessException& ex) {
+        pt->pProcess->deleteLater();
+        pt->pProcess = NULL;
+        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+    }
 
 }
 
@@ -3559,7 +3565,7 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
         QString name = var.strName.trimmed().toLower();
         if(name == "plink") {
             strPlink = removeQuotes(var.strValue.trimmed());
-            arguments << QProcess::splitCommand(var.strArgs.trimmed());
+            arguments << ManagedProcess::splitCommand(var.strArgs.trimmed());
             break;
         }
     }
@@ -3739,7 +3745,7 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
 	}
  
     if(!pt->strExtraArguments.trimmed().isEmpty()) {
-        arguments << QProcess::splitCommand(pt->strExtraArguments);
+        arguments << ManagedProcess::splitCommand(pt->strExtraArguments);
     }
 
     if(usingPlink && !arguments.contains("-N")) {
@@ -3790,20 +3796,26 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
 	pt->iConnectStatus = CONNECTING;
 	updateControlsTunnel(pt);
 
- 	pt->pProcess = new QProcess;
- 	pt->pProcess->setProcessChannelMode( QProcess::MergedChannels );
+    pt->pProcess = new ManagedProcess;
+    pt->pProcess->setProcessChannelMode( ManagedProcess::MergedChannels );
 
-    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
-    ATVERIFY( connect( pt->pProcess, &QProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::readyReadStandardOutput, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardOutput ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::readyReadStandardError, pt->pConnector, &ATTunnelConnector_c::slotProcessReadStandardError ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::errorOccurred, pt->pConnector, &ATTunnelConnector_c::slotProcessError ) );
+    ATVERIFY( connect( pt->pProcess, &ManagedProcess::finished, pt->pConnector, &ATTunnelConnector_c::slotProcessFinished ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::finished, this, &ATSkeletonWindow::slotConnectorFinished, Qt::QueuedConnection ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalConnected, this, &ATSkeletonWindow::slotConnected, Qt::QueuedConnection ) );
     ATVERIFY( connect( pt->pConnector, &ATTunnelConnector_c::signalKillConnection, this, &ATSkeletonWindow::slotKillConnection, Qt::QueuedConnection ) );
 
 	//--- setup the process
 
-    pt->pProcess->start( replaceVars(*pt, strPlink), replaceVars(*pt, arguments) );
+    try {
+        pt->pProcess->startWithJob( replaceVars(*pt, strPlink), replaceVars(*pt, arguments) );
+    } catch (const ManagedProcessException& ex) {
+        pt->pProcess->deleteLater();
+        pt->pProcess = NULL;
+        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+    }
 }
 
 
@@ -3816,7 +3828,7 @@ QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunne
 
     AddToLog(tunnel, QString("%1 %2").arg(addQuotesIfNeeded(plinkPath), addQuotesIfNeeded(arguments.join(' '))));
 
-    QProcess versionProcess;
+    ManagedProcess versionProcess;
     versionProcess.start(plinkPath, arguments);
     if (!versionProcess.waitForFinished(1000)) {
         AddToLog( tunnel, "Timeout waiting for plink version process to finish" );
@@ -3851,9 +3863,15 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
 
     if(pt->pPopulateChildNodesProcess != NULL) {
         pt->pPopulateChildNodesProcess->disconnect();
-        pt->pPopulateChildNodesProcess->kill();
-        bool bOk = pt->pPopulateChildNodesProcess->waitForFinished( WAIT_FOR_FINISHED_TIMEOUT );
-        Q_UNUSED(bOk)
+        try {
+            pt->pProcess->killProcess();
+        } catch (const ManagedProcessException& ex) {
+            AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        }
+
+        if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
+            AddToLog( *pt, "Process did not finish in time." );
+        }
         pt->pPopulateChildNodesProcess->deleteLater();
         pt->pPopulateChildNodesProcess = NULL;
     }
@@ -3878,33 +3896,33 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     QString sCmd = replaceVars(*pt, pt->strChildNodesCommand);
     QString sCmdLog = replaceVarsLog(*pt, pt->strChildNodesCommand);
 
-    QStringList parts = QProcess::splitCommand(sCmd);
-    QStringList partsLog = QProcess::splitCommand(sCmdLog);
+    QStringList parts = ManagedProcess::splitCommand(sCmd);
+    QStringList partsLog = ManagedProcess::splitCommand(sCmdLog);
 
     AddToLog( *pt, QString("Starting %1\n").arg( addQuotesIfNeeded(partsLog).join(' ') ) );
     AddToLog( *pt, QString("Parts : [%1]\n").arg( partsLog.join("],[") ) );
 
     pt->pPopulateChildNodesConnector = new ATPopulateChildNodesConnector_c( this, twi );
 
-    pt->pPopulateChildNodesProcess = new QProcess;
-    pt->pPopulateChildNodesProcess->setProcessChannelMode( QProcess::MergedChannels );
+    pt->pPopulateChildNodesProcess = new ManagedProcess;
+    pt->pPopulateChildNodesProcess->setProcessChannelMode( ManagedProcess::MergedChannels );
 
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::readyReadStandardOutput,
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &ManagedProcess::readyReadStandardOutput,
                        pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessReadStandardOutput ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::readyReadStandardError,
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &ManagedProcess::readyReadStandardError,
                        pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessReadStandardError ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::errorOccurred,
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &ManagedProcess::errorOccurred,
                        pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessError ) );
-    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &QProcess::finished,
+    ATVERIFY( connect( pt->pPopulateChildNodesProcess,      &ManagedProcess::finished,
                        pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::slotProcessFinished ) );
     ATVERIFY( connect( pt->pPopulateChildNodesConnector,    &ATPopulateChildNodesConnector_c::finished,
                        this, &ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinished, Qt::QueuedConnection ) );
 
 
-    pt->pPopulateChildNodesProcess->start( parts.takeFirst(), parts );
+    pt->pPopulateChildNodesProcess->startWithJob( parts.takeFirst(), parts );
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
-        ATVERIFY( connect( pt->pPopulateChildNodesProcess, &QProcess::finished, pd, &QProgressDialog::cancel ) );
+        ATVERIFY( connect( pt->pPopulateChildNodesProcess, &ManagedProcess::finished, pd, &QProgressDialog::cancel ) );
         ATVERIFY( connect( pd, &QProgressDialog::canceled, pt->pPopulateChildNodesConnector, &ATPopulateChildNodesConnector_c::slotCancel ) );
         pd->setModal(true);
         pd->show();
@@ -4425,22 +4443,20 @@ void ATSkeletonWindow::disconnectTunnel( Tunnel_c &tunnel )
     AddToLog( tunnel, QString("Disconnecting %1...\n").arg( pt->strName ) );
 	//TODO qApp->processEvents();
 
-#ifdef _WIN32
-    //pt->pProcess->kill();
-    QProcess::execute("taskkill", {"/pid", QString::number(pt->pProcess->processId()), "/t", "/f"});
-#else
-    pt->pProcess->terminate(); //use SIGTERM with sspass on MAC so it can kill it's child tty and take down the ssh process
-#endif
-	bool bOk = pt->pProcess->waitForFinished( WAIT_FOR_FINISHED_TIMEOUT );
-    Q_UNUSED( bOk )
-	//TODO delete pt->pProcess;
-	//pt->pProcess = NULL;
+    try {
+        pt->pProcess->killProcess();
+    } catch (const ManagedProcessException& ex) {
+        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+    }
+
+    if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
+        AddToLog( *pt, "Process did not finish in time." );
+    }
+
 	pt->pProcess->deleteLater();
 	pt->pProcess = NULL;
 
 	if(pt->pConnector != NULL) {
-		//TODO delete pt->pConnector;
-		//pt->pConnector = NULL;
 		pt->pConnector->deleteLater();
 		pt->pConnector = NULL;
 	}
@@ -4460,13 +4476,16 @@ void ATSkeletonWindow::disconnectTunnelSilent( QTreeWidgetItem* twi )
 
 	if ( pt->pProcess == NULL ) return; // not connected?
 
-#ifdef _WIN32
-    pt->pProcess->kill();
-#else
-    pt->pProcess->terminate(); //use SIGTERM with sspass on MAC so it can kill it's child tty and take down the ssh process
-#endif
-	bool bOk = pt->pProcess->waitForFinished( WAIT_FOR_FINISHED_TIMEOUT );
-    Q_UNUSED( bOk )
+    try {
+        pt->pProcess->killProcess();
+    } catch (const ManagedProcessException& ex) {
+        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+    }
+
+    if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
+        AddToLog( *pt, "Process did not finish in time." );
+    }
+
 	delete pt->pProcess;
 	pt->pProcess = NULL;
 
@@ -6986,7 +7005,7 @@ void ATTunnelConnector_c::slotProcessReadStandardError()
     }
 }
 
-void ATTunnelConnector_c::slotProcessError(QProcess::ProcessError error)
+void ATTunnelConnector_c::slotProcessError(ManagedProcess::ProcessError error)
 {
     qDebug() << Q_FUNC_INFO << " processError: " << error;
 	ATASSERT( m_pParent );
@@ -7000,7 +7019,7 @@ void ATTunnelConnector_c::slotProcessError(QProcess::ProcessError error)
 	emit finished( pt );
 }
 
-void ATTunnelConnector_c::slotProcessFinished(int exitCode, QProcess::ExitStatus /*exitStatus*/)
+void ATTunnelConnector_c::slotProcessFinished(int exitCode, ManagedProcess::ExitStatus /*exitStatus*/)
 {
     qDebug() << Q_FUNC_INFO << " exitCode: " << exitCode;
 	ATASSERT( m_pParent );
@@ -7406,7 +7425,7 @@ void ATPopulateChildNodesConnector_c::slotProcessReadStandardError()
     processCommandOutput( b );
 }
 
-void ATPopulateChildNodesConnector_c::slotProcessError(QProcess::ProcessError error)
+void ATPopulateChildNodesConnector_c::slotProcessError(ManagedProcess::ProcessError error)
 {
     qDebug() << Q_FUNC_INFO << " processError: " << error;
     ATASSERT( m_pParent );
@@ -7418,7 +7437,7 @@ void ATPopulateChildNodesConnector_c::slotProcessError(QProcess::ProcessError er
     m_pParent->AddToLog( *pt, QString("> Process error: %1\n").arg(error) );
 }
 
-void ATPopulateChildNodesConnector_c::slotProcessFinished(int exitCode, QProcess::ExitStatus /*exitStatus*/)
+void ATPopulateChildNodesConnector_c::slotProcessFinished(int exitCode, ManagedProcess::ExitStatus /*exitStatus*/)
 {
     qDebug() << Q_FUNC_INFO << " exitCode: " << exitCode;
     ATASSERT( m_pParent );
@@ -7441,9 +7460,20 @@ void ATPopulateChildNodesConnector_c::slotCancel()
     Tunnel_c *pt = ATSkeletonWindow::getTunnel(m_pTreeTunnelsItem);
     ATASSERT( pt );
 
-    pt->pPopulateChildNodesProcess->kill();
-    m_bCancelled = true;
+    try {
+        pt->pPopulateChildNodesProcess->killProcess();
+    } catch (const ManagedProcessException& ex) {
+        m_pParent->AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+    }
 
+    if(!pt->pPopulateChildNodesProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
+        m_pParent->AddToLog( *pt, "Process did not finish in time." );
+    }
+
+    pt->pPopulateChildNodesProcess->deleteLater();
+    pt->pPopulateChildNodesProcess = NULL;
+
+    m_bCancelled = true;
 }
 
 
