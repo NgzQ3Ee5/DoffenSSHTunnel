@@ -519,6 +519,8 @@ public slots:
 	void slotTreeTunnelPasteNodeAfter();
 	void slotTreeTunnelDeleteNode();
 	void slotTreeTunnelClearNodeLog();
+    void slotTreeTunnelExpandAll();
+    void slotTreeTunnelCollapseAll();
 	void slotTreeTunnelMoveLeft();
 	void slotTreeTunnelMoveRight();
 	void slotTreeTunnelMoveUp();
@@ -685,6 +687,9 @@ private:
 	QAction *m_pTreeTunnelsActionPasteNodeAfter;
 	QAction *m_pTreeTunnelsActionDeleteNode;
 	QAction *m_pTreeTunnelsActionClearLog;
+    QAction *m_pTreeTunnelsActionExpandAll;
+    QAction *m_pTreeTunnelsActionCollapseAll;
+
 	void enableTreeTunnelsPaste(bool enable);
 	void enableTreeTunnelDragDrop(bool enable);
 	QTreeWidgetItem* treeTunnelCreateNew();

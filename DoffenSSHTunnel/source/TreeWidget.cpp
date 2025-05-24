@@ -1966,6 +1966,21 @@ QList<QTreeWidgetItem*> TreeWidget::getChildListRecursive(QTreeWidgetItem* twiPa
     return twiChildList;
 }
 
+//static
+void TreeWidget::collapseRecursively(QTreeWidgetItem* item) {
+    for (int i = 0; i < item->childCount(); ++i) {
+        collapseRecursively(item->child(i));
+    }
+    item->setExpanded(false);
+}
+
+//static
+void TreeWidget::expandRecursively(QTreeWidgetItem* item) {
+    for (int i = 0; i < item->childCount(); ++i) {
+        expandRecursively(item->child(i));
+    }
+    item->setExpanded(true);
+}
 
 
 

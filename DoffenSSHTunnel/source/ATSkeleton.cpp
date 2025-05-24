@@ -129,6 +129,8 @@ ATSkeletonWindow::ATSkeletonWindow(QWidget *parent)
 	m_pTreeTunnelsActionPasteNodeChild = new QAction("Paste Child",m_pTreeTunnelsContextMenu);
 	m_pTreeTunnelsActionDeleteNode = new QAction("&Delete",m_pTreeTunnelsContextMenu);
 	m_pTreeTunnelsActionClearLog = new QAction("Clear &Log",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionExpandAll = new QAction("Expand All",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionCollapseAll = new QAction("Collapse All",m_pTreeTunnelsContextMenu);
 	enableTreeTunnelsPaste(false);
 
 #ifdef Q_OS_MACOS
@@ -165,30 +167,35 @@ QAction *sep0 = new QAction(m_pTreeTunnelsContextMenu);
 	sep5->setSeparator(true);
 	QAction *sep6 = new QAction(m_pTreeTunnelsContextMenu);
 	sep6->setSeparator(true);
+    QAction *sep7 = new QAction(m_pTreeTunnelsContextMenu);
+    sep7->setSeparator(true);
 
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionClearLog);
 	ui.treeTunnels->addAction(sep0);
+    ui.treeTunnels->addAction(m_pTreeTunnelsActionExpandAll);
+    ui.treeTunnels->addAction(m_pTreeTunnelsActionCollapseAll);
+    ui.treeTunnels->addAction(sep1);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionRename);
-	ui.treeTunnels->addAction(sep1);
+    ui.treeTunnels->addAction(sep2);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionExport);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionImportAfter);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionImportChild);
-	ui.treeTunnels->addAction(sep2);
+    ui.treeTunnels->addAction(sep3);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionDuplicate);
-	ui.treeTunnels->addAction(sep3);
+    ui.treeTunnels->addAction(sep4);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertFolderAfter);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertFolderBefore);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertChildFolder);
-	ui.treeTunnels->addAction(sep4);
+    ui.treeTunnels->addAction(sep5);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertNodeAfter);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertNodeBefore);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertChild);
-	ui.treeTunnels->addAction(sep5);
+    ui.treeTunnels->addAction(sep6);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionCutNode);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionCopyNode);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionPasteNodeAfter);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionPasteNodeChild);
-	ui.treeTunnels->addAction(sep6);
+    ui.treeTunnels->addAction(sep7);
 	ui.treeTunnels->addAction(m_pTreeTunnelsActionDeleteNode);
 
 	ui.widgetCustomActions->setup(this);
@@ -348,6 +355,8 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( m_pTreeTunnelsActionPasteNodeChild,		&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelPasteNodeChild, Qt::UniqueConnection ) );
     ATVERIFY( connect( m_pTreeTunnelsActionDeleteNode,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelDeleteNode, Qt::UniqueConnection ) );
     ATVERIFY( connect( m_pTreeTunnelsActionClearLog,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelClearNodeLog, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionExpandAll,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelExpandAll, Qt::UniqueConnection ) );
+    ATVERIFY( connect( m_pTreeTunnelsActionCollapseAll,			&QAction::triggered, this, &ATSkeletonWindow::slotTreeTunnelCollapseAll, Qt::UniqueConnection ) );
     ATVERIFY( connect( ui.treeTunnels,             &TunnelTreeWidget::itemCollapsed, this, &ATSkeletonWindow::slotTreeTunnelCollapsed ) );
     ATVERIFY( connect( ui.treeTunnels,              &TunnelTreeWidget::itemExpanded, this, &ATSkeletonWindow::slotTreeTunnelExpanded ) );
 
@@ -5231,6 +5240,20 @@ void ATSkeletonWindow::slotTreeTunnelClearNodeLog()
 	QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
 	ATASSERT( twi );
  	clearNodeLog( twi );
+}
+
+void ATSkeletonWindow::slotTreeTunnelExpandAll()
+{
+    QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
+    ATASSERT( twi );
+    TreeWidget::expandRecursively(twi);
+}
+
+void ATSkeletonWindow::slotTreeTunnelCollapseAll()
+{
+    QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
+    ATASSERT( twi );
+    TreeWidget::collapseRecursively(twi);
 }
 
 void ATSkeletonWindow::clearNodeLog(QTreeWidgetItem *twi)
