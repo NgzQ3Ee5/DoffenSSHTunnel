@@ -2295,6 +2295,11 @@ void ATSkeletonWindow::slotTreeTunnelExpanded(QTreeWidgetItem *twi)
 		}
 	}
     m_pMainWindow->m_pSearchWidget->slotUpdateCompleterIcons();
+    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+        for(int i=0;i<twi->childCount();i++) {
+            TreeWidget::expandRecursively(twi->child(i));
+        }
+    }
 	ui.treeTunnels->blockSignals(blocked);
 }
 
@@ -2312,6 +2317,11 @@ void ATSkeletonWindow::slotTreeTunnelCollapsed(QTreeWidgetItem *twi)
 		}
 	}
     m_pMainWindow->m_pSearchWidget->slotUpdateCompleterIcons();
+    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+        for(int i=0;i<twi->childCount();i++) {
+            TreeWidget::collapseRecursively(twi->child(i));
+        }
+    }
 	ui.treeTunnels->blockSignals(blocked);
 }
 
@@ -5246,14 +5256,24 @@ void ATSkeletonWindow::slotTreeTunnelExpandAll()
 {
     QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
     ATASSERT( twi );
-    TreeWidget::expandRecursively(twi);
+    bool blocked = ui.treeTunnels->blockSignals(true);
+    for(int i=0;i<twi->childCount();i++) {
+        TreeWidget::expandRecursively(twi->child(i));
+    }
+    ui.treeTunnels->blockSignals(blocked);
+    ui.treeTunnels->expandItem(twi);
 }
 
 void ATSkeletonWindow::slotTreeTunnelCollapseAll()
 {
     QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
     ATASSERT( twi );
-    TreeWidget::collapseRecursively(twi);
+    bool blocked = ui.treeTunnels->blockSignals(true);
+    for(int i=0;i<twi->childCount();i++) {
+        TreeWidget::collapseRecursively(twi->child(i));
+    }
+    ui.treeTunnels->blockSignals(blocked);
+    ui.treeTunnels->collapseItem(twi);
 }
 
 void ATSkeletonWindow::clearNodeLog(QTreeWidgetItem *twi)

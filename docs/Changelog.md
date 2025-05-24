@@ -12,7 +12,7 @@ v0.9.58 May 23, 2025
 + New: PopulateChildNodesWithExternalCommand automatically assigns a local port for tunnels in the "More Tunnels" table if the external script leaves it unspecified.
 + New: PopulateChildNodesWithExternalCommand preserves existing tunnels when the external script returns a matching tunnel entry, avoiding unnecessary disconnects.
 + New: PopulateChildNodesWithExternalCommand automatically expands folders that contain active tunnels.
-+ New: Added "Expand All" and "Collapse All" options to the Hosts tree context menu.
++ New: Added Ctrl + Left Click shortcut to expand or collapse all items in the Hosts tree, along with "Expand All" and "Collapse All" options in the Hosts tree context menu.
 
 v0.9.57 May 19, 2025
 ------------------
