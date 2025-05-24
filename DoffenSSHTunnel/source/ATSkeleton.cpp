@@ -3504,7 +3504,7 @@ void ATSkeletonWindow::connectSSMTunnel( Tunnel_c &tunnel )
     } catch (const ManagedProcessException& ex) {
         pt->pProcess->deleteLater();
         pt->pProcess = NULL;
-        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
     }
 
 }
@@ -3814,7 +3814,7 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
     } catch (const ManagedProcessException& ex) {
         pt->pProcess->deleteLater();
         pt->pProcess = NULL;
-        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
     }
 }
 
@@ -3866,7 +3866,7 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         try {
             pt->pProcess->killProcess();
         } catch (const ManagedProcessException& ex) {
-            AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+            AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
         }
 
         if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
@@ -3919,7 +3919,14 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
                        this, &ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinished, Qt::QueuedConnection ) );
 
 
-    pt->pPopulateChildNodesProcess->startWithJob( parts.takeFirst(), parts );
+    try {
+        pt->pPopulateChildNodesProcess->startWithJob( parts.takeFirst(), parts );
+    } catch (const ManagedProcessException& ex) {
+        pt->pPopulateChildNodesProcess->deleteLater();
+        pt->pPopulateChildNodesProcess = NULL;
+        AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
+        return;
+    }
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
         ATVERIFY( connect( pt->pPopulateChildNodesProcess, &ManagedProcess::finished, pd, &QProgressDialog::cancel ) );
@@ -4446,7 +4453,7 @@ void ATSkeletonWindow::disconnectTunnel( Tunnel_c &tunnel )
     try {
         pt->pProcess->killProcess();
     } catch (const ManagedProcessException& ex) {
-        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
     }
 
     if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
@@ -4479,7 +4486,7 @@ void ATSkeletonWindow::disconnectTunnelSilent( QTreeWidgetItem* twi )
     try {
         pt->pProcess->killProcess();
     } catch (const ManagedProcessException& ex) {
-        AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
     }
 
     if(!pt->pProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
@@ -7463,7 +7470,7 @@ void ATPopulateChildNodesConnector_c::slotCancel()
     try {
         pt->pPopulateChildNodesProcess->killProcess();
     } catch (const ManagedProcessException& ex) {
-        m_pParent->AddToLog( *pt, QString("ManagedProcess error: %s\n").arg( ex.what() ) );
+        m_pParent->AddToLog( *pt, QString("ManagedProcess error: %1\n").arg( ex.what() ) );
     }
 
     if(!pt->pPopulateChildNodesProcess->waitForCleanExit(WAIT_FOR_FINISHED_TIMEOUT)) {
