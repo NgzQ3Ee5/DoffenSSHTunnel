@@ -1952,6 +1952,20 @@ QList<QTreeWidgetItem*> TreeWidget::normalizeSelection(QList<QTreeWidgetItem*> t
 	return ret;
 }
 
+//static
+QList<QTreeWidgetItem*> TreeWidget::getChildListRecursive(QTreeWidgetItem* twiParent)
+{
+    QList<QTreeWidgetItem*> twiChildList;
+    for(int i=0;i<twiParent->childCount();i++) {
+        QTreeWidgetItem* twi = twiParent->child(i);
+        twiChildList.append(twi);
+        if(twi->childCount() > 0) {
+            twiChildList.append(getChildListRecursive(twi));
+        }
+    }
+    return twiChildList;
+}
+
 
 
 
