@@ -211,7 +211,8 @@ struct PortForwardStruct {
 		if(nType != other.nType) { return false; }
 		if(strName != other.strName) { return false; }
 		if(strLocalIP != other.strLocalIP) { return false; }
-		if(nLocalPort != other.nLocalPort) { return false; }
+        //LocalPort might be auto assigned so cannot compare this
+        //if(nLocalPort != other.nLocalPort) { return false; }
 		if(strDestinationHost != other.strDestinationHost) { return false; }
 		if(nDestinationPort != other.nDestinationPort) { return false; }
 		if(strDescription != other.strDescription) { return false; }
