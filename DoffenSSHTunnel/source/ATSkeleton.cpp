@@ -4010,29 +4010,34 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
                 QList<int> excludePorts;
 
                 //Current hosts to be removed
-                QList<QTreeWidgetItem*> toRemove;
-                for (int i = 0; i < twi->childCount(); i++) {
-                    QTreeWidgetItem *child = twi->child(i);
-                    Tunnel_c *pt2 = getTunnel(child);
-                    if(pt2 == NULL || pt2->bChildNodesCommandType) {
-                        toRemove.append(child);
-                        if(pt2->iConnectStatus != DISCONNECTED) {
-                            excludePorts.append(pt2->iLocalPort);
-                        }
+                QList<QTreeWidgetItem*> twiToRemoveList = TreeWidget::getChildListRecursive(twi);
+                for (int i = 0; i < twiToRemoveList.length(); i++) {
+                    QTreeWidgetItem *twiToRemove = twiToRemoveList[i];
+                    Tunnel_c *pt2 = getTunnel(twiToRemove);
+                    if(pt2 != nullptr && pt2->iConnectStatus != DISCONNECTED) {
+                        excludePorts.append(pt2->iLocalPort);
                     }
                 }
-                for (int i = 0; i < toRemove.size(); i++) {
-                    twi->removeChild(toRemove[i]);
+
+                //Remove in tree
+                QList<QTreeWidgetItem*> twiRemovedInTree;
+                for (int i = 0; i < twi->childCount(); i++) {
+                    QTreeWidgetItem *child = twi->child(i);
+                    twiRemovedInTree.append(child);
+                }
+                for (int i = 0; i < twi->childCount(); i++) {
+                    QTreeWidgetItem *child = twi->child(i);
+                    twi->removeChild(child);
                 }
 
                 //Add the new hosts
                 int levelOffset = TreeWidget::getItemLevel(twi) + 1;
 
-                addHostsRecursively(jsonHosts, twi, levelOffset, toRemove, excludePorts);
+                addHostsRecursively(jsonHosts, twi, levelOffset, twiToRemoveList, excludePorts);
 
-                //Remove old
-                for (int i = 0; i < toRemove.size(); i++) {
-                    QTreeWidgetItem *child = toRemove[i];
+                //Disconnect and delete old replaced twi items
+                for (int i = 0; i < twiRemovedInTree.size(); i++) {
+                    QTreeWidgetItem *child = twiRemovedInTree[i];
                     recursiveDisconnectTunnelSignals(child);
                     recursiveDisconnectTunnelSilent(child);
                     recursiveDeleteTunnel(child);
@@ -4079,7 +4084,7 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
     }
 }
 
-void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWidgetItem* parentItem, int levelOffset, const QList<QTreeWidgetItem*>& toRemove, QList<int>& excludePorts) {
+void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWidgetItem* parentItem, int levelOffset, const QList<QTreeWidgetItem*>& twiToRemoveList, QList<int>& excludePorts) {
     for (const QJsonValue& hostVal : jsonHosts) {
         QJsonObject jsonHost = hostVal.toObject();
 
@@ -4141,7 +4146,7 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
         // KeepConn logic
         if (!newTunnel->strExtID.isEmpty() && jsonHost.value("KeepConn").toBool(false)) {
             Tunnel_c* ptToKeepConn = nullptr;
-            for (QTreeWidgetItem* twiToRemove : toRemove) {
+            for (QTreeWidgetItem* twiToRemove : twiToRemoveList) {
                 Tunnel_c* ptToRemove = getTunnel(twiToRemove);
                 if (!ptToRemove || ptToRemove->iConnectStatus != CONNECTED ||
                     !ptToRemove->pProcess || !ptToRemove->pConnector ||
@@ -4171,7 +4176,7 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
 
         // Recursively handle children
         if (jsonHost.contains("Hosts")) {
-            addHostsRecursively(jsonHost["Hosts"].toArray(), newTwi, levelOffset + 1, toRemove, excludePorts);
+            addHostsRecursively(jsonHost["Hosts"].toArray(), newTwi, levelOffset + 1, twiToRemoveList, excludePorts);
         }
     }
 }
