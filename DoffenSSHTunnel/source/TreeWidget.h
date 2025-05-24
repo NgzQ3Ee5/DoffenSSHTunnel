@@ -99,6 +99,7 @@ public:
 	static void setItemForegroundCut(QTreeWidgetItem* twi, bool doit);
 	static bool hasParent(QTreeWidgetItem* item, QTreeWidgetItem* parent);
 	static QList<QTreeWidgetItem*> normalizeSelection(QList<QTreeWidgetItem*> twiList);
+    static QList<QTreeWidgetItem*> getChildListRecursive(QTreeWidgetItem* twiParent);
 	//check states
 	bool hasAllCheckState(QList<QTreeWidgetItem*> twiList, Qt::CheckState checkCheckState);
 	bool hasCheckState(QTreeWidgetItem* twi, Qt::CheckState checkCheckState);
