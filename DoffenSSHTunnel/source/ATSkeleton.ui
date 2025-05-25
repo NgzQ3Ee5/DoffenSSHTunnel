@@ -885,7 +885,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidgetEdit">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="Widget" name="widgetEditTunnel">
            <layout class="QGridLayout" name="gridLayout_12">
@@ -2102,55 +2102,6 @@
             <property name="bottomMargin">
              <number>0</number>
             </property>
-            <item row="1" column="0">
-             <widget class="QGroupBox" name="groupFolderChildNodesCommand">
-              <property name="title">
-               <string>Populate child nodes with external command</string>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="QLabel" name="labelFolderChildNodesCommand">
-                 <property name="text">
-                  <string>Command:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="editFolderChildNodesCommand"/>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_5">
-              <property name="spacing">
-               <number>7</number>
-              </property>
-              <item>
-               <widget class="QToolButton" name="btnFolderNameMenu">
-                <property name="text">
-                 <string>My Name  </string>
-                </property>
-                <property name="popupMode">
-                 <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
-                </property>
-                <property name="toolButtonStyle">
-                 <enum>Qt::ToolButtonStyle::ToolButtonTextOnly</enum>
-                </property>
-                <property name="autoRaise">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="editFolderName">
-                <property name="toolTip">
-                 <string>Name of the folder for the list on the left</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
             <item row="4" column="0">
              <layout class="QHBoxLayout" name="horizontalLayout_8">
               <property name="spacing">
@@ -2194,6 +2145,52 @@
               </item>
              </layout>
             </item>
+            <item row="0" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <property name="spacing">
+               <number>7</number>
+              </property>
+              <item>
+               <widget class="QToolButton" name="btnFolderNameMenu">
+                <property name="text">
+                 <string>My Name  </string>
+                </property>
+                <property name="popupMode">
+                 <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonStyle::ToolButtonTextOnly</enum>
+                </property>
+                <property name="autoRaise">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="editFolderName">
+                <property name="toolTip">
+                 <string>Name of the folder for the list on the left</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="2" column="0">
+             <widget class="QGroupBox" name="groupBox">
+              <property name="title">
+               <string>Settings</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QCheckBox" name="checkFolderActivateDisconnectsAllChildren">
+                 <property name="text">
+                  <string>Doubleclick / Enter on folder disconnects all child connections</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
             <item row="3" column="0">
              <spacer name="verticalSpacer">
               <property name="orientation">
@@ -2207,16 +2204,42 @@
               </property>
              </spacer>
             </item>
-            <item row="2" column="0">
-             <widget class="QGroupBox" name="groupBox">
-              <property name="title">
-               <string>Settings</string>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="groupFolderChildNodesCommand">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QCheckBox" name="checkFolderActivateDisconnectsAllChildren">
+              <property name="title">
+               <string>Populate child nodes with external command</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_11">
+               <item row="0" column="1">
+                <widget class="QCheckBox" name="checkFolderChildNodesCommandEnabled">
+                 <property name="toolTip">
+                  <string>Enable / disable the feature</string>
+                 </property>
                  <property name="text">
-                  <string>Doubleclick / Enter on folder disconnects all child connections</string>
+                  <string>Enabled</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="editFolderChildNodesCommand">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="labelFolderChildNodesCommand">
+                 <property name="text">
+                  <string>Command</string>
                  </property>
                 </widget>
                </item>

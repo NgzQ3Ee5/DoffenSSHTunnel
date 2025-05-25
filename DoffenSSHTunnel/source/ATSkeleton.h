@@ -411,6 +411,7 @@ public:
 	QTreeWidgetItem *twi;
 
     QString strChildNodesCommand;
+    bool bChildNodesCommandEnabled;
     ManagedProcess *pPopulateChildNodesProcess;
     ATPopulateChildNodesConnector_c *pPopulateChildNodesConnector;
     bool bChildNodesCommandType; //returned by childnodes command (e.g nodejs script retrieved hosts from aws)

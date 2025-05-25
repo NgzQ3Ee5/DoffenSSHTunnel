@@ -721,6 +721,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
     else if(tunnel->iType == TUNNEL_TYPE_FOLDER)
     {
         tunnel->strChildNodesCommand = settings.value("ChildNodesCommand","").toString();
+        tunnel->bChildNodesCommandEnabled = settings.value("ChildNodesCommandEnabled",true).toBool();
         tunnel->bActivateDisconnects = settings.value( "ActivateDisconnects", true ).toBool();
     }
 
@@ -838,6 +839,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
         }
     } else if(tunnel->iType == TUNNEL_TYPE_FOLDER) {
         tunnel->strChildNodesCommand = json.value("ChildNodesCommand").toString();
+        tunnel->bChildNodesCommandEnabled = json.value("ChildNodesCommandEnabled").toBool(true);
         tunnel->bActivateDisconnects  = json.value( "ActivateDisconnects" ).toBool(true);
     }
 
@@ -1824,6 +1826,7 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
     else if(it->iType == TUNNEL_TYPE_FOLDER)
     {
         settings.setValue( "ChildNodesCommand", it->strChildNodesCommand );
+        settings.setValue( "ChildNodesCommandEnabled", it->bChildNodesCommandEnabled );
         settings.setValue( "ActivateDisconnects", it->bActivateDisconnects );
     }
 
@@ -2183,10 +2186,10 @@ void ATSkeletonWindow::updateControlsTunnel(Tunnel_c *pt)
 			ui.btnConnect->setEnabled(false);
 			ui.btnDisconnect->setEnabled(true);
 		} else {
-            if(!pt->getSelectedSSHHost().isEmpty()) {
+            if(!pt->getSelectedSSHHost().trimmed().isEmpty()) {
 				ui.btnConnect->setEnabled(true);
 			}
-            if(!pt->strChildNodesCommand.isEmpty()) {
+            if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
                 ui.btnConnect->setEnabled(true);
             }
             ui.btnDisconnect->setEnabled(false);
@@ -2218,7 +2221,7 @@ void ATSkeletonWindow::updateControlsFolder()
         ui.btnDisconnect->setEnabled(true);
     }
     Tunnel_c *pt = getTunnel(twi);
-    if(!pt->strChildNodesCommand.isEmpty()) {
+    if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
         ui.btnConnect->setEnabled(true);
     }
 }
@@ -2677,7 +2680,7 @@ void ATSkeletonWindow::slotConnect()
 	if(pt == NULL) return;
 
     if(pt->iType == TUNNEL_TYPE_FOLDER) {
-        if(!pt->strChildNodesCommand.isEmpty()) {
+        if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
             populateChildNodesWithExternalCommand(twi);
         }
         return;
@@ -2724,7 +2727,7 @@ void ATSkeletonWindow::slotItemActivated()
         if(pt->bActivateDisconnects) {
             slotDisconnect();
         }
-        if(!pt->strChildNodesCommand.isEmpty()) {
+        if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
             ui.tabWidget->setCurrentIndex( PAGE_CONNECT );
             populateChildNodesWithExternalCommand(twi);
         }
@@ -3904,6 +3907,10 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         return;
     }
 
+    if(!pt->bChildNodesCommandEnabled) {
+        return;
+    }
+
     if(pt->iType != TUNNEL_TYPE_FOLDER) {
         return;
     }
@@ -4628,6 +4635,7 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
 
         pt->strName = ui.editFolderName->text().trimmed();
         pt->strChildNodesCommand = ui.editFolderChildNodesCommand->text().trimmed();
+        pt->bChildNodesCommandEnabled = ui.checkFolderChildNodesCommandEnabled->isChecked();
 
         pt->strFgColor = "";
         QBrush fgBrush = ui.editFolderName->palette().brush(QPalette::Normal, QPalette::Text);
@@ -5879,6 +5887,7 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         ui.editFolderName->setPalette(palette);
 
         ui.editFolderChildNodesCommand->setText( pt->strChildNodesCommand );    
+        ui.checkFolderChildNodesCommandEnabled->setChecked( pt->bChildNodesCommandEnabled );
 
         ui.checkFolderActivateDisconnectsAllChildren->setChecked( pt->bActivateDisconnects );
 
