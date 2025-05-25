@@ -14,6 +14,7 @@ v0.9.58 May 23, 2025
 + New: PopulateChildNodesWithExternalCommand automatically expands folders that contain active tunnels.
 + New: Added Ctrl + Left Click shortcut to expand or collapse all items in the Hosts tree, along with "Expand All" and "Collapse All" options in the Hosts tree context menu.
 + New: Added an Enabled checkbox to folders, allowing users to enable or disable PopulateChildNodesWithExternalCommand.
++ New: Added an 'Doubleclick / Enter on folder executes the command' checkbox to folders.
 
 v0.9.57 May 19, 2025
 ------------------

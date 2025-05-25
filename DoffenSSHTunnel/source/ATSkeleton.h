@@ -412,6 +412,7 @@ public:
 
     QString strChildNodesCommand;
     bool bChildNodesCommandEnabled;
+    bool bFolderActivateChildNodesCommand;
     ManagedProcess *pPopulateChildNodesProcess;
     ATPopulateChildNodesConnector_c *pPopulateChildNodesConnector;
     bool bChildNodesCommandType; //returned by childnodes command (e.g nodejs script retrieved hosts from aws)

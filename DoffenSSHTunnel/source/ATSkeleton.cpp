@@ -722,6 +722,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
     {
         tunnel->strChildNodesCommand = settings.value("ChildNodesCommand","").toString();
         tunnel->bChildNodesCommandEnabled = settings.value("ChildNodesCommandEnabled",true).toBool();
+        tunnel->bFolderActivateChildNodesCommand = settings.value("ActivateChildNodesCommand",true).toBool();
         tunnel->bActivateDisconnects = settings.value( "ActivateDisconnects", true ).toBool();
     }
 
@@ -840,6 +841,7 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
     } else if(tunnel->iType == TUNNEL_TYPE_FOLDER) {
         tunnel->strChildNodesCommand = json.value("ChildNodesCommand").toString();
         tunnel->bChildNodesCommandEnabled = json.value("ChildNodesCommandEnabled").toBool(true);
+        tunnel->bFolderActivateChildNodesCommand = json.value("ActivateChildNodesCommand").toBool(true);
         tunnel->bActivateDisconnects  = json.value( "ActivateDisconnects" ).toBool(true);
     }
 
@@ -1827,6 +1829,7 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
     {
         settings.setValue( "ChildNodesCommand", it->strChildNodesCommand );
         settings.setValue( "ChildNodesCommandEnabled", it->bChildNodesCommandEnabled );
+        settings.setValue( "ActivateChildNodesCommand", it->bFolderActivateChildNodesCommand );
         settings.setValue( "ActivateDisconnects", it->bActivateDisconnects );
     }
 
@@ -2727,7 +2730,7 @@ void ATSkeletonWindow::slotItemActivated()
         if(pt->bActivateDisconnects) {
             slotDisconnect();
         }
-        if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
+        if(pt->bFolderActivateChildNodesCommand && pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
             ui.tabWidget->setCurrentIndex( PAGE_CONNECT );
             populateChildNodesWithExternalCommand(twi);
         }
@@ -4636,6 +4639,7 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
         pt->strName = ui.editFolderName->text().trimmed();
         pt->strChildNodesCommand = ui.editFolderChildNodesCommand->text().trimmed();
         pt->bChildNodesCommandEnabled = ui.checkFolderChildNodesCommandEnabled->isChecked();
+        pt->bFolderActivateChildNodesCommand = ui.checkFolderActivateChildNodesCommand->isChecked();
 
         pt->strFgColor = "";
         QBrush fgBrush = ui.editFolderName->palette().brush(QPalette::Normal, QPalette::Text);
@@ -5888,6 +5892,7 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
 
         ui.editFolderChildNodesCommand->setText( pt->strChildNodesCommand );    
         ui.checkFolderChildNodesCommandEnabled->setChecked( pt->bChildNodesCommandEnabled );
+        ui.checkFolderActivateChildNodesCommand->setChecked( pt->bFolderActivateChildNodesCommand );
 
         ui.checkFolderActivateDisconnectsAllChildren->setChecked( pt->bActivateDisconnects );
 
@@ -6797,6 +6802,8 @@ void Tunnel_c::init()
     strFgColor = "";
     strBgColor = "";
     bActivateDisconnects = true;
+    bChildNodesCommandEnabled = true;
+    bFolderActivateChildNodesCommand = true;
     m_timerDelayRetryConnect.setSingleShot(true);
     ATVERIFY( connect( &m_timerDelayRetryConnect, &QTimer::timeout, this, &Tunnel_c::slotTimerDelayRetryConnectTimeout, Qt::UniqueConnection ) );
 }
