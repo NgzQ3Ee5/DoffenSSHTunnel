@@ -1483,8 +1483,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>251</width>
-                       <height>174</height>
+                       <width>128</width>
+                       <height>0</height>
                       </rect>
                      </property>
                      <property name="sizePolicy">
@@ -2216,13 +2216,17 @@
                <string>Populate child nodes with external command</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_11">
-               <item row="0" column="1">
-                <widget class="QCheckBox" name="checkFolderChildNodesCommandEnabled">
-                 <property name="toolTip">
-                  <string>Enable / disable the feature</string>
-                 </property>
+               <item row="5" column="1">
+                <widget class="QCheckBox" name="checkFolderActivateChildNodesCommand">
                  <property name="text">
-                  <string>Enabled</string>
+                  <string>Doubleclick / Enter on folder executes the command (triggers Connect button)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLabel" name="labelFolderChildNodesCommand">
+                 <property name="text">
+                  <string>Command</string>
                  </property>
                 </widget>
                </item>
@@ -2236,17 +2240,13 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
-                <widget class="QLabel" name="labelFolderChildNodesCommand">
-                 <property name="text">
-                  <string>Command</string>
+               <item row="4" column="1">
+                <widget class="QCheckBox" name="checkFolderChildNodesCommandEnabled">
+                 <property name="toolTip">
+                  <string>Enable / disable the feature</string>
                  </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QCheckBox" name="checkFolderActivateChildNodesCommand">
                  <property name="text">
-                  <string>Doubleclick / Enter on folder executes the command (triggers Connect button)</string>
+                  <string>Enabled</string>
                  </property>
                 </widget>
                </item>
