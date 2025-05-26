@@ -2858,6 +2858,10 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     replaced = replaced.replace("$kfile", kfile, Qt::CaseInsensitive);
     replaced = replaced.replace("${name}", pt->strName.replace("\"",""), Qt::CaseInsensitive);
     replaced = replaced.replace("$name", pt->strName.replace("\"",""), Qt::CaseInsensitive);
+    replaced = replaced.replace("${aws.region}", pt->strSSMRegion, Qt::CaseInsensitive);
+    replaced = replaced.replace("$aws.region", pt->strSSMRegion, Qt::CaseInsensitive);
+    replaced = replaced.replace("${aws.profile}", pt->strSSMProfile, Qt::CaseInsensitive);
+    replaced = replaced.replace("$aws.profile", pt->strSSMProfile, Qt::CaseInsensitive);
 	QString strIP = pt->strLocalIP;
 	if(strIP.isEmpty()) {
 		strIP = "localhost";

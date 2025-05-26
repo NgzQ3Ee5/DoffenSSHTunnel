@@ -17,8 +17,9 @@ $appdir | The directory that contains the application executable ||
 $datadir | The directory that contains the application data ||
 
 Variables from the Edit pane
+ 
+SSH Tab
 ------------------
-
 *Field*            | *Variable* | *Description*
 -------------------|------------|--------------
 My Name            | $name      | Name of the tunnel/host ||
@@ -29,8 +30,16 @@ Remote Host        | $rhost     | The remote host to tunnel to ||
 Remote Port        | $rport     | Port to use on the remote host for the tunnel. The standard port is 22. Unless you have a special SSH server setup port 22 should be used.  ||
 Username           | $uid       | Username for the SSH server ||
 Password           | $pwd       | Password for the SSH server ||
-SSH Key File       | $kfile     | Optional: SSH key file to avoid having to type the password every time. Note that you must quote it like this "$kfile" if the keyfile path contains spaces. ||
-Key password       | $kpwd      | Optional: SSH key file password to avoid having to type the key file password every time ||
+SSH Key File       | $kfile     | SSH key file to avoid having to type the password every time. Note that you must quote it like this "$kfile" if the keyfile path contains spaces. ||
+Key password       | $kpwd      | SSH key file password to avoid having to type the key file password every time ||
+
+AWS Tab
+------------------
+*Field*            | *Variable* | *Description*
+-------------------|------------|--------------
+AWS Region         | ${aws.region}  | The AWS Region e.g. eu-north-1
+AWS Profile        | ${aws.profile} | The AWS profile name found in ./aws/config or ./aws/credentials ||
+
 
 Variables from the Passwords pane
 ------------------

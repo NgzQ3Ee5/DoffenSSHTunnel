@@ -1327,7 +1327,7 @@
             <item row="2" column="0" colspan="3">
              <widget class="QGroupBox" name="groupBoxSSHSettings">
               <property name="title">
-               <string>Session Setup - The machine we are connecting to</string>
+               <string>Session Setup</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -1613,7 +1613,7 @@
                       <item row="0" column="0">
                        <widget class="QLabel" name="labelEditSSHUsername">
                         <property name="toolTip">
-                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${uid}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Username for the SSH server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;s</string>
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${uid}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Username for the SSH server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="text">
                          <string>Username:</string>
@@ -1758,7 +1758,7 @@
                     </widget>
                     <widget class="QWidget" name="tabWidgetEditTunnelSSM" native="true">
                      <attribute name="title">
-                      <string>AWS SSM</string>
+                      <string>AWS</string>
                      </attribute>
                      <layout class="QFormLayout" name="formLayout_4">
                       <property name="leftMargin">
@@ -1775,6 +1775,9 @@
                       </property>
                       <item row="0" column="0">
                        <widget class="QLabel" name="labelSSMRegion">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${aws.region}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The AWS Region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>AWS Region:</string>
                         </property>
@@ -1785,6 +1788,9 @@
                       </item>
                       <item row="1" column="0">
                        <widget class="QLabel" name="labelSSMProfile">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${aws.profile}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The AWS IAM Profile found in ~/.aws/config or ~/.aws/credentials&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
                         <property name="text">
                          <string>IAM Profile:</string>
                         </property>
