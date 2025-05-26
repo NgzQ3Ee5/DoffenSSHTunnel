@@ -885,7 +885,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidgetEdit">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="Widget" name="widgetEditTunnel">
            <layout class="QGridLayout" name="gridLayout_12">
@@ -996,7 +996,7 @@
             <item row="3" column="0" colspan="3">
              <widget class="QGroupBox" name="groupBoxMainTunnel">
               <property name="title">
-               <string>Tunnel - Mandatory if you add children in the tree</string>
+               <string>Tunnel</string>
               </property>
               <property name="flat">
                <bool>false</bool>
@@ -1483,8 +1483,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>128</width>
-                       <height>0</height>
+                       <width>248</width>
+                       <height>224</height>
                       </rect>
                      </property>
                      <property name="sizePolicy">
@@ -1563,8 +1563,21 @@
                     </widget>
                    </widget>
                   </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="labelEditSSHHost">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${host}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Address or IP of the SSH server to connect to (host:port, or host only for port 22)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>Host:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="ComboBox" name="comboTunnelType"/>
+                  </item>
                   <item row="2" column="0" colspan="2">
-                   <widget class="QStackedWidget" name="stackedWidgetEditTunnel">
+                   <widget class="QTabWidget" name="tabWidgetEditTunnel">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -1580,25 +1593,22 @@
                     <property name="currentIndex">
                      <number>1</number>
                     </property>
-                    <widget class="QWidget" name="widgetEditTunnelSSH">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
+                    <widget class="QWidget" name="tabWidgetEditTunnelSSH" native="true">
+                     <attribute name="title">
+                      <string>SSH</string>
+                     </attribute>
                      <layout class="QGridLayout" name="gridLayout_9">
                       <property name="leftMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="topMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="rightMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="bottomMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <item row="0" column="0">
                        <widget class="QLabel" name="labelEditSSHUsername">
@@ -1746,25 +1756,22 @@
                       </item>
                      </layout>
                     </widget>
-                    <widget class="QWidget" name="widgetEditTunnelSSM">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
+                    <widget class="QWidget" name="tabWidgetEditTunnelSSM" native="true">
+                     <attribute name="title">
+                      <string>AWS SSM</string>
+                     </attribute>
                      <layout class="QFormLayout" name="formLayout_4">
                       <property name="leftMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="topMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="rightMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <property name="bottomMargin">
-                       <number>0</number>
+                       <number>9</number>
                       </property>
                       <item row="0" column="0">
                        <widget class="QLabel" name="labelSSMRegion">
@@ -1790,18 +1797,12 @@
                     </widget>
                    </widget>
                   </item>
-                  <item row="0" column="0">
-                   <widget class="QLabel" name="labelEditSSHHost">
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${host}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Address or IP of the SSH server to connect to (host:port, or host only for port 22)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label">
                     <property name="text">
-                     <string>Host:</string>
+                     <string>Type:</string>
                     </property>
                    </widget>
-                  </item>
-                  <item row="1" column="1">
-                   <widget class="ComboBox" name="comboTunnelType"/>
                   </item>
                  </layout>
                 </widget>

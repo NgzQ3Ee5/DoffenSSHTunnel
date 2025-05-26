@@ -4724,10 +4724,10 @@ void ATSkeletonWindow::slotComboTunnelTypeSelectionChanged(int index)
         m_pMainWindow->setDetectSaveTunnel(false);
         int type = ui.comboTunnelType->itemData(index).toInt(); // TUNNEL_TYPE_TUNNEL_SSH (1) or TUNNEL_TYPE_TUNNEL_SSM (2)
         if(type == TUNNEL_TYPE_TUNNEL_SSM) {
-            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSM);
+            ui.tabWidgetEditTunnel->setCurrentWidget(ui.tabWidgetEditTunnelSSM);
         } else {
             // SSH is the default
-            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSH);
+            ui.tabWidgetEditTunnel->setCurrentWidget(ui.tabWidgetEditTunnelSSH);
         }
         m_pMainWindow->setDetectSaveTunnel(true);
     }
@@ -5784,10 +5784,10 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         ui.comboTunnelType->addItem("AWS Session Manager (SSM)", TUNNEL_TYPE_TUNNEL_SSM);
         if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSM) {
             ui.comboTunnelType->setCurrentIndex(ui.comboTunnelType->findData(TUNNEL_TYPE_TUNNEL_SSM));
-            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSM);
+            ui.tabWidgetEditTunnel->setCurrentWidget(ui.tabWidgetEditTunnelSSM);
         } else {
             ui.comboTunnelType->setCurrentIndex(ui.comboTunnelType->findData(TUNNEL_TYPE_TUNNEL_SSH));
-            ui.stackedWidgetEditTunnel->setCurrentWidget(ui.widgetEditTunnelSSH);
+            ui.tabWidgetEditTunnel->setCurrentWidget(ui.tabWidgetEditTunnelSSH);
         }
 
 
