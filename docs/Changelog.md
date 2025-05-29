@@ -1,6 +1,6 @@
 Changelog
 ==================
-v0.9.58 May 23, 2025
+v0.9.58 May 26, 2025
 ------------------
 + New: Support for Amazon AWS Session Manager to establish tunnels using aws ssm and the Session Manager plugin with the AWS-StartPortForwardingSessionToRemoteHost document.
 + Update: Removed the radio group for selecting SSH version 1 or 2. To override the default SSH version, use the Extra Arguments field instead.
