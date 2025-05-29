@@ -6,21 +6,13 @@ Howto increment Version Number
 Applicable for new release only
 
   * `trunk/DoffenSSHTunnel/main.cpp`
-    * `const char *APP_VERSION = "0.9.27";`
+    * `const char *APP_VERSION = "0.9.59";`
   * `trunk/build/build.properties`
-    * `APP_VERSION=0.9.27`
+    * `APP_VERSION=0.9.59`
 
-Howto tag Version Number
+
+Qt Creator and Visual Studio Community (vs2022)
 ------------------
-```bash
-cd ~/workspace/Qt/DoffenSSHTunnel/trunk
-svn copy ^/trunk ^/tags/v0.9.35 -m "Tag v0.9.35"
-```
-
-Win32: Qt Creator and Visual Studio 2013 Express Desktop compiler (vs2013)
-------------------
-
-MSVC2013 makes it very easy for you to get started, just install the pre-compiled binary package and start Qt Creator, the remainder works as if by magic (once you have any version of MSVC2013 installed, even the Express edition will do).
 
   * Install Git Client
 
@@ -49,16 +41,18 @@ MSVC2013 makes it very easy for you to get started, just install the pre-compile
     * Select `Release`
     * Compile: `Build » Build Project "DoffenSSHTunnel"`    
 
-  * Create Distribution files
-    * Install Java(TM) SE Runtime Environment http://java.com/getjava
-    * Install Apache Ant http://ant.apache.org/
-    * Open command prompt cmd.exe
-    * `cd \QtProjects\DoffenSSHTunnel\trunk\build`
-    * `build_windows.bat`
-    * `cd dist`
-    * Upload to SourceForge Download area
-      * `DoffenSSHTunnel_win32_v0.9.27 built-in icons.zip`
-      * `DoffenSSHTunnel_win32_v0.9.27.zip`
+  * Create distribution file
+    * Execute: C:\QtProjects\DoffenSSHTunnel\build\build_windows.bat
+	* File created: C:\QtProjects\build-DoffenSSHTunnel_64bit-Release\dist\DoffenSSHTunnel-v0.9.58-Win64.zip
+
+  * Create Release in Github
+    * https://github.com/NgzQ3Ee5/DoffenSSHTunnel/releases
+	* Click 'Draft a new release'
+	* Create new tag: v0.9.59
+    * Release title: v0.9.59
+    * Description: Copy/paste the changelog
+    * Attach file: C:\QtProjects\build-DoffenSSHTunnel_64bit-Release\dist\DoffenSSHTunnel-v0.9.58-Win64.zip
+	* Click 'Publish release'
         
 MacOS Mojave: Qt Creator and XCode compiler
 ------------------
