@@ -41,6 +41,7 @@ SOURCES += main.cpp\
 
 HEADERS  += \
     $$PWD/ManagedProcess.h \
+    $$PWD/Utils.h \
     Paths.h \
     identifier.h \
     exceptions.h \

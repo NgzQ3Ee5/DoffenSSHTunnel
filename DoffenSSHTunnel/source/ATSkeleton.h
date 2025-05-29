@@ -375,6 +375,7 @@ public:
 	QUuid   uUid;
     QString strExtID; //External ID. I.e. Amazon EC2 instance ID
 	QString strName;
+    QString strDescription;
     int		iType;   //TUNNEL_TYPE_TUNNEL or TUNNEL_TYPE_FOLDER
     int		iType2;  //TUNNEL_TYPE_TUNNEL_SSH or TUNNEL_TYPE_TUNNEL_SSM
 	QStringList strSSHHostList;

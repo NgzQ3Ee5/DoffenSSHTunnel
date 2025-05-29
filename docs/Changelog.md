@@ -1,5 +1,9 @@
 Changelog
 ==================
+v0.9.59 May 29, 2025
+------------------
++ New: Added Description field in the Edit pane. It is displayed in the hosts tree next to the name, formatted as name - description.
+
 v0.9.58 May 26, 2025
 ------------------
 + New: Support for Amazon AWS Session Manager to establish tunnels using aws ssm and the Session Manager plugin with the AWS-StartPortForwardingSessionToRemoteHost document.

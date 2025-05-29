@@ -1524,6 +1524,19 @@
                        </widget>
                       </item>
                       <item>
+                       <widget class="QLabel" name="labelTunnelDescription">
+                        <property name="toolTip">
+                         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Variable name: &lt;span style=&quot; font-weight:600;&quot;&gt;${description}&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This text is displayed next to the name in the hosts tree, formatted as: &lt;span style=&quot; font-family:'Courier New';&quot;&gt;name - description&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="text">
+                         <string>Description:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="editTunnelDescription"/>
+                      </item>
+                      <item>
                        <widget class="QLabel" name="labelExtraArguments">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

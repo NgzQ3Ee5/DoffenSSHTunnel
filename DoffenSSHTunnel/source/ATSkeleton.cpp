@@ -289,6 +289,7 @@ void ATSkeletonWindow::wireSignals()
 	
     // Edit host widget - returnPressed() - capture return key and save
     ATVERIFY( connect( ui.editTunnelName,			&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
+    ATVERIFY( connect( ui.editTunnelDescription,	&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editSSHHost,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editUsername,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
     ATVERIFY( connect( ui.editPassword,				&QLineEdit::returnPressed, this, &ATSkeletonWindow::slotSave ) );
@@ -634,6 +635,8 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 
     tunnel->strName           = settings.value( "Name" ).toString().trimmed();
 
+    tunnel->strDescription    = settings.value( "Description" ).toString().trimmed();
+
 	//default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
 	tunnel->iType	          = settings.value( "Type", "0" ).toInt();
 
@@ -755,6 +758,8 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
     tunnel->strExtID          = json.value("ExtID").toString().trimmed();
 
     tunnel->strName           = json.value( "Name" ).toString().trimmed();
+
+    tunnel->strDescription    = json.value( "Description" ).toString().trimmed();
 
     //default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
     tunnel->iType	          = json.value( "Type" ).toInt(0);
@@ -1778,6 +1783,7 @@ void ATSkeletonWindow::writeSettingsTunnel(QSettings &settings, Tunnel_c *it)
 	settings.setValue( "uuid",			  it->uUid.toString());  
     settings.setValue( "ExtID",			  it->strExtID);
 	settings.setValue( "Name",            it->strName );
+    settings.setValue( "Description",     it->strDescription );
 	settings.setValue( "Type",            it->iType );
     settings.setValue( "Type2",           it->iType2 );
 	settings.setValue( "Level",			  it->iLevel );
@@ -2858,6 +2864,8 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     replaced = replaced.replace("$kfile", kfile, Qt::CaseInsensitive);
     replaced = replaced.replace("${name}", pt->strName.replace("\"",""), Qt::CaseInsensitive);
     replaced = replaced.replace("$name", pt->strName.replace("\"",""), Qt::CaseInsensitive);
+    replaced = replaced.replace("${description}", pt->strName.replace("\"",""), Qt::CaseInsensitive);
+    replaced = replaced.replace("$description", pt->strName.replace("\"",""), Qt::CaseInsensitive);
     replaced = replaced.replace("${aws.region}", pt->strSSMRegion, Qt::CaseInsensitive);
     replaced = replaced.replace("$aws.region", pt->strSSMRegion, Qt::CaseInsensitive);
     replaced = replaced.replace("${aws.profile}", pt->strSSMProfile, Qt::CaseInsensitive);
@@ -4598,6 +4606,7 @@ void ATSkeletonWindow::setTunnelDataFromEditPane(Tunnel_c *pt)
     if(pt->iType == TUNNEL_TYPE_TUNNEL) {
 
         pt->strName = ui.editTunnelName->text().trimmed();
+        pt->strDescription = ui.editTunnelDescription->text().trimmed();
         pt->setSSHHostList(editGetSSHHost());
         pt->setSelectedSSHHost(editGetSelectedSSHHost());
         pt->strLocalIP = ui.editLocalIP->text().trimmed();
@@ -5809,6 +5818,7 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
         }
 
         ui.editTunnelName->setText( pt->strName );
+        ui.editTunnelDescription->setText ( pt->strDescription );
 
         //fg/bg color
         QPalette palette = ui.editTunnelName->palette();
@@ -6789,6 +6799,7 @@ void Tunnel_c::init()
 	uUid = QUuid::createUuid();
     strExtID = "";
 	strName = "Untitled";
+    strDescription = "";
 	iType = TUNNEL_TYPE_TUNNEL;
     iType2 = TUNNEL_TYPE_TUNNEL_SSH;
 	bDoKeepAlivePing = false;
@@ -6818,6 +6829,7 @@ void Tunnel_c::copyFrom( const Tunnel_c *orig )
     strExtID = orig->strExtID; //External ID (I.e Amazon EC2 instance cannot be copied)
 
 	strName = orig->strName;
+    strDescription = orig->strDescription;
 	iType = orig->iType;
     iType2 = orig->iType2;
 	iLevel = orig->iLevel;
