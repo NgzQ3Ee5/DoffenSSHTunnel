@@ -880,30 +880,13 @@ void ATSkeletonWindow::readAppSettings()
                 "",VariableStruct::EXECUTABLE);
             VariableStruct winscpVarStruct = VariableStruct(QUuid::createUuid(),"WinSCP","winscp","${appdir}/winscp.exe",
                 "",VariableStruct::EXECUTABLE);
-            VariableStruct filezillaVarStruct = VariableStruct(QUuid::createUuid(),"Alias","filezilla","${winscp}",
-                "",VariableStruct::EXECUTABLE);
-            VariableStruct sshVarStruct = VariableStruct(QUuid::createUuid(),"Alias","ssh","${putty}",
-                "",VariableStruct::EXECUTABLE);
-
-            if(m_listExecutableVariables.size() == 0) {
-
-                QString chromeExe = QString("C:/Program Files/Google/Chrome/Application/chrome.exe");
-                QString firefoxExe = "C:/Program Files/Mozilla Firefox/firefox.exe";
-                QString iexploreExe = "C:/Program Files/Internet Explorer/iexplore.exe";
-                QString consoleExecVar = QString("${appdir}/exec2.bat");
-
-                m_listExecutableVariables.append(
-                    VariableStruct(QUuid::createUuid(),"Firefox","firefox",firefoxExe,"",VariableStruct::EXECUTABLE) );
-                m_listExecutableVariables.append(
-                    VariableStruct(QUuid::createUuid(),"Google Chrome","chrome",chromeExe,"",VariableStruct::EXECUTABLE) );
-		
-            }
+            VariableStruct browserVarStruct = VariableStruct(QUuid::createUuid(),"Open a URL in the system's default web browser.",
+                "browser","C:/Windows/System32/cmd.exe","/c start",VariableStruct::EXECUTABLE);
 
             bool foundPlink = false;
             bool foundPutty = false;
             bool foundWinscp = false;
-            bool foundFilezilla = false;
-            bool foundSSH = false;
+            bool foundBrowser = false;
             for(int i = 0; i < m_listExecutableVariables.size(); i++) {
                 VariableStruct var = m_listExecutableVariables.at(i);
                 QString name = var.strName.trimmed().toLower();
@@ -913,27 +896,22 @@ void ATSkeletonWindow::readAppSettings()
                     foundPutty = true;
                 } else if(name == "winscp") {
                     foundWinscp = true;
-                } else if(name == "filezilla") {
-                    foundFilezilla = true;
-                } else if(name == "ssh") {
-                    foundSSH = true;
+                } else if(name == "browser") {
+                    foundBrowser = true;
                 }
             }
 
+            if(!foundPlink) {
+                m_listExecutableVariables.append(plinkVarStruct);
+            }
             if(!foundPutty) {
                 m_listExecutableVariables.append(puttyVarStruct);
-            }
-            if(!foundSSH) {
-                m_listExecutableVariables.append(sshVarStruct);
             }
             if(!foundWinscp) {
                 m_listExecutableVariables.append(winscpVarStruct);
             }
-            if(!foundFilezilla) {
-                m_listExecutableVariables.append(filezillaVarStruct);
-            }
-            if(!foundPlink) {
-                m_listExecutableVariables.append(plinkVarStruct);
+            if(!foundBrowser) {
+                m_listExecutableVariables.append(browserVarStruct);
             }
 
 
