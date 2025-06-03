@@ -4035,6 +4035,10 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
                     Tunnel_c *pt2 = getTunnel(twiToRemove);
                     if(pt2 != nullptr && pt2->iConnectStatus != DISCONNECTED) {
                         excludePorts.append(pt2->iLocalPort);
+                        for(int i=0;i<pt->portForwardList.size();i++) {
+                            PortForwardStruct pfs = pt->portForwardList.at(i);
+                            excludePorts.append(pfs.nLocalPort);
+                        }
                     }
                 }
 
