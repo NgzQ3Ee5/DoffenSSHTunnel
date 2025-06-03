@@ -12,7 +12,7 @@ Options:
                               -Linux:
                                ~/.local/share/DoffenSSHTunnel
   -p, --pwd-file <file>       Path to the password database file. 
-							  Use 'disabled' to disable password db usage
+                              Use 'disabled' to disable password db usage
                               entirely.
   -t, --title <title>         Set the main window title.
                               Defaults to the name of the data-file.
