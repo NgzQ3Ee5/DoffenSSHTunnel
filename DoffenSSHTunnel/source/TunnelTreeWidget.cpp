@@ -52,12 +52,14 @@ void TunnelTreeWidgetItemDelegate::paint(QPainter *painter, const QStyleOptionVi
 {
     painter->save();
 
-    QString displayText = index.data(Qt::DisplayRole).toString().remove(SanitizationUtils::unsafeCharsRegex()).trimmed();
+    //QString displayText = index.data(Qt::DisplayRole).toString().remove(SanitizationUtils::unsafeCharsRegex()).trimmed();
+    QString displayText = index.data(Qt::DisplayRole).toString().trimmed();
 
     QVariant v = index.data(Qt::UserRole);
     if(!v.isNull() && v.isValid()) {
         Tunnel_c* pt = (Tunnel_c*)v.value<qulonglong>();
-        QString strDescription = pt->strDescription.remove(SanitizationUtils::unsafeCharsRegex()).trimmed();
+        //QString strDescription = pt->strDescription.remove(SanitizationUtils::unsafeCharsRegex()).trimmed();
+        QString strDescription = pt->strDescription.trimmed();
         if(!strDescription.isEmpty()) {
             displayText += " - " + strDescription;
         }
