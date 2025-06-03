@@ -4180,6 +4180,11 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
 
             if (ptToKeepConn) {
                 parentItem->setExpanded(true); // Allways expand parent when a child is connected
+                QTreeWidgetItem* parentParentItem = parentItem->parent();
+                while(parentParentItem != nullptr && !parentParentItem->isExpanded()) {
+                    parentParentItem->setExpanded(true);
+                    parentParentItem = parentParentItem->parent();
+                }
                 newTwi->setIcon(0, ptToKeepConn->twi->icon(0));
                 newTunnel->iLocalPort = ptToKeepConn->iLocalPort;
                 newTunnel->iConnectStatus = ptToKeepConn->iConnectStatus;
