@@ -4,8 +4,9 @@ v0.9.59 May 29, 2025
 ------------------
 + New: Added Description field in the Edit pane. It is displayed in the hosts tree next to the name, formatted as name - description.
 + New: Introduced $browser executable variable, initialized at startup. Use it to launch URLs in the system's default browser (e.g., $browser https://www.google.com).
++ New: PopulateChildNodesWithExternalCommand attempt to keep local ports for disconnected tunnels.
 + Fix: PopulateChildNodesWithExternalCommand expands parent hosts/folders correctly when preserving connected hosts
-+ Fix: PopulateChildNodesWithExternalCommand if we remove a connected tunnel, then remembers its more tunnels ports. This is to ensure we do not auto-propose the local ports.
++ Fix: PopulateChildNodesWithExternalCommand if we remove a connected tunnel, then remembers its 'more tunnels' ports. This is to ensure we do not auto-propose the local ports.
 + Update: Removed $ssh and $filezilla executable variables from automatic initialization at application startup.
 
 v0.9.58 May 26, 2025
