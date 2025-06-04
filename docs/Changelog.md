@@ -1,6 +1,6 @@
 Changelog
 ==================
-v0.9.59 May 29, 2025
+v0.9.59 June 4, 2025
 ------------------
 + New: Added Description field in the Edit pane. It is displayed in the hosts tree next to the name, formatted as name - description.
 + New: Introduced $browser executable variable, initialized at startup. Use it to launch URLs in the system's default browser (e.g., $browser https://www.google.com).
