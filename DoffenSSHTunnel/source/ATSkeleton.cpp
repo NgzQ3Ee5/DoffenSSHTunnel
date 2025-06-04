@@ -4023,6 +4023,8 @@ void ATSkeletonWindow::slotConnectorPopulateChildNodesWithExternalCommandFinishe
 
                 twi->setExpanded(true);
 
+
+
                 //If we remove a connected tunnel, then remembers its
                 //local port. This is to ensure we do not auto-propose
                 //this local port.
@@ -4170,6 +4172,7 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
         }
 
         if (ptToKeepConn) {
+            // Found host in the tree with an active connection
             parentItem->setExpanded(true); // Allways expand parent when a child is connected
             QTreeWidgetItem* parentParentItem = parentItem->parent();
             while(parentParentItem != nullptr && !parentParentItem->isExpanded()) {
@@ -4195,20 +4198,40 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
 
             updateCurrentAndParentFoldersIcon(newTwi);
         } else {
-
+            // Did not find the host in the tree with active connection
+            // Now see if we have the same host at least and keep local ports if possible
+            Tunnel_c* ptToKeepPorts = nullptr;
+            if (!newTunnel->strExtID.isEmpty() && jsonHost.value("KeepPorts").toBool(true)) {
+                for (QTreeWidgetItem* twiToRemove : twiToRemoveList) {
+                    Tunnel_c* ptToRemove = getTunnel(twiToRemove);
+                    if (!ptToRemove || ptToRemove->strExtID != newTunnel->strExtID ||
+                        !ptToRemove->isConnectionDetailsEqual(newTunnel)) {
+                        continue;
+                    }
+                    ptToKeepPorts = ptToRemove;
+                    break;
+                }
+            }
             // Set new main tunnel port
             if (newTunnel->iLocalPort == 0) {
-                // I set LocalPort: 0 in my populateFolder nodejs script when I want to autoassign the port
-                setNewLocalPort(newTwi, false, excludePorts);
+                if(ptToKeepPorts  && (ptToKeepPorts->iLocalPort > 1024 && ptToKeepPorts->iLocalPort < 65535)) {
+                    newTunnel->iLocalPort = ptToKeepPorts->iLocalPort;
+                } else {
+                    // I set LocalPort: 0 in my populateFolder nodejs script when I want to autoassign the port
+                    setNewLocalPort(newTwi, false, excludePorts);
+                }
             }
             // Set new 'more tunnels' ports
             if(newTunnel->iType == TUNNEL_TYPE_TUNNEL) {
                 for(int i=0;i<newTunnel->portForwardList.length();i++) {
-                    // PortForwardStruct pfs = newTunnel->portForwardList.at(i); // I was getting a copy here
                     PortForwardStruct &pfs = newTunnel->portForwardList[i]; // Use reference
                     if(pfs.nLocalPort == 0) {
-                        // I set lport: 0 in my populateFolder nodejs script when I want to autoassign the port
-                        pfs.nLocalPort = proposeNewLocalPort(newTwi, excludePorts);
+                        if(ptToKeepPorts && (ptToKeepPorts->portForwardList[i].nLocalPort > 1024 && ptToKeepPorts->portForwardList[i].nLocalPort < 65535)) {
+                            pfs.nLocalPort = ptToKeepPorts->portForwardList[i].nLocalPort;
+                        } else {
+                            // I set lport: 0 in my populateFolder nodejs script when I want to autoassign the port
+                            pfs.nLocalPort = proposeNewLocalPort(newTwi, excludePorts);
+                        }
                     }
                 }
             }
