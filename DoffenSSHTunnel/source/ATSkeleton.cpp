@@ -738,7 +738,8 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QSettings &settings)
 	return tunnel;
 }
 
-Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
+//static
+Tunnel_c* ATSkeletonWindow::readJsonSettingsHost(QJsonObject &json)
 {
     Tunnel_c* tunnel = new Tunnel_c();
 
@@ -857,6 +858,104 @@ Tunnel_c* ATSkeletonWindow::readSettingsHost(QJsonObject &json)
     tunnel->bChildNodesCommandType = json.value("ChildNodesCommandType").toBool(false);
 
     return tunnel;
+}
+
+//static
+QJsonObject ATSkeletonWindow::buildJsonSettings(QTreeWidgetItem *twi) {
+    Tunnel_c* tunnel = getTunnel(twi);
+    QJsonObject json = buildJsonSettingsHost(tunnel);
+
+    QJsonArray jsonHosts;
+    for (int i = 0; i < twi->childCount(); ++i) {
+        QTreeWidgetItem* child = twi->child(i);
+        QJsonObject childJson = buildJsonSettings(child); // recursive call
+        jsonHosts.append(childJson);
+    }
+    json["Hosts"] = jsonHosts;
+
+    return json;
+}
+
+//static
+QJsonObject ATSkeletonWindow::buildJsonSettingsHost(Tunnel_c *tunnel) {
+    QJsonObject json;
+    if(!tunnel) {
+        return json;
+    }
+    json["uuid"] = tunnel->uUid.toString();
+    json["ExtID"] = tunnel->strExtID;
+    json["Name"] = tunnel->strName;
+    json["Description"] = tunnel->strDescription;
+    json["Type"] = tunnel->iType;   //default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
+    json["Type2"] = tunnel->iType2; //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 2 = TUNNEL_TYPE_TUNNEL_SSH
+
+    QJsonArray jsonActions;
+    for(int i=0; i<tunnel->customActionList.size();i++) {
+        CustomActionStruct customActionStruct = tunnel->customActionList[i]; //Reference
+        QJsonObject jsonAction;
+        jsonAction["uuid"] = customActionStruct.uUid.toString();
+        jsonAction["label"] = customActionStruct.sLabel;
+        jsonAction["cmd"] = customActionStruct.sCmd;
+        jsonAction["type"] = customActionStruct.iType; //default 0 = CUSTOM_ACTION_TYPE_COMMAND, 5 = CUSTOM_ACTION_TYPE_FOLDER
+        jsonAction["level"] = customActionStruct.iLevel;
+        jsonAction["expanded"] = customActionStruct.bExpanded;
+        jsonActions.append(jsonAction);
+    }
+    json["CustomActions"] = jsonActions;
+
+    if(tunnel->iType == TUNNEL_TYPE_TUNNEL)
+    {
+        json["SSHHostList"] = tunnel->getSSHHostList();
+        json["SSHHost"] = tunnel->getSelectedSSHHost();
+        json["RemoteHostList"] = tunnel->getRemoteHostList();
+        json["RemoteHost"] = tunnel->getSelectedRemoteHost();
+        json["Username"] = tunnel->strUsername;
+        //json["Password"] = pt->strPassword;
+        //json["SSHKeyFilePassword"] = pt->strSSHKeyFilePassword;
+        json["SSHKeyFile"] = tunnel->strSSHKeyFile;
+        json["ExtraArguments"] = tunnel->strExtraArguments;
+        json["SSMRegion"] = tunnel->strSSMRegion;
+        json["SSMProfile"] = tunnel->strSSMProfile;
+        json["LocalIP"] = tunnel->strLocalIP;
+        json["LocalPort"] = tunnel->iLocalPort;
+        json["RemotePort"] = tunnel->iRemotePort;
+        json["Direction"] = tunnel->iDirection;
+        json["AutoConnect"] = tunnel->bAutoConnect;
+        json["DoKeepAlivePing"] = tunnel->bDoKeepAlivePing;
+        json["AutoReconnect"] = tunnel->bAutoReconnect;
+
+        QJsonArray jsonPortForwards;
+        for(int i=0; i<tunnel->portForwardList.size(); i++) {
+            PortForwardStruct portForwardStruct = tunnel->portForwardList[i]; //Reference
+            QJsonObject jsonForward;
+            jsonForward["uuid"] = portForwardStruct.uUid.toString();
+            jsonForward["enabled"] = portForwardStruct.bEnabled;
+            jsonForward["type"] = portForwardStruct.nType; //enum {LOCAL,REMOTE,DYNAMIC}
+            jsonForward["name"] = portForwardStruct.strName;
+            jsonForward["lip"] = portForwardStruct.strLocalIP;
+            jsonForward["lport"] = portForwardStruct.nLocalPort;
+            jsonForward["dhost"] = portForwardStruct.strDestinationHost;
+            jsonForward["dport"] = portForwardStruct.nDestinationPort;
+            jsonForward["descr"] = portForwardStruct.strDescription;
+            jsonPortForwards.append(jsonForward);
+        }
+        json["PortForward"] = jsonPortForwards;
+    }
+    else if(tunnel->iType == TUNNEL_TYPE_TUNNEL)
+    {
+        json["ChildNodesCommand"] = tunnel->strChildNodesCommand;
+        json["ChildNodesCommandEnabled"] = tunnel->bChildNodesCommandEnabled;
+        json["ActivateChildNodesCommand"] = tunnel->bFolderActivateChildNodesCommand;
+        json["ActivateDisconnects"] = tunnel->bActivateDisconnects;
+    }
+
+    json["Level"] = tunnel->iLevel;
+    json["Expanded"] = tunnel->bIsExpanded;
+    json["FgColor"] = tunnel->strFgColor;
+    json["BgColor"] = tunnel->strBgColor;
+    json["ChildNodesCommandType"] = tunnel->bChildNodesCommandType;
+
+    return json;
 }
 
 void ATSkeletonWindow::readAppSettings()
@@ -3947,6 +4046,16 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         return;
     }
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
+        // Send a JSON document to stdin
+        QJsonObject json;
+        json["Hosts"] = buildJsonSettings(twi);
+        QJsonDocument jsonDoc(json);
+        QByteArray jsonData = jsonDoc.toJson(QJsonDocument::Compact);
+        jsonData.append('\n'); // important for Node.js to detect end of line if using readline or similar
+
+        pt->pPopulateChildNodesProcess->write(jsonData);
+        pt->pPopulateChildNodesProcess->closeWriteChannel(); // closes stdin (optional, based on Node.js behavior)
+
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
         ATVERIFY( connect( pt->pPopulateChildNodesProcess, &ManagedProcess::finished, pd, &QProgressDialog::cancel ) );
         ATVERIFY( connect( pd, &QProgressDialog::canceled, pt->pPopulateChildNodesConnector, &ATPopulateChildNodesConnector_c::slotCancel ) );
@@ -4113,7 +4222,7 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
     for (const QJsonValue& hostVal : jsonHosts) {
         QJsonObject jsonHost = hostVal.toObject();
 
-        Tunnel_c* newTunnel = readSettingsHost(jsonHost);
+        Tunnel_c* newTunnel = readJsonSettingsHost(jsonHost);
         newTunnel->bChildNodesCommandType = true;
         newTunnel->iLevel += levelOffset;
 

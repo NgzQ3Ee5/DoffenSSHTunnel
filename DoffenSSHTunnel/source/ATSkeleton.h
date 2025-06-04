@@ -600,7 +600,9 @@ private:
 	
 	void readSettings();	//Read DoffenSSHTunnel.ini
 	static Tunnel_c* readSettingsHost(QSettings &settings); //Create tunnel from settings [Host_xx]   
-    static Tunnel_c* readSettingsHost(QJsonObject &json);
+    static Tunnel_c* readJsonSettingsHost(QJsonObject &json);
+    static QJsonObject buildJsonSettingsHost(Tunnel_c *tunnel);
+    static QJsonObject buildJsonSettings(QTreeWidgetItem *twi);
     void addHostsRecursively(const QJsonArray& jsonHosts, QTreeWidgetItem* parentItem, int levelOffset, const QList<QTreeWidgetItem*>& toRemove, QList<int>& excludePorts);
     static VariableStruct readSettingsVariable(QSettings &settings);
 	static QList<VariableStruct> readSettingsUserDefinedVariables(QSettings &settings); 
