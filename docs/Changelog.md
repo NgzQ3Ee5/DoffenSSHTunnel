@@ -5,7 +5,7 @@ v0.9.60 June 5, 2025
 + New: PopulateChildNodesWithExternalCommand now writes structured data to the external script via stdin, including executable variables, user-defined variables, and the Hosts tree starting from the folder where the script is executed (i.e. its child Hosts hierarchy).
 + New: Added a Wrap Log Lines option to Preferences, allowing users to toggle line wrapping in the log view.
 + Update: Log output is now displayed using a monospace font for improved readability and alignment.
-+ Update: Tree JumpSearch now matchs all space-separated words in any order.
++ Update: Search now matchs all space-separated words in any order.
 + Fix: Resolved an issue where the application icon was occasionally missing from the taskbar and Process Explorer.
 + Fix: Search now matches both Name and Description fields. Previously, only the Name was searched—even though the Description was added and shown in the tree as name – description.
 

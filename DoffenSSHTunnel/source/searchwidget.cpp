@@ -27,17 +27,19 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
     layout->setObjectName(QStringLiteral("searchWidgetLayout"));
     layout->setContentsMargins(0, 0, 0, 0);
 
+    // Setup model and proxy
     m_pSearchBoxCompleterModel = new QStandardItemModel(this);
-    m_pSearchBox = new SearchWidgetLineEdit(this);
-    m_pSearchBoxCompleter = new QCompleter(this); //WARN Do not set m_pSearchBox as parent (m_pSearchBox->setCompleter(0) will then delete our completer)
+    m_pSearchBoxProxyModel = new AndFilterProxyModel(this);
+    m_pSearchBoxProxyModel->setSourceModel(m_pSearchBoxCompleterModel);
 
-    m_pSearchBoxCompleter->setCompletionColumn(0);
+    // Setup completer
+    m_pSearchBoxCompleter = new AndCompleter(m_pSearchBoxProxyModel, this);
     m_pSearchBoxCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    m_pSearchBoxCompleter->setFilterMode(Qt::MatchContains);
-    //m_pSearchBoxCompleter->setCompletionRole(Qt::DisplayRole);
-    //m_pSearchBoxCompleter->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    m_pSearchBoxCompleter->setCompletionMode(QCompleter::PopupCompletion);
+    m_pSearchBoxCompleter->setCompletionColumn(0);
     m_pSearchBoxCompleter->setMaxVisibleItems(30);
-    m_pSearchBoxCompleter->setModel(m_pSearchBoxCompleterModel);
+
+    m_pSearchBox = new SearchWidgetLineEdit(this);
 
     //Ctrl+F captured in ATMainWindow_c::keyPressEvent
 #ifndef Q_OS_MACOS
@@ -133,15 +135,6 @@ void SearchWidget::slotDelayUpdateCompleterIcons()
 {
     qDebug() << "SearchWidget::slotDelayUpdateCompleterIcons()";
 
-    /*
-    QModelIndex currentIndex;
-    #ifndef QT_NO_LISTVIEW
-        if(QListView *listView = qobject_cast<QListView *>(m_pSearchBoxCompleter->popup())) {
-            currentIndex = listView->currentIndex();
-        }
-    #endif
-    */
-
     QList<QTreeWidgetItem*> treeTunnelItems = m_pSkeletonWindow->ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
     for(int i=0;i<treeTunnelItems.size();i++) {
         QTreeWidgetItem *twi = treeTunnelItems[i];
@@ -159,25 +152,13 @@ void SearchWidget::slotDelayUpdateCompleterIcons()
             }
         }
     }
-
-    /*
-    #ifndef QT_NO_LISTVIEW
-        if(QListView *listView = qobject_cast<QListView *>(m_pSearchBoxCompleter->popup())) {
-            if(currentIndex.isValid() && !listView->currentIndex().isValid()) {
-                listView->setCurrentIndex(currentIndex);
-            }
-        }
-    #endif
-    */
 }
 
 //private
 void SearchWidget::textChanged(const QString &text)
 {
-    if(text.isEmpty()) {
-        //reset completer
-        m_pSearchBoxCompleter->setCompletionPrefix("");
-    }
+    const QStringList words = text.simplified().split(' ', Qt::SkipEmptyParts);
+    m_pSearchBoxProxyModel->setFilterWords(words);
 }
 
 
