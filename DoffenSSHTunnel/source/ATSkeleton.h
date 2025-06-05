@@ -324,8 +324,8 @@ public:
     int size();
     void trimToSize(int size);
     void clear();
-    QString toHtml();
-    static QString toHtml(const QString &str);
+    QString toHtml(bool wrap);
+    static QString toHtml(const QString &str, bool wrap);
 private:
     QString m_strLog;
 };
@@ -734,6 +734,7 @@ private:
 	void clearTunnelLog(Tunnel_c *pt);
 
 	bool m_bEditingEnabled;
+    bool m_bWrapLogLines;   // Wordwrap the lines in the log output window
 	
 	QList<VariableStruct> m_listExecutableVariables;	//DoffenSSHTunnelApp.ini
 	QList<VariableStruct> m_listUserDefinedVariables;	//DoffenSSHTunnel.ini

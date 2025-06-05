@@ -1,5 +1,12 @@
 Changelog
 ==================
+v0.9.60 June 5, 2025
+------------------
++ New: PopulateChildNodesWithExternalCommand now writes structured data to the external script via stdin, including executable variables, user-defined variables, and the Hosts tree starting from the folder where the script is executed (i.e. its child Hosts hierarchy).
++ New: Added a Wrap Log Lines option to Preferences, allowing users to toggle line wrapping in the log view.
++ Update: Log output is now displayed using a monospace font for improved readability and alignment.
++ Fix: Resolved an issue where the application icon was occasionally missing from the taskbar and Process Explorer.
+
 v0.9.59 June 4, 2025
 ------------------
 + New: Added Description field in the Edit pane. It is displayed in the hosts tree next to the name, formatted as name - description.

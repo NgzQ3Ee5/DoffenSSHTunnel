@@ -71,6 +71,8 @@ ATSkeletonWindow::ATSkeletonWindow(QWidget *parent)
 {
 	m_pMainWindow = static_cast<ATMainWindow_c*>(parent);
 
+    m_bWrapLogLines = false;
+
 	m_pTreeTunnelsItemEdit = NULL;
 	m_pTreeTunnelsPaste = NULL;
 	m_pTreeTunnelsPasteMode = 0;
@@ -5441,7 +5443,7 @@ void ATSkeletonWindow::clearTunnelLog(Tunnel_c *pt)
 {
 	if(pt == NULL) return;
     pt->log.clear();
-    ui.textBrowser->setHtml( pt->log.toHtml() );
+    ui.textBrowser->setHtml( pt->log.toHtml(m_bWrapLogLines) );
 }
 
 
@@ -6064,7 +6066,7 @@ void ATSkeletonWindow::populateConnectUIFromTwi( QTreeWidgetItem *twi )
 	Tunnel_c *pt = getTunnel(twi);
 	ATASSERT(pt);
 	if(pt != NULL) {
-        ui.textBrowser->setHtml( pt->log.toHtml() );
+        ui.textBrowser->setHtml( pt->log.toHtml(m_bWrapLogLines) );
 	}
 	ui.textBrowser->verticalScrollBar()->setValue( ui.textBrowser->verticalScrollBar()->maximum() );
 }
@@ -6307,14 +6309,14 @@ void ATSkeletonWindow::AddToLog( Tunnel_c &tunnel, const QString &strLog )
         tunnel.log.trimToSize(LOG_MAX_BUFFER_SIZE);
         if ( twi != NULL )
         {
-            ui.textBrowser->setHtml( tunnel.log.toHtml() );
+            ui.textBrowser->setHtml( tunnel.log.toHtml(m_bWrapLogLines) );
             ui.textBrowser->verticalScrollBar()->setValue( ui.textBrowser->verticalScrollBar()->maximum() );
         }
     }
 
     tunnel.log.append( strLog );
     if ( twi != NULL ) {
-        ui.textBrowser->append( TunnelLog::toHtml(strLog) );
+        ui.textBrowser->append( TunnelLog::toHtml(strLog, m_bWrapLogLines) );
     }
 }
 
@@ -6855,32 +6857,26 @@ void TunnelLog::clear()
     m_strLog.clear();
 }
 
-QString TunnelLog::toHtml()
+QString TunnelLog::toHtml(bool wrap)
 {
-    return toHtml(m_strLog);
+    return toHtml(m_strLog, wrap);
 }
 
 //static
-QString TunnelLog::toHtml(const QString &strLog)
+QString TunnelLog::toHtml(const QString &strLog, bool wrap)
 {
-    QString ret = "";
-
-    QString str = strLog.trimmed();
-    str = str.replace('\r',"");
-
-    QStringList strList = QStringList();
-    QStringList strSplit = str.split("\n", Qt::SkipEmptyParts);
-    for(int i=0;i<strSplit.size();i++) {
-        QString strPart = strSplit.at(i).trimmed();
-        //if(strPart.length() > 0) {
-            strList.append(strPart);
-        //}
-    }
-
-    ret.append("<p style=\"margin-top:0px; margin-bottom:0px;\">");
-    ret.append(strList.join("<br />"));
-    ret.append("</p>");
-
+    QString whiteSpace = wrap ? "pre-wrap" : "pre";
+    QString ret;
+    ret.append("<div style=\""
+               "white-space:" + whiteSpace + "; "
+               "font-family: 'Courier New', Courier, monospace; "
+               "font-size: 0.9em; "
+               "padding: 8px; "
+               "margin: 0px; "
+               "border: 1px solid #ddd; "
+               "border-radius: 4px;\">");
+    ret.append(strLog.toHtmlEscaped());
+    ret.append("</div>");
     return ret;
 }
 
