@@ -4077,7 +4077,7 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         QJsonDocument jsonDoc(json);
 
         QByteArray jsonData;
-        jsonData.append("BEGINa_DST_JSON_STDIN\n");
+        jsonData.append("BEGIN_DST_JSON_STDIN\n");
         jsonData.append(jsonDoc.toJson(QJsonDocument::Compact)); // always UTF-8
         jsonData.append("END_DST_JSON_STDIN\n");
         pt->pPopulateChildNodesProcess->write(jsonData);
