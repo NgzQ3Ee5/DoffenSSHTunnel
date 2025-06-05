@@ -38,7 +38,7 @@ void TreeSearchWidget::slotSearch() {
     if(text.isEmpty()) {
 
     } else {
-        QList<QTreeWidgetItem*> treeTunnelItems = m_pSkeletonWindow->ui.treeTunnels->findItems(text, Qt::MatchContains | Qt::MatchRecursive, 0);
+        QList<QTreeWidgetItem*> treeTunnelItems = m_pSkeletonWindow->ui.treeTunnels->findTunnelItemsMatching(text);
         if(m_nNextPrevIndex < 0) {
             m_nNextPrevIndex = treeTunnelItems.size()-1;
         }

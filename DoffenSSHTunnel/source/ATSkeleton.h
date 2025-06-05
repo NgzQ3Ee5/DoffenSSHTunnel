@@ -494,6 +494,7 @@ public:
 	QList<int> getLocalTunnelPortsInUse(Tunnel_c *pt);
 	QMap<int,int> getAllLocalTunnelPortsInUse(Tunnel_c *ptIgnore=NULL);
     QVersionNumber getPlinkVersion(const QString& plinkPath, Tunnel_c &tunnel);
+    static Tunnel_c* getTunnel(QTreeWidgetItem* twi);
 
 //override
 protected:
@@ -667,7 +668,6 @@ private:
 	void populateConnectUIFromTwi( QTreeWidgetItem *twi );
 
 	int getItemLevel(QTreeWidgetItem* item);
-	static Tunnel_c* getTunnel(QTreeWidgetItem* twi);
 	static void setTunnel(QTreeWidgetItem* twi, Tunnel_c* pt);
 
     void delayRetryConnect( Tunnel_c*, int autoReconnectIntervalSeconds );

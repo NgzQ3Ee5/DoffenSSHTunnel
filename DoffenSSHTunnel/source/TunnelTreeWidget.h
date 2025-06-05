@@ -15,6 +15,7 @@ class TunnelTreeWidget : public TreeWidget
 
 public:
     TunnelTreeWidget(QWidget *parent = 0);
+    QList<QTreeWidgetItem*> findTunnelItemsMatching(const QString& searchText);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);

@@ -108,6 +108,10 @@ void SearchWidget::slotDelayIndex()
             parentTwi = parentTwi->parent();
         }
 
+        if(!pt->strDescription.trimmed().isEmpty()) {
+            text = QString("%0 - %1").arg(text).arg(pt->strDescription.trimmed());
+        }
+
         QStandardItem *item = new QStandardItem(text);
         item->setIcon(twi->icon(0));
 

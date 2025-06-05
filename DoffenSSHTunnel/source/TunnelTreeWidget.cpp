@@ -10,6 +10,38 @@ TunnelTreeWidget::TunnelTreeWidget(QWidget *parent)
     setItemDelegate(new TunnelTreeWidgetItemDelegate(this));
 }
 
+QList<QTreeWidgetItem*> TunnelTreeWidget::findTunnelItemsMatching(const QString& searchText)
+{
+    QList<QTreeWidgetItem*> matchingItems;
+
+    std::function<void(QTreeWidgetItem*)> recurse = [&](QTreeWidgetItem* item) {
+        if (!item) return;
+
+        QString testStr =item->text(0);
+
+        Tunnel_c *tunnel = ATSkeletonWindow::getTunnel(item);
+        if(tunnel && !tunnel->strDescription.trimmed().isEmpty()) {
+            testStr = QString("%0 - %1").arg(testStr, tunnel->strDescription.trimmed());
+        }
+
+        bool match = testStr.contains(searchText, Qt::CaseInsensitive);
+        if (match) {
+            matchingItems.append(item);
+        }
+
+        // Recurse children
+        for (int i = 0; i < item->childCount(); ++i) {
+            recurse(item->child(i));
+        }
+    };
+
+    for (int i = 0; i < topLevelItemCount(); ++i) {
+        recurse(topLevelItem(i));
+    }
+
+    return matchingItems;
+}
+
 void TunnelTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 {
 	/*
