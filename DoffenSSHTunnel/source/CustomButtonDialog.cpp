@@ -306,13 +306,13 @@ void CustomButtonDialog::setVarTableData()
         addDataToVarTable(helpListEditPaneMoreTunnels);
     }
 
-	addHeaderToVarTable("Executable Applications (go to Settings -> Passwords & variables... to edit them)");
+    addHeaderToVarTable("Executable Applications (go to Settings -> Variables... to edit them)");
 	addDataToVarTable(helpListExecutables);
 
-	addHeaderToVarTable("User Defined Variables (go to Settings -> Passwords & variables... to edit them)");
+    addHeaderToVarTable("User Defined Variables (go to Settings -> Variables... to edit them)");
 	addDataToVarTable(helpListUserDefined);
 
-	addHeaderToVarTable("Passwords (go to Settings -> Passwords & variables... to edit them)");
+    addHeaderToVarTable("Passwords (go to Settings -> Variables... to edit them)");
 	addDataToVarTable(helpListPasswords);
 
 	//Port forwarding
