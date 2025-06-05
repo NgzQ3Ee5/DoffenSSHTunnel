@@ -53,6 +53,9 @@ void PreferencesDialog::readSettings()
 	bool bAutoClearLogEnabled = settings.value( "auto_clearlog_enabled", true ).toBool();
 	checkAutoClearLogEnabled->setChecked( bAutoClearLogEnabled );
 
+    bool bWrapLogLinesEnabled = settings.value( "wrap_loglines_enabled", false ).toBool();
+    checkWrapLogLinesEnabled->setChecked( bWrapLogLinesEnabled );
+
 	bool bConfirmOnQuit = settings.value( "ConfirmOnQuit", true ).toBool();
 	checkConfirmOnQuit->setChecked( bConfirmOnQuit );
 
@@ -79,6 +82,7 @@ void PreferencesDialog::writeSettings()
 	settings.setValue( "auto_connect_enabled", checkAutoConnectEnabled->isChecked() );
 	settings.setValue( "auto_reconnect_enabled", checkAutoReconnectEnabled->isChecked() );
 	settings.setValue( "auto_clearlog_enabled", checkAutoClearLogEnabled->isChecked() );
+    settings.setValue( "wrap_loglines_enabled", checkWrapLogLinesEnabled->isChecked() );
 	settings.setValue( "auto_backup_enabled", checkAutoBackup->isChecked() );
 	settings.setValue( "autosave_editpane", checkAutoSaveEditPane->isChecked() );
     settings.setValue( "show_tree_search", checkShowTreeSearch->isChecked() );

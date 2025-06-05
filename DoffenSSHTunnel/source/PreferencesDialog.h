@@ -18,6 +18,7 @@ public:
 	bool autoConnectEnabled() { return checkAutoConnectEnabled->isChecked(); }
 	bool autoReconnectEnabled() { return checkAutoReconnectEnabled->isChecked(); }
 	bool autoClearLogEnabled() { return checkAutoClearLogEnabled->isChecked(); }
+    bool wrapLogLinesEnabled() { return checkWrapLogLinesEnabled->isChecked(); }
 	bool autoBackupEnabled() { return checkAutoBackup->isChecked(); }
 	bool autoSaveEditPaneEnabled() { return checkAutoSaveEditPane->isChecked(); }
     bool showTreeSearchEnabled() { return checkShowTreeSearch->isChecked(); }

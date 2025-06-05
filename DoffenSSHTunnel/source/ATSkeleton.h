@@ -734,7 +734,6 @@ private:
 	void clearTunnelLog(Tunnel_c *pt);
 
 	bool m_bEditingEnabled;
-    bool m_bWrapLogLines;   // Wordwrap the lines in the log output window
 	
 	QList<VariableStruct> m_listExecutableVariables;	//DoffenSSHTunnelApp.ini
 	QList<VariableStruct> m_listUserDefinedVariables;	//DoffenSSHTunnel.ini

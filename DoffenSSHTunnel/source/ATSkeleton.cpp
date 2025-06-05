@@ -71,8 +71,6 @@ ATSkeletonWindow::ATSkeletonWindow(QWidget *parent)
 {
 	m_pMainWindow = static_cast<ATMainWindow_c*>(parent);
 
-    m_bWrapLogLines = false;
-
 	m_pTreeTunnelsItemEdit = NULL;
 	m_pTreeTunnelsPaste = NULL;
 	m_pTreeTunnelsPasteMode = 0;
@@ -5443,7 +5441,8 @@ void ATSkeletonWindow::clearTunnelLog(Tunnel_c *pt)
 {
 	if(pt == NULL) return;
     pt->log.clear();
-    ui.textBrowser->setHtml( pt->log.toHtml(m_bWrapLogLines) );
+    bool wrap = m_pMainWindow->preferences()->wrapLogLinesEnabled();
+    ui.textBrowser->setHtml( pt->log.toHtml(wrap) );
 }
 
 
@@ -6066,7 +6065,8 @@ void ATSkeletonWindow::populateConnectUIFromTwi( QTreeWidgetItem *twi )
 	Tunnel_c *pt = getTunnel(twi);
 	ATASSERT(pt);
 	if(pt != NULL) {
-        ui.textBrowser->setHtml( pt->log.toHtml(m_bWrapLogLines) );
+        bool wrap = m_pMainWindow->preferences()->wrapLogLinesEnabled();
+        ui.textBrowser->setHtml( pt->log.toHtml(wrap) );
 	}
 	ui.textBrowser->verticalScrollBar()->setValue( ui.textBrowser->verticalScrollBar()->maximum() );
 }
@@ -6304,19 +6304,21 @@ void ATSkeletonWindow::AddToLog( Tunnel_c &tunnel, const QString &strLog )
         twi = NULL;
     }
 
+    bool wrap = m_pMainWindow->preferences()->wrapLogLinesEnabled();
+
     if ( tunnel.log.size() > (LOG_MAX_BUFFER_SIZE*2) )
     {
         tunnel.log.trimToSize(LOG_MAX_BUFFER_SIZE);
         if ( twi != NULL )
         {
-            ui.textBrowser->setHtml( tunnel.log.toHtml(m_bWrapLogLines) );
+            ui.textBrowser->setHtml( tunnel.log.toHtml(wrap) );
             ui.textBrowser->verticalScrollBar()->setValue( ui.textBrowser->verticalScrollBar()->maximum() );
         }
     }
 
     tunnel.log.append( strLog );
     if ( twi != NULL ) {
-        ui.textBrowser->append( TunnelLog::toHtml(strLog, m_bWrapLogLines) );
+        ui.textBrowser->append( TunnelLog::toHtml(strLog, wrap) );
     }
 }
 
