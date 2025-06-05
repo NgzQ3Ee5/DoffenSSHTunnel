@@ -4048,7 +4048,7 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         // Send a JSON document to stdin
         QJsonObject json;
-        json["Hosts"] = buildJsonSettings(twi);
+        json["SelectedFolder"] = buildJsonSettings(twi); // This will be a folder
         QJsonDocument jsonDoc(json);
         QByteArray jsonData = jsonDoc.toJson(QJsonDocument::Compact);
         jsonData.append('\n'); // important for Node.js to detect end of line if using readline or similar
