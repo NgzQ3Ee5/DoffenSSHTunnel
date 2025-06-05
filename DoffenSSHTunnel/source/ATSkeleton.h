@@ -621,6 +621,8 @@ private:
 	static void writeSettingsUserDefinedVariables(QSettings &settings, QList<VariableStruct> &varList);
 	static void writeSettingsExecutableVariables(QSettings &settings, QList<VariableStruct> &varList);
 	static void writeSettingsVariable(QSettings &settings, VariableStruct &var);
+    static QJsonObject buildJsonSettingsVariable(VariableStruct &var);
+    static QJsonArray buildJsonSettingsVariables(QList<VariableStruct> &varList);
 	
 	void autoBackupSettings(const BackupInfo &backupInfoData);
 	bool m_bAutoBackupSettingsDisabled;
@@ -735,7 +737,7 @@ private:
 
 	bool m_bEditingEnabled;
 	
-	QList<VariableStruct> m_listExecutableVariables;	//DoffenSSHTunnelApp.ini
+    QList<VariableStruct> m_listExecutableVariables;	//DoffenSSHTunnelApp.ini
 	QList<VariableStruct> m_listUserDefinedVariables;	//DoffenSSHTunnel.ini
 
 	//QPair.first = original varname

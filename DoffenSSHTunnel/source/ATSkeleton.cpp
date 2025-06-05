@@ -1805,6 +1805,29 @@ void ATSkeletonWindow::writeSettingsVariable(QSettings &settings, VariableStruct
 }
 
 //static
+QJsonArray ATSkeletonWindow::buildJsonSettingsVariables(QList<VariableStruct> &varList) {
+    QJsonArray json;
+    for(int i=0;i<varList.size();i++) {
+        json.append(buildJsonSettingsVariable(varList[i]));
+
+    }
+    return json;
+}
+
+//static
+QJsonObject ATSkeletonWindow::buildJsonSettingsVariable(VariableStruct &var)
+{
+    QJsonObject json;
+    json["uuid"] = var.uUid.toString();
+    json["description"] = var.strDescription;
+    json["name"] = var.strName;
+    json["value"] = var.strValue;
+    json["args"] = var.strArgs;
+    json["type"] = var.nType;
+    return json;
+}
+
+//static
 void ATSkeletonWindow::writeSettingsTreeWidget(QSettings &settings, QTreeWidget *treeWidget)
 {
 	QList<Tunnel_c*> tunnelList = getTunnelList(treeWidget);
@@ -4048,6 +4071,8 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
         // Send a JSON document to stdin
         QJsonObject json;
+        json["ExecutableVariables"] = buildJsonSettingsVariables(m_listExecutableVariables);    //DoffenSSHTunnelApp.ini
+        json["UserDefinedVariables"] = buildJsonSettingsVariables(m_listUserDefinedVariables);  //DoffenSSHTunnel.ini
         json["SelectedFolder"] = buildJsonSettings(twi); // This will be a folder
         QJsonDocument jsonDoc(json);
         QByteArray jsonData = jsonDoc.toJson(QJsonDocument::Compact);
