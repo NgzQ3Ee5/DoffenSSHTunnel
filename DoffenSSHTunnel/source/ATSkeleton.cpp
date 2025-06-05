@@ -887,24 +887,10 @@ QJsonObject ATSkeletonWindow::buildJsonSettingsHost(Tunnel_c *tunnel) {
     json["Name"] = tunnel->strName;
     json["Description"] = tunnel->strDescription;
     json["Type"] = tunnel->iType;   //default 0 = TUNNEL_TYPE_TUNNEL, 5 = TUNNEL_TYPE_FOLDER
-    json["Type2"] = tunnel->iType2; //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 2 = TUNNEL_TYPE_TUNNEL_SSH
-
-    QJsonArray jsonActions;
-    for(int i=0; i<tunnel->customActionList.size();i++) {
-        CustomActionStruct customActionStruct = tunnel->customActionList[i]; //Reference
-        QJsonObject jsonAction;
-        jsonAction["uuid"] = customActionStruct.uUid.toString();
-        jsonAction["label"] = customActionStruct.sLabel;
-        jsonAction["cmd"] = customActionStruct.sCmd;
-        jsonAction["type"] = customActionStruct.iType; //default 0 = CUSTOM_ACTION_TYPE_COMMAND, 5 = CUSTOM_ACTION_TYPE_FOLDER
-        jsonAction["level"] = customActionStruct.iLevel;
-        jsonAction["expanded"] = customActionStruct.bExpanded;
-        jsonActions.append(jsonAction);
-    }
-    json["CustomActions"] = jsonActions;
 
     if(tunnel->iType == TUNNEL_TYPE_TUNNEL)
     {
+        json["Type2"] = tunnel->iType2; //default 1 = TUNNEL_TYPE_TUNNEL_SSH, 2 = TUNNEL_TYPE_TUNNEL_SSH
         json["SSHHostList"] = tunnel->getSSHHostList();
         json["SSHHost"] = tunnel->getSelectedSSHHost();
         json["RemoteHostList"] = tunnel->getRemoteHostList();
@@ -941,7 +927,7 @@ QJsonObject ATSkeletonWindow::buildJsonSettingsHost(Tunnel_c *tunnel) {
         }
         json["PortForward"] = jsonPortForwards;
     }
-    else if(tunnel->iType == TUNNEL_TYPE_TUNNEL)
+    else if(tunnel->iType == TUNNEL_TYPE_FOLDER)
     {
         json["ChildNodesCommand"] = tunnel->strChildNodesCommand;
         json["ChildNodesCommandEnabled"] = tunnel->bChildNodesCommandEnabled;
@@ -954,6 +940,20 @@ QJsonObject ATSkeletonWindow::buildJsonSettingsHost(Tunnel_c *tunnel) {
     json["FgColor"] = tunnel->strFgColor;
     json["BgColor"] = tunnel->strBgColor;
     json["ChildNodesCommandType"] = tunnel->bChildNodesCommandType;
+
+    QJsonArray jsonActions;
+    for(int i=0; i<tunnel->customActionList.size();i++) {
+        CustomActionStruct customActionStruct = tunnel->customActionList[i]; //Reference
+        QJsonObject jsonAction;
+        jsonAction["uuid"] = customActionStruct.uUid.toString();
+        jsonAction["label"] = customActionStruct.sLabel;
+        jsonAction["cmd"] = customActionStruct.sCmd;
+        jsonAction["type"] = customActionStruct.iType; //default 0 = CUSTOM_ACTION_TYPE_COMMAND, 5 = CUSTOM_ACTION_TYPE_FOLDER
+        jsonAction["level"] = customActionStruct.iLevel;
+        jsonAction["expanded"] = customActionStruct.bExpanded;
+        jsonActions.append(jsonAction);
+    }
+    json["CustomActions"] = jsonActions;
 
     return json;
 }
