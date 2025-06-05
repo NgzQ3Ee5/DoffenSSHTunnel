@@ -24,7 +24,7 @@ QList<QTreeWidgetItem*> TunnelTreeWidget::findTunnelItemsMatching(const QString&
             testStr = QString("%0 - %1").arg(testStr, tunnel->strDescription.trimmed());
         }
 
-        bool match = testStr.contains(searchText, Qt::CaseInsensitive);
+        bool match = MatchUtils::matchesAllWords(testStr, searchText);
         if (match) {
             matchingItems.append(item);
         }

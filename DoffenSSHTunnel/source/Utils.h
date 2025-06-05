@@ -14,4 +14,24 @@ namespace SanitizationUtils {
 
 } // namespace SanitizationUtils
 
+namespace MatchUtils {
+
+    // Matches if all words in `search` exist in `target` (AND behavior)
+    inline bool matchesAllWords(const QString& target, const QString& search)
+    {
+        const QStringList words = search.split(' ', Qt::SkipEmptyParts);
+        if (words.isEmpty()) {
+            return false;
+        }
+
+        for (const QString& word : words) {
+            if (!target.contains(word, Qt::CaseInsensitive)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+} // namespace SanitizationUtils
+
 #endif // UTILS_H
