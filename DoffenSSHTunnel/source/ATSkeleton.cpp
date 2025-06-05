@@ -4069,17 +4069,20 @@ void ATSkeletonWindow::populateChildNodesWithExternalCommand(QTreeWidgetItem* tw
         return;
     }
     if(pt->pPopulateChildNodesProcess->waitForStarted() ) {
-        // Send a JSON document to stdin
+        // Start - send JSON document to stdin
         QJsonObject json;
         json["ExecutableVariables"] = buildJsonSettingsVariables(m_listExecutableVariables);    //DoffenSSHTunnelApp.ini
         json["UserDefinedVariables"] = buildJsonSettingsVariables(m_listUserDefinedVariables);  //DoffenSSHTunnel.ini
         json["SelectedFolder"] = buildJsonSettings(twi); // This will be a folder
         QJsonDocument jsonDoc(json);
-        QByteArray jsonData = jsonDoc.toJson(QJsonDocument::Compact);
-        jsonData.append('\n'); // important for Node.js to detect end of line if using readline or similar
 
+        QByteArray jsonData;
+        jsonData.append("BEGINa_DST_JSON_STDIN\n");
+        jsonData.append(jsonDoc.toJson(QJsonDocument::Compact)); // always UTF-8
+        jsonData.append("END_DST_JSON_STDIN\n");
         pt->pPopulateChildNodesProcess->write(jsonData);
         pt->pPopulateChildNodesProcess->closeWriteChannel(); // closes stdin (optional, based on Node.js behavior)
+        // End - send JSON document to stdin
 
         QProgressDialog *pd = new QProgressDialog("Fetching data...", "Cancel", 0, 0, this, Qt::CustomizeWindowHint);
         ATVERIFY( connect( pt->pPopulateChildNodesProcess, &ManagedProcess::finished, pd, &QProgressDialog::cancel ) );
