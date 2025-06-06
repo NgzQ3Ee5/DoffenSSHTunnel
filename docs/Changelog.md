@@ -2,7 +2,9 @@ Changelog
 ==================
 v0.9.61 June 6, 2025
 ------------------
-+ Fix: Resolved an issue where the top search bar was broken in the previous release. It now functions as expected.
++ Fix: The top search bar is working again after being broken in the last release.
++ Fix: Jump search now starts at the first result and lets you cycle through matches using Enter or the previous/next buttons.
++ New: You can now press Enter to search for anything you type in the top search bar. No need to choose from the suggestions.
 
 v0.9.60 June 5, 2025
 ------------------
