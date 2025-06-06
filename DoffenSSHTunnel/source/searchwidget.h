@@ -41,6 +41,7 @@ private slots:
     void slotDelayIndex(); //use slotIndex() for delayed execution
     void slotDelayUpdateCompleterIcons(); //use slotUpdateCompleterIcons() for delayed execution
     void textChanged(const QString & text); //called when text box string changes
+    void slotReturnPressed();
     void slotCompleterActivated(const QModelIndex &);
 
 

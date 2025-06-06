@@ -85,6 +85,7 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 
     ATVERIFY( connect( m_pTimerDelayIndex, &QTimer::timeout, this, &SearchWidget::slotDelayIndex ) );
     ATVERIFY( connect( m_pTimerDelayUpdateCompleterIcons, &QTimer::timeout, this, &SearchWidget::slotDelayUpdateCompleterIcons ) );
+    ATVERIFY( connect( m_pSearchBox, &QLineEdit::returnPressed, this, &SearchWidget::slotReturnPressed ) );
     ATVERIFY( connect( m_pSearchBox, &QLineEdit::textChanged, this, &SearchWidget::textChanged ) );
     ATVERIFY(connect(m_pSearchBoxCompleter,
                      static_cast<void (QCompleter::*)(const QModelIndex &)>(&QCompleter::activated),
@@ -223,9 +224,23 @@ void SearchWidget::textChanged(const QString &text)
 }
 
 
-//private
+//private - user pressed Enter in the search box (not in the completer popup)
+//when pressing enter in the completer popup Qt fires the keyPressed event first followed by the completerActivated
+void SearchWidget::slotReturnPressed()
+{
+    QAbstractItemView *popup = m_pSearchBox->completer() ? m_pSearchBox->completer()->popup() : nullptr;
+    if(popup == nullptr || !popup->isVisible()) {
+        QList<QTreeWidgetItem*> treeTunnelItems = m_pSkeletonWindow->ui.treeTunnels->findTunnelItemsMatching(m_pSearchBox->text());
+        if(treeTunnelItems.size() > 0) {
+            m_pSkeletonWindow->ui.treeTunnels->setCurrentItemWithExpand( treeTunnelItems[0], true );
+        }
+    }
+}
+
+//private - user selected item in the completer popup
 void SearchWidget::slotCompleterActivated(const QModelIndex & idx)
 {
+    qWarning() << "ARNE" << "slotCompleterActivated";
     QVariant v = m_pSearchBoxCompleter->completionModel()->data(idx, Qt::UserRole);
     if(!v.isNull()) {
         QUuid uuid = v.value<QUuid>();
