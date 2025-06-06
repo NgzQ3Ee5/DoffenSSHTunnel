@@ -1,5 +1,9 @@
 Changelog
 ==================
+v0.9.61 June 6, 2025
+------------------
++ Fix: Resolved an issue where the top search bar was broken in the previous release. It now functions as expected.
+
 v0.9.60 June 5, 2025
 ------------------
 + New: PopulateChildNodesWithExternalCommand now writes structured data to the external script via stdin, including executable variables, user-defined variables, and the Hosts tree starting from the folder where the script is executed (i.e. its child Hosts hierarchy).
