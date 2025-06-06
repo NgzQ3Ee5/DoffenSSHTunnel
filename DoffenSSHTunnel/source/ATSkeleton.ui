@@ -397,7 +397,7 @@
       </property>
       <widget class="QWidget" name="tabConnect">
        <attribute name="title">
-        <string>Connect</string>
+        <string>Connection</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_13">
         <property name="leftMargin">
@@ -888,7 +888,7 @@
       </widget>
       <widget class="QWidget" name="tabEdit">
        <attribute name="title">
-        <string>Edit</string>
+        <string>Connection Settings</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
