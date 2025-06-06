@@ -32,6 +32,6 @@ namespace MatchUtils {
         return true;
     }
 
-} // namespace SanitizationUtils
+} // namespace MatchUtils
 
 #endif // UTILS_H

@@ -8,6 +8,39 @@
 #include "searchwidgetlineedit.h"
 #include "Images.h"
 #include "ATSkeleton.h"
+#include "Utils.h"
+
+
+class CustomFilterModel : public QSortFilterProxyModel {
+public:
+    CustomFilterModel(QObject *parent = nullptr) : QSortFilterProxyModel(parent) {}
+    void setMyFilterText(QString text) {
+        myFilterText = text.trimmed();
+    }
+
+private:
+    QString myFilterText;
+
+protected:
+    // Called for each row in my QCompleter data model (my m_pSearchBoxCompleterModel)
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override {
+        QModelIndex index = sourceModel()->index(sourceRow, filterKeyColumn(), sourceParent);
+        QString text = index.data(Qt::DisplayRole).toString();
+        if(myFilterText.isEmpty()) {
+            return true;
+        }
+        return MatchUtils::matchesAllWords(text, myFilterText);
+    }
+};
+
+class CustomCompleter : public QCompleter {
+public:
+    CustomCompleter(QObject *parent = nullptr) : QCompleter(parent) {}
+    QStringList splitPath(const QString &path) const {
+        //Q_UNUSED(path)
+        return QStringList({""}); // Disables the QCompleter's own filtering
+    }
+};
 
 SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 {
@@ -27,21 +60,18 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
     layout->setObjectName(QStringLiteral("searchWidgetLayout"));
     layout->setContentsMargins(0, 0, 0, 0);
 
-    // Setup model and proxy
     m_pSearchBoxCompleterModel = new QStandardItemModel(this);
-    m_pSearchBoxProxyModel = new AndFilterProxyModel(this);
-    m_pSearchBoxProxyModel->setSourceModel(m_pSearchBoxCompleterModel);
+    m_pSearchBox = new SearchWidgetLineEdit(this);
+    m_pSearchBoxCompleter = new CustomCompleter(this); //WARN Do not set m_pSearchBox as parent (m_pSearchBox->setCompleter(0) will then delete our completer)
+    auto *proxy = new CustomFilterModel(m_pSearchBoxCompleter);
+    proxy->setSourceModel(m_pSearchBoxCompleterModel); // your QStringListModel or similar
+    proxy->setFilterKeyColumn(0); // if needed
+    m_pSearchBoxCompleter->setModel(proxy);
 
-    // Setup completer
-    m_pSearchBoxCompleter = new AndCompleter(m_pSearchBoxProxyModel, this);
-    m_pSearchBoxCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    m_pSearchBoxCompleter->setCompletionMode(QCompleter::PopupCompletion);
     m_pSearchBoxCompleter->setCompletionColumn(0);
     m_pSearchBoxCompleter->setMaxVisibleItems(30);
 
-    m_pSearchBox = new SearchWidgetLineEdit(this);
-
-    //Ctrl+F captured in ATMainWindow_c::keyPressEvent
+//Ctrl+F captured in ATMainWindow_c::keyPressEvent
 #ifndef Q_OS_MACOS
     m_pSearchBox->setPlaceholderText("Type to locate (Ctrl+F)"); //Not right on Mac so just removing
 #endif
@@ -57,9 +87,9 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
     ATVERIFY( connect( m_pTimerDelayUpdateCompleterIcons, &QTimer::timeout, this, &SearchWidget::slotDelayUpdateCompleterIcons ) );
     ATVERIFY( connect( m_pSearchBox, &QLineEdit::textChanged, this, &SearchWidget::textChanged ) );
     ATVERIFY(connect(m_pSearchBoxCompleter,
-         static_cast<void (QCompleter::*)(const QModelIndex &)>(&QCompleter::activated),
-         this,
-         &SearchWidget::slotCompleterActivated));
+                     static_cast<void (QCompleter::*)(const QModelIndex &)>(&QCompleter::activated),
+                     this,
+                     &SearchWidget::slotCompleterActivated));
 
 }
 
@@ -135,6 +165,15 @@ void SearchWidget::slotDelayUpdateCompleterIcons()
 {
     qDebug() << "SearchWidget::slotDelayUpdateCompleterIcons()";
 
+    /*
+    QModelIndex currentIndex;
+    #ifndef QT_NO_LISTVIEW
+        if(QListView *listView = qobject_cast<QListView *>(m_pSearchBoxCompleter->popup())) {
+            currentIndex = listView->currentIndex();
+        }
+    #endif
+    */
+
     QList<QTreeWidgetItem*> treeTunnelItems = m_pSkeletonWindow->ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
     for(int i=0;i<treeTunnelItems.size();i++) {
         QTreeWidgetItem *twi = treeTunnelItems[i];
@@ -152,13 +191,30 @@ void SearchWidget::slotDelayUpdateCompleterIcons()
             }
         }
     }
+
+    /*
+    #ifndef QT_NO_LISTVIEW
+        if(QListView *listView = qobject_cast<QListView *>(m_pSearchBoxCompleter->popup())) {
+            if(currentIndex.isValid() && !listView->currentIndex().isValid()) {
+                listView->setCurrentIndex(currentIndex);
+            }
+        }
+    #endif
+    */
 }
 
 //private
 void SearchWidget::textChanged(const QString &text)
 {
-    const QStringList words = text.simplified().split(' ', Qt::SkipEmptyParts);
-    m_pSearchBoxProxyModel->setFilterWords(words);
+    if(text.isEmpty()) {
+        //reset completer
+        m_pSearchBoxCompleter->setCompletionPrefix("");
+    }
+    CustomFilterModel *proxy = static_cast<CustomFilterModel *>(m_pSearchBoxCompleter->model());
+    // I have my own custom filter text member
+    proxy->setMyFilterText(m_pSearchBoxCompleter->completionPrefix());
+    // Calling this slot with dummy empty string to trigger my proxy to update it's filtered contents (it will call my custom filterAcceptsRow)
+    proxy->setFilterFixedString("");
 }
 
 
