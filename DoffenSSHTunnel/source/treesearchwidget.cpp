@@ -47,7 +47,7 @@ void TreeSearchWidget::slotSearch() {
         }
         if(treeTunnelItems.size() > 0) {
             QTreeWidgetItem *item = treeTunnelItems[m_nNextPrevIndex];
-            m_pSkeletonWindow->ui.treeTunnels->setCurrentItem( item );
+            m_pSkeletonWindow->ui.treeTunnels->setCurrentItemWithExpand( item, false );
         }
     }
 }
