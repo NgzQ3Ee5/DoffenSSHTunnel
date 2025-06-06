@@ -615,15 +615,15 @@
                           <string>Quick Actions</string>
                          </property>
                          <property name="toolTip">
-                          <string>This action will run the specified system command.</string>
+                          <string>This action will run the specified command.</string>
                          </property>
                         </column>
                         <column>
                          <property name="text">
-                          <string>Command to Run</string>
+                          <string>Runs This Command</string>
                          </property>
                          <property name="toolTip">
-                          <string>This action will run the specified system command.</string>
+                          <string>This action will run the specified  command.</string>
                          </property>
                         </column>
                        </widget>
