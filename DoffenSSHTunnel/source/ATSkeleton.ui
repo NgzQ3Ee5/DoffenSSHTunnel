@@ -393,7 +393,7 @@
        <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabConnect">
        <attribute name="title">
@@ -607,14 +607,23 @@
                         <property name="expandsOnDoubleClick">
                          <bool>false</bool>
                         </property>
+                        <attribute name="headerVisible">
+                         <bool>true</bool>
+                        </attribute>
                         <column>
                          <property name="text">
-                          <string>My Actions</string>
+                          <string>Quick Actions</string>
+                         </property>
+                         <property name="toolTip">
+                          <string>This action will run the specified system command.</string>
                          </property>
                         </column>
                         <column>
                          <property name="text">
-                          <string>Command</string>
+                          <string>Command to Run</string>
+                         </property>
+                         <property name="toolTip">
+                          <string>This action will run the specified system command.</string>
                          </property>
                         </column>
                        </widget>
@@ -1606,7 +1615,7 @@
                     <property name="currentIndex">
                      <number>1</number>
                     </property>
-                    <widget class="QWidget" name="tabWidgetEditTunnelSSH" native="true">
+                    <widget class="QWidget" name="tabWidgetEditTunnelSSH">
                      <attribute name="title">
                       <string>SSH</string>
                      </attribute>
@@ -1769,7 +1778,7 @@
                       </item>
                      </layout>
                     </widget>
-                    <widget class="QWidget" name="tabWidgetEditTunnelSSM" native="true">
+                    <widget class="QWidget" name="tabWidgetEditTunnelSSM">
                      <attribute name="title">
                       <string>AWS</string>
                      </attribute>
