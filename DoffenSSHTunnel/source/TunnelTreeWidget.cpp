@@ -14,29 +14,20 @@ QList<QTreeWidgetItem*> TunnelTreeWidget::findTunnelItemsMatching(const QString&
 {
     QList<QTreeWidgetItem*> matchingItems;
 
-    std::function<void(QTreeWidgetItem*)> recurse = [&](QTreeWidgetItem* item) {
-        if (!item) return;
+    QList<QTreeWidgetItem*> treeTunnelItems = this->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
+    for(int i=0;i<treeTunnelItems.size();i++) {
+        QTreeWidgetItem *twi = treeTunnelItems[i];
+        QString testStr = twi->text(0);
 
-        QString testStr =item->text(0);
-
-        Tunnel_c *tunnel = ATSkeletonWindow::getTunnel(item);
+        Tunnel_c *tunnel = ATSkeletonWindow::getTunnel(twi);
         if(tunnel && !tunnel->strDescription.trimmed().isEmpty()) {
             testStr = QString("%0 - %1").arg(testStr, tunnel->strDescription.trimmed());
         }
 
         bool match = MatchUtils::matchesAllWords(testStr, searchText);
         if (match) {
-            matchingItems.append(item);
+            matchingItems.append(twi);
         }
-
-        // Recurse children
-        for (int i = 0; i < item->childCount(); ++i) {
-            recurse(item->child(i));
-        }
-    };
-
-    for (int i = 0; i < topLevelItemCount(); ++i) {
-        recurse(topLevelItem(i));
     }
 
     return matchingItems;

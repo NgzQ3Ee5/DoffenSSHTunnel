@@ -4,7 +4,7 @@
 
 TreeSearchWidget::TreeSearchWidget(QWidget *parent) : QWidget(parent)
 {
-    m_nNextPrevIndex = 0;
+    m_nNextPrevIndex = -1;
     m_timerDelaySearch.setSingleShot(true);
     m_timerDelaySearch.setInterval( 500 );
 }
@@ -53,7 +53,7 @@ void TreeSearchWidget::slotSearch() {
 }
 
 void TreeSearchWidget::slotTextChanged(){
-    m_nNextPrevIndex = 0;
+    m_nNextPrevIndex = -1;
     //m_timerDelaySearch.start();
 }
 
