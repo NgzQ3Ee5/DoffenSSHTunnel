@@ -54,7 +54,7 @@ void TreeSearchWidget::slotSearch() {
 
 void TreeSearchWidget::slotTextChanged(){
     m_nNextPrevIndex = 0;
-    m_timerDelaySearch.start();
+    //m_timerDelaySearch.start();
 }
 
 void TreeSearchWidget::slotSearchUp(){
