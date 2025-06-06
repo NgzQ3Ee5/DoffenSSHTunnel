@@ -136,7 +136,12 @@ void SearchWidget::slotDelayIndex()
 
         QTreeWidgetItem* parentTwi = twi->parent();
         while(parentTwi != NULL) {
-            text = QString("/ %0 %1").arg(parentTwi->text(0)).arg(text);
+            QString parentText = parentTwi->text(0);
+            Tunnel_c *parentPt = ATSkeletonWindow::getTunnel(parentTwi);
+            if(parentPt && !parentPt->strDescription.trimmed().isEmpty()) {
+                parentText = QString("%0 - %1").arg(parentText).arg(parentPt->strDescription.trimmed());
+            }
+            text = QString("/ %0 %1").arg(parentText).arg(text);
             parentTwi = parentTwi->parent();
         }
 
