@@ -240,7 +240,6 @@ void SearchWidget::slotReturnPressed()
 //private - user selected item in the completer popup
 void SearchWidget::slotCompleterActivated(const QModelIndex & idx)
 {
-    qWarning() << "ARNE" << "slotCompleterActivated";
     QVariant v = m_pSearchBoxCompleter->completionModel()->data(idx, Qt::UserRole);
     if(!v.isNull()) {
         QUuid uuid = v.value<QUuid>();
