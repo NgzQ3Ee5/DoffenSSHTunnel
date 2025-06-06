@@ -37,7 +37,7 @@ class CustomCompleter : public QCompleter {
 public:
     CustomCompleter(QObject *parent = nullptr) : QCompleter(parent) {}
     QStringList splitPath(const QString &path) const {
-        //Q_UNUSED(path)
+        Q_UNUSED(path)
         return QStringList({""}); // Disables the QCompleter's own filtering
     }
 };
@@ -235,8 +235,7 @@ void SearchWidget::slotCompleterActivated(const QModelIndex & idx)
             Tunnel_c *pt = ATSkeletonWindow::getTunnel(twi);
             ATASSERT(pt);
             if(pt->uUid == uuid) {
-                m_pSkeletonWindow->ui.treeTunnels->setCurrentItem(twi);
-                m_pSkeletonWindow->ui.treeTunnels->setFocus();
+                m_pSkeletonWindow->ui.treeTunnels->setCurrentItemWithExpand(twi, true);
                 break;
             }
         }

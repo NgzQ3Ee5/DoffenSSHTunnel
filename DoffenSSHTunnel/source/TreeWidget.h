@@ -112,6 +112,8 @@ public:
 	void setAllChildrenCheckState(QList<QTreeWidgetItem*> twiList, Qt::CheckState checkState);
 	void setAllChildrenCheckState(QTreeWidgetItem* twi, Qt::CheckState checkState);
 
+    void setCurrentItemWithExpand(QTreeWidgetItem *item, bool focus);
+
     QMenu* contextMenu();					//created by constructor
     QAction* actionEdit();						//created by setupStandardControls()
     QAction* actionReanme();				//created by setupStandardControls()

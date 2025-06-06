@@ -602,6 +602,26 @@ void TreeWidget::setAllChildrenCheckState(QTreeWidgetItem* twi, Qt::CheckState c
     }
 }
 
+void TreeWidget::setCurrentItemWithExpand(QTreeWidgetItem *item, bool focus)
+{
+    // Check if the current item is already the specified item
+    // It item is different from currentItem then expansion of parents happens automatically by setCurrentItem.
+    if (this->currentItem() == item) {
+        // If the item is already current, expand all parents of the item
+        QTreeWidgetItem *parent = item->parent();
+        while (parent) {
+            parent->setExpanded(true); // Expand the parent
+            parent = parent->parent();  // Move to the next parent
+        }
+    }
+
+    // Now set the current item and focus.
+    this->setCurrentItem(item);
+    if(focus) {
+        this->setFocus(); // Set focus on the tree widget
+    }
+}
+
 QMenu *TreeWidget::contextMenu()
 {
     return m_pContextMenu;
