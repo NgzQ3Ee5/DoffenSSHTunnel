@@ -19,6 +19,10 @@ private:
     QTimer m_timerDelaySearch;
     int m_nNextPrevIndex;
 
+    //override
+protected:
+    void keyPressEvent(QKeyEvent * e);
+
 signals:
 
 public slots:

@@ -73,9 +73,9 @@ SearchWidget::SearchWidget(QWidget *parent) : QWidget(parent)
 
 //Ctrl+F captured in ATMainWindow_c::keyPressEvent
 #ifndef Q_OS_MACOS
-    m_pSearchBox->setPlaceholderText("Type to locate (Ctrl+F)"); //Not right on Mac so just removing
+    m_pSearchBox->setPlaceholderText("Search (↑↓ or Enter, Ctrl+F)"); //Not right on Mac so just removing
 #endif
-    m_pSearchBox->setPlaceholderText("");
+    m_pSearchBox->setToolTip("Type to search items. Use ↑↓ to navigate suggestions, or press Enter to search. Shortcut: Ctrl+F");
     m_pSearchBox->setClearIcon(Images::icon("tb_020_btn_search_clear"));
     m_pSearchBox->setSearchIcon(Images::icon("tb_010_btn_search"));
     m_pSearchBox->setShowSearchIcon(true);

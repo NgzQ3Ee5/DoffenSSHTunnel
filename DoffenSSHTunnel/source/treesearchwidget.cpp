@@ -52,6 +52,28 @@ void TreeSearchWidget::slotSearch() {
     }
 }
 
+//protected override
+void TreeSearchWidget::keyPressEvent(QKeyEvent * e)
+{
+    switch (e->key()) {
+    case Qt::Key_Up:
+        slotSearchUp();
+        e->accept(); // prevents further propagation
+        return;
+    case Qt::Key_Down:
+        slotSearchDown();
+        e->accept(); // prevents further propagation
+        return;
+    default:
+        break;
+    }
+
+    // By placing ctkSearchBox::keyPressEvent(e) after the switch and only calling it if the key wasn’t handled,
+    // we ensure custom navigation logic takes precedence.
+    QWidget::keyPressEvent(e);
+
+}
+
 void TreeSearchWidget::slotTextChanged(){
     m_nNextPrevIndex = -1;
     //m_timerDelaySearch.start();

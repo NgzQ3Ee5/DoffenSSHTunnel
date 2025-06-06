@@ -11,8 +11,9 @@ TreeSearchWidgetLineEdit::TreeSearchWidgetLineEdit(QWidget *parent)
     setShowSearchIcon(true);
     //Ctrl+K captured in ATMainWindow_c::keyPressEvent
 #ifndef Q_OS_MACOS
-    setPlaceholderText("Jump search... (Ctrl+K)"); //Not right on Mac so just removing
+    setPlaceholderText("Cycle matches… (↑↓ or Enter, Ctrl+K)"); //Not right on Mac so just removing
 #endif
+    setToolTip("Jump through matching items using Enter or arrow keys. Shortcut: Ctrl+K");
 }
 
 TreeSearchWidgetLineEdit::~TreeSearchWidgetLineEdit()
