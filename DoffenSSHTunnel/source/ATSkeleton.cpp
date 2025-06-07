@@ -3392,7 +3392,7 @@ QTreeWidgetItem* ATSkeletonWindow::markConnect( QTreeWidgetItem* twi )
 		updateControlsTunnel(pt);
         if(pt->iType2 == TUNNEL_TYPE_TUNNEL_SSH) {
             Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
-            if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
+            if(ptParent != NULL && ptParent->iConnectStatus != CONNECTED) {
                 AddToLog( *pt, "Waiting for parent to get connected...\n" );
             }
         }
@@ -3409,7 +3409,7 @@ QTreeWidgetItem* ATSkeletonWindow::markConnect( QTreeWidgetItem* twi )
                 pt->iConnectStatus = MARKCONNECT;
                 updateControlsTunnel(pt);
                 Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi)); //returns NULL of there is no parent
-                if(ptParent != NULL && ptParent->iConnectStatus == DISCONNECTED) {
+                if(ptParent != NULL && ptParent->iConnectStatus != CONNECTED) {
                     AddToLog( *pt, "Waiting for parent to get connected...\n" );
                 }
             }
@@ -5469,8 +5469,10 @@ void ATSkeletonWindow::clearTunnelLog(Tunnel_c *pt)
 {
 	if(pt == NULL) return;
     pt->log.clear();
-    bool wrap = m_pMainWindow->preferences()->wrapLogLinesEnabled();
-    ui.textBrowser->setHtml( pt->log.toHtml(wrap) );
+    if(pt->twi == ui.treeTunnels->currentItem()) {
+        bool wrap = m_pMainWindow->preferences()->wrapLogLinesEnabled();
+        ui.textBrowser->setHtml( pt->log.toHtml(wrap) );
+    }
 }
 
 
