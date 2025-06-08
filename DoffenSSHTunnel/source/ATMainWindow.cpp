@@ -304,6 +304,16 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	QMenu *pSettingsMenu	= new QMenu(this);
 
+    //Settings -> Setup &Variables...
+    m_pActionSetupVariables	= new QAction(QObject::tr("&Variables..."), this);
+    bRet				= QObject::connect(m_pActionSetupVariables, &QAction::triggered, this, &ATMainWindow_c::slotVariablesSetup,Qt::QueuedConnection );
+    ATASSERT( bRet );
+
+    pSettingsMenu->addAction( m_pActionSetupVariables );
+
+    pSettingsMenu->addSeparator();
+
+
 	//Settings -> &Preferences...
 	pAction				= new QAction(QObject::tr("&Preferences..."), this);
     bRet				= QObject::connect(pAction, &QAction::triggered, this, &ATMainWindow_c::slotPreferencesSetup, Qt::QueuedConnection);
@@ -313,14 +323,6 @@ bool ATMainWindow_c::InitMenusAndActions()
 
 	pSettingsMenu->addSeparator();
 
-	//Settings -> Setup &Variables...
-    m_pActionSetupVariables	= new QAction(QObject::tr("&Variables..."), this);
-    bRet				= QObject::connect(m_pActionSetupVariables, &QAction::triggered, this, &ATMainWindow_c::slotVariablesSetup,Qt::QueuedConnection );
-	ATASSERT( bRet );
-
-	pSettingsMenu->addAction( m_pActionSetupVariables );
-
-	pSettingsMenu->addSeparator();
 
 	//Settings -> Style -> ...
 
