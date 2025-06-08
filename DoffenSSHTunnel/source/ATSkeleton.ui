@@ -392,12 +392,18 @@
       <property name="contextMenuPolicy">
        <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
       </property>
+      <property name="toolTip">
+       <string/>
+      </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabConnect">
+       <property name="toolTip">
+        <string>Connect to the selected host and run commands or quick actions</string>
+       </property>
        <attribute name="title">
-        <string>Connection</string>
+        <string>Selected Host</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_13">
         <property name="leftMargin">
@@ -888,7 +894,7 @@
       </widget>
       <widget class="QWidget" name="tabEdit">
        <attribute name="title">
-        <string>Connection Settings</string>
+        <string>Setup</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
