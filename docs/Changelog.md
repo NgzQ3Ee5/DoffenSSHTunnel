@@ -6,6 +6,7 @@ v0.9.61 June 6, 2025
 + Fix: Jump search now starts at the first result and lets you cycle through matches using Enter or the previous/next buttons.
 + New: You can now press Enter to search for anything you type in the top search bar. No need to choose from the suggestions.
 + Update: Search bars now show shortcut hints and support faster keyboard navigation.
++ Update: Message in Passwords tab when feature is disabled via -p disabled
 
 v0.9.60 June 5, 2025
 ------------------
