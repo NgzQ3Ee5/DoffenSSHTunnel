@@ -17,6 +17,7 @@
 #include "searchwidget.h"
 #include "treesearchwidget.h"
 #include "OutputWindow.h"
+#include "Utils.h"
 
 #include <QtConcurrent/QtConcurrent>
 
@@ -2695,6 +2696,16 @@ void ATSkeletonWindow::setTunnel(QTreeWidgetItem* twi, Tunnel_c* pt)
     }
 }
 
+//static
+bool ATSkeletonWindow::isCustomActionDependentOnConnectedTunnel(const CustomActionStruct& cas, Tunnel_c *pt) {
+    ATASSERT( pt );
+    if ( pt == NULL || cas.iType != CUSTOM_ACTION_TYPE_COMMAND || pt->iType != TUNNEL_TYPE_TUNNEL) {
+        return false;
+    }
+    // Check using variables from tunnel
+    QString replaced = replacePortAndIpVars(pt, cas.sCmd);
+    return replaced != cas.sCmd;
+}
 
 void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
 {
@@ -2706,6 +2717,16 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
 	ATASSERT( pt );
 	if ( pt == NULL ) return;
 
+    if(isCustomActionDependentOnConnectedTunnel(cas, pt)) {
+        if(!pt->pProcess || pt->iConnectStatus == DISCONNECTED) {
+            QString message = QString(
+                "You must connect to the selected host before using this action.\n\n"
+                "Please click \"Connect\" or double-click a host to establish the tunnel."
+            ).arg(cas.sLabel.trimmed()); // e.g., "SSH Term"
+            QMessageBox::information(this, "Host Not Connected", message);
+            return;
+        }
+    }
 
     QString sCmd = QString(cas.sCmd);
 
@@ -2970,16 +2991,25 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     replaced = replaced.replace("$aws.region", pt->strSSMRegion, Qt::CaseInsensitive);
     replaced = replaced.replace("${aws.profile}", pt->strSSMProfile, Qt::CaseInsensitive);
     replaced = replaced.replace("$aws.profile", pt->strSSMProfile, Qt::CaseInsensitive);
-	QString strIP = pt->strLocalIP;
-	if(strIP.isEmpty()) {
-		strIP = "localhost";
-	}
-	replaced = replaced.replace("${ip}", QString("%1").arg(strIP), Qt::CaseInsensitive);
-	replaced = replaced.replace("$ip", QString("%1").arg(strIP), Qt::CaseInsensitive);
     replaced = replaced.replace("${rport}", QString("%1").arg(pt->iRemotePort), Qt::CaseInsensitive);
     replaced = replaced.replace("$rport", QString("%1").arg(pt->iRemotePort), Qt::CaseInsensitive);
-	replaced = replaced.replace("${port}", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
-	replaced = replaced.replace("$port", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
+    replaced = replacePortAndIpVars(pt, replaced);
+	return replaced;
+}
+
+//static
+QString ATSkeletonWindow::replacePortAndIpVars( Tunnel_c *pt, QString str ) {
+    if(!str.contains("$")) {
+        return str;
+    }
+    QString strIP = pt->strLocalIP;
+    if(strIP.isEmpty()) {
+        strIP = "localhost";
+    }
+    QString replaced = str.replace("${ip}", QString("%1").arg(strIP), Qt::CaseInsensitive);
+    replaced = replaced.replace("$ip", QString("%1").arg(strIP), Qt::CaseInsensitive);
+    replaced = replaced.replace("${port}", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
+    replaced = replaced.replace("$port", QString("%1").arg(pt->iLocalPort), Qt::CaseInsensitive);
     for(int i=0; i<pt->portForwardList.size(); i++) {
         PortForwardStruct pf = pt->portForwardList.at(i);
         QString name = pf.strName.trimmed();
@@ -2990,7 +3020,7 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
             replaced = replaced.replace("$" + name + ".ip", pf.strLocalIP, Qt::CaseInsensitive);
         }
     }
-	return replaced;
+    return replaced;
 }
 
 QString ATSkeletonWindow::replacePasswordVars( QString str )
@@ -3688,8 +3718,11 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
 
 	if ( pt->getSelectedSSHHost().isEmpty() )
  	{
-		qDebug( "Error: Tunnel %s has no host, please check the settings.", qPrintable( pt->strName ) );
-        AddToLog( tunnel, QString("Error: Tunnel %1 has no host, please check the settings.\n").arg( pt->strName ) );
+        QString errMsg = QString("\"%1\" has no host.\nPlease check your settings.").arg( StringUtils::naturalLeftTrim(pt->strName, 20) );
+        AddToLog( tunnel, QString("Error: %1").arg( errMsg ) );
+        recursiveDisconnectTunnelSignals(twi);
+        recursiveDisconnectTunnel(twi);
+        QMessageBox::warning(this, "Oops!", errMsg);
  		return;
  	}
  
@@ -3713,8 +3746,13 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
         strPlink = removeQuotes(replaceVars(*pt, strPlink));
         QFileInfo qfi = QFileInfo(strPlink);
         if(!qfi.exists()) {
-            qDebug( "Error: Could not find plink executable '%s'. Verify the executable variable plink in settings.", qPrintable( qfi.absoluteFilePath() ) );
-            AddToLog( tunnel, QString("Error: Could not find '%1'. Verify the executable variable plink in settings.\n").arg( qfi.absoluteFilePath() ) );
+            QString errMsg = QString("Could not find the plink executable at:\n" \
+                                     "%1\n\n"
+                                     "Please verify the \"plink\" variable in the settings.").arg( strPlink );
+            AddToLog( tunnel, QString("Error: %1").arg( errMsg ) );
+            recursiveDisconnectTunnelSignals(twi);
+            recursiveDisconnectTunnel(twi);
+            QMessageBox::warning(this, "Oops!", errMsg);
             return;
         }
         strPlink = qfi.absoluteFilePath();
@@ -3725,8 +3763,15 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
         QDir dir( g_strAppDirectoryPath );
  		if ( !dir.exists( strPlink ) )
  		{
-            qDebug( "Error: Could not find %s, please check that it is in the directory %s OR add executable variable plink in settings.", qPrintable( strPlink ), qPrintable( dir.absolutePath() ) );
-            AddToLog( tunnel, QString("Error: Could not find %1, please check that it is in the directory %2 OR add executable variable plink in settings.\n").arg( strPlink ).arg( dir.absolutePath() ) );
+            QString errMsg = QString("Could not find: %1\n\n"
+                                     "Please place it in the following directory:\n"
+                                     "%2\n\n"
+                                     "Alternatively, you can specify the executable path in the settings\n"
+                                     "by setting the \"plink\" variable.").arg( strPlink, dir.absolutePath() );
+            AddToLog( tunnel, QString("Error: %1").arg( errMsg ) );
+            recursiveDisconnectTunnelSignals(twi);
+            recursiveDisconnectTunnel(twi);
+            QMessageBox::warning(this, "Oops!", errMsg);
             return;
  		}
         strPlink = QFileInfo(dir, strPlink).absoluteFilePath();
@@ -3868,8 +3913,11 @@ void ATSkeletonWindow::connectSSHTunnel( Tunnel_c &tunnel )
                 }
             }
         } else {
-            qWarning( "Could not find SSH Key File directory %s", qPrintable( keyFileInfo.dir().path() ) );
-            AddToLog( tunnel, QString("Error: Could not find SSH Key File directory %1").arg( keyFileInfo.dir().path() ) );
+            QString errMsg = QString("The SSH key file directory does not exist:\n%1\nPlease check your settings.").arg( keyFileInfo.dir().path() );
+            AddToLog( tunnel, QString("Error: %1").arg( errMsg ) );
+            recursiveDisconnectTunnelSignals(twi);
+            recursiveDisconnectTunnel(twi);
+            QMessageBox::warning(this, "Oops!", errMsg);
             return;
         }
         if(!keyFileInfo.exists()) {

@@ -462,6 +462,7 @@ public:
 	QString replaceVars( Tunnel_c &tunnel, QString str );
     QString replaceBuiltinVars( QString str );
 	QString replaceBuiltinVars( Tunnel_c *pt, QString str );
+    static QString replacePortAndIpVars( Tunnel_c *pt, QString str );
 	QString replacePasswordVars( QString str );
     QString replaceExecutableVariables( QString str );
 	QString replaceUserDefVars( QString str );
@@ -534,6 +535,7 @@ public slots:
 	void slotDragMoveStarted(QTreeWidgetItem *twi);
 	void slotDragMoveFinished(QTreeWidgetItem *twi);
 	void slotCustomActionExec(const CustomActionStruct& cas);
+    static bool isCustomActionDependentOnConnectedTunnel(const CustomActionStruct& cas, Tunnel_c *pt);
 	void slotSelectTunnel();
     void slotSave();
 	void slotCancel();
