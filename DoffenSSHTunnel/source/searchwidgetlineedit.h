@@ -16,7 +16,8 @@ public slots:
 
 //override
 protected:
-    void keyPressEvent(QKeyEvent * e);
+    void keyPressEvent(QKeyEvent * e) override;
+    void focusInEvent(QFocusEvent *event) override;
 
 };
 

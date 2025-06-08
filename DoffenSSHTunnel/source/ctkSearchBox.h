@@ -81,6 +81,8 @@ public:
   void setClearIcon(const QIcon& icon);
   /// Get the current clear icon.
   QIcon clearIcon()const;
+  /// Return true if User clicked on search icon
+  bool isMouseOverIcon();
 
 protected Q_SLOTS:
   /// Change the clear icon's state to enabled or disabled.

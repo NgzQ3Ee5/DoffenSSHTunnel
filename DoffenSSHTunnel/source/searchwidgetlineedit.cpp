@@ -30,6 +30,17 @@ void SearchWidgetLineEdit::keyPressEvent(QKeyEvent * e)
 
 }
 
+//protected override
+void SearchWidgetLineEdit::focusInEvent(QFocusEvent *event)
+{
+    QLineEdit::focusInEvent(event);
+
+    QCompleter *c = completer();
+    if (c && !isMouseOverIcon() && !text().trimmed().isEmpty()) {
+        c->complete(); // Show popup if prefix is already set
+    }
+}
+
 //public
 void SearchWidgetLineEdit::slotShowCompleter()
 {

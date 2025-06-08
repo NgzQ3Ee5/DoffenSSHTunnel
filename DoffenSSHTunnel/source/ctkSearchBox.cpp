@@ -50,6 +50,7 @@ public:
   bool showSearchIcon;
   bool alwaysShowClearIcon;
   bool hideClearIcon;
+  bool isMouseOverIcon; // true when mouse moves over search or clear icon
 
 #if QT_VERSION < 0x040700
   QString placeholderText;
@@ -65,6 +66,7 @@ ctkSearchBoxPrivate::ctkSearchBoxPrivate(ctkSearchBox &object)
   this->showSearchIcon = false;
   this->alwaysShowClearIcon = false;
   this->hideClearIcon = true;
+  this->isMouseOverIcon = false;
 }
 
 // --------------------------------------------------
@@ -107,6 +109,7 @@ QRect ctkSearchBoxPrivate::searchRect()const
   sRect.setWidth(sRect.height());
   return sRect;
 }
+
 
 // --------------------------------------------------
 ctkSearchBox::ctkSearchBox(QWidget* _parent)
@@ -207,6 +210,13 @@ QIcon ctkSearchBox::clearIcon()const
 }
 
 // --------------------------------------------------
+bool ctkSearchBox::isMouseOverIcon()
+{
+    Q_D(const ctkSearchBox);
+    return d->isMouseOverIcon;
+}
+
+// --------------------------------------------------
 void ctkSearchBox::paintEvent(QPaintEvent * event)
 {
   Q_D(ctkSearchBox);
@@ -292,22 +302,22 @@ void ctkSearchBox::paintEvent(QPaintEvent * event)
 // --------------------------------------------------
 void ctkSearchBox::mousePressEvent(QMouseEvent *e)
 {
-  Q_D(ctkSearchBox);
+    Q_D(ctkSearchBox);
 
-  if(d->clearRect().contains(e->pos()))
+    if(d->clearRect().contains(e->pos()))
     {
-    this->clear();
-    emit this->textEdited(this->text());
-    return;
+        this->clear();
+        emit this->textEdited(this->text());
+        return;
     }
 
-  if(d->showSearchIcon && d->searchRect().contains(e->pos()))
+    if(d->showSearchIcon && d->searchRect().contains(e->pos()))
     {
-    this->selectAll();
-    return;
+        this->selectAll();
+        return;
     }
-  
-  this->Superclass::mousePressEvent(e);
+
+    this->Superclass::mousePressEvent(e);
 }
 
 // --------------------------------------------------
@@ -315,16 +325,17 @@ void ctkSearchBox::mouseMoveEvent(QMouseEvent *e)
 {
   Q_D(ctkSearchBox);
 
-  if(d->clearRect().contains(e->pos()) ||
-     (d->showSearchIcon && d->searchRect().contains(e->pos())))
+    d->isMouseOverIcon = false;
+    if(d->clearRect().contains(e->pos()) || (d->showSearchIcon && d->searchRect().contains(e->pos())))
     {
-    this->setCursor(Qt::PointingHandCursor);
+        d->isMouseOverIcon = true;
+        this->setCursor(Qt::PointingHandCursor);
     }
-  else
+    else
     {
-    this->setCursor(this->isReadOnly() ? Qt::ArrowCursor : Qt::IBeamCursor);
+        this->setCursor(this->isReadOnly() ? Qt::ArrowCursor : Qt::IBeamCursor);
     }
-  this->Superclass::mouseMoveEvent(e);
+    this->Superclass::mouseMoveEvent(e);
 }
 
 // --------------------------------------------------
