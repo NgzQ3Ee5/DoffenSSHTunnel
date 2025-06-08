@@ -11,12 +11,35 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	m_pSkeletonWindow = parent;
 	m_bEditingEnabled = true;
     m_masterPassword = "";
+    tabWidget->setCurrentIndex(0); //Executable variables
 
-    if(g_bPwdFileEnabled) {
-        tabWidget->setCurrentIndex(0);
-    } else {
+    if(!g_bPwdFileEnabled) {
         tabPasswords->setEnabled(false);
-        tabWidget->setCurrentIndex(1);
+
+        // Insert the label into the center of the grid (e.g., row 0, column 0, spanning all rows/cols)
+        QGridLayout* grid = qobject_cast<QGridLayout*>(tabPasswords->layout());
+        if (grid) {
+            // Clear the layout visually by hiding children (if needed)
+            for (int i = 0; i < grid->count(); ++i) {
+                QWidget* widget = grid->itemAt(i)->widget();
+                if (widget)
+                    widget->hide();
+            }
+
+            // Add the label with full span
+            int rowCount = grid->rowCount();
+            int colCount = grid->columnCount();
+
+            QLabel* disabledLabel = new QLabel("Passwords are disabled by command-line option -p disabled", tabPasswords);
+            disabledLabel->setAlignment(Qt::AlignCenter);
+                disabledLabel->setStyleSheet(R"(
+                color: red;
+                font-weight: normal;
+                font-size: 14px;
+                background-color: transparent;
+            )");
+            grid->addWidget(disabledLabel, 0, 0, rowCount > 0 ? rowCount : 1, colCount > 0 ? colCount : 1, Qt::AlignCenter);
+        }
     }
 
     //Dialog
