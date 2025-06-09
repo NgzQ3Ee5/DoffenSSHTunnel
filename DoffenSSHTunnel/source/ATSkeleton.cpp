@@ -2305,6 +2305,33 @@ void ATSkeletonWindow::updateControlsTunnel(Tunnel_c *pt)
             ui.btnDisconnect->setEnabled(false);
 		}
 	}
+
+    // TAB title
+    ui.tabWidget->setTabText(ui.tabWidget->indexOf(ui.tabConnect), "Selected Host");
+
+    // Connect button
+    ui.btnConnect->setText("Connect");
+    if(ui.btnConnect->isEnabled()) {
+        ui.btnConnect->setToolTip("Connect to this host");
+    } else {
+        if(pt->iConnectStatus == CONNECTED) {
+            ui.btnConnect->setToolTip("Host is already connected");
+        } else if(pt->iConnectStatus == CONNECTING || pt->iConnectStatus == MARKCONNECT) {
+            ui.btnConnect->setToolTip("Host is connecting");
+        } else if(pt->getSelectedSSHHost().trimmed().isEmpty()) {
+            ui.btnConnect->setToolTip("Missing connection configuration for this host");
+        } else {
+            ui.btnConnect->setToolTip("");
+        }
+    }
+
+
+    // Disconnect button
+    if(ui.btnDisconnect->isEnabled()) {
+        ui.btnDisconnect->setToolTip("Disconnect this host");
+    } else {
+        ui.btnDisconnect->setToolTip("Host is not connected");
+    }
 }
 
 void ATSkeletonWindow::updateControlsFolder()
@@ -2333,6 +2360,30 @@ void ATSkeletonWindow::updateControlsFolder()
     Tunnel_c *pt = getTunnel(twi);
     if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
         ui.btnConnect->setEnabled(true);
+    }
+
+    // TAB Title
+    ui.tabWidget->setTabText(ui.tabWidget->indexOf(ui.tabConnect), "Selected Folder");
+
+    // Connect button
+    ui.btnConnect->setText("Update Folder");
+    if(ui.btnConnect->isEnabled()) {
+        ui.btnConnect->setToolTip("Run external command to refresh this folder’s contents");
+    } else {
+        if(pt->strChildNodesCommand.trimmed().isEmpty()) {
+            ui.btnConnect->setToolTip("No external script is configured for this folder");
+        } else if(!pt->bChildNodesCommandEnabled) {
+            ui.btnConnect->setToolTip("External script is configured but currently disabled");
+        } else {
+            ui.btnConnect->setToolTip("");
+        }
+    }
+
+    // Disconnect button
+    if(ui.btnDisconnect->isEnabled()) {
+        ui.btnDisconnect->setToolTip("Disconnect all connected hosts in this folder");
+    } else {
+        ui.btnDisconnect->setToolTip("No active connections to disconnect in this folder");
     }
 }
 
@@ -5994,6 +6045,7 @@ void ATSkeletonWindow::populateEditUIFromTwi( QTreeWidgetItem *twi )
     Tunnel_c *pt = getTunnel(twi);
     ATASSERT(pt);
 	Tunnel_c *ptParent = getTunnel(findParentTunnelNode(twi));
+
 	
     if(pt->iType == TUNNEL_TYPE_TUNNEL) {
 
