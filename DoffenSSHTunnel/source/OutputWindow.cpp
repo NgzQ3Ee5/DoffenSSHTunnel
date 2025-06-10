@@ -114,7 +114,7 @@ void OutputWindow::addText(const QString &rawText, const QColor &textColor) {
 
   QTextCharFormat format;
   format.setForeground(QBrush(textColor));
-  format.setFontFamilies({"Cascadia Mono", "Courier New", "monospace"});
+  format.setFontFamilies({"Consolas", "Courier New", "monospace"});
   cursor.setCharFormat(format);
   cursor.insertText(text);
 }
