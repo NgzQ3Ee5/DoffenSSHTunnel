@@ -114,6 +114,7 @@ void OutputWindow::addText(const QString &rawText, const QColor &textColor) {
 
   QTextCharFormat format;
   format.setForeground(QBrush(textColor));
+  format.setFontFamilies({"Cascadia Mono", "Courier New", "monospace"});
   cursor.setCharFormat(format);
   cursor.insertText(text);
 }
@@ -542,7 +543,7 @@ void OutputWindow::readSettings() {
   int bMax = settings.value( "maximized", 0 ).toInt();
   bool bWrap = settings.value("wrap",false).toBool();
   int fontPixelSize = settings.value("fontPixelSize",0).toInt();
-  int fontPointSize = settings.value("fontPointSize",0).toInt();
+  int fontPointSize = settings.value("fontPointSize",11).toInt();
 
   if(pos.y() < 0) {
       pos = QPoint(pos.x(),1);
