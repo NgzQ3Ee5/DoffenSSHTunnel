@@ -7001,7 +7001,7 @@ QString TunnelLog::toHtml(const QString &strLog, bool wrap)
     QString ret;
     ret.append("<div style=\""
                "white-space:" + whiteSpace + "; "
-               "font-family: 'Courier New', Courier, monospace; "
+               "font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; "
                "font-size: 0.9em; "
                "padding: 8px; "
                "margin: 0px; "
