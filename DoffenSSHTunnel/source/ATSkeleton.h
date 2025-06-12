@@ -638,10 +638,12 @@ private:
 	QTimer m_timerDelayAutoBackupSettings;
 	
 	void updateControls();
+    void updateControls(Tunnel_c *pt);
 	void treeTunnelUpdateMoveControls();
 	void updateControlsTunnel();
 	void updateControlsTunnel(Tunnel_c *pt);
 	void updateControlsFolder();
+    void updateControlsFolder(Tunnel_c *pt);
 
 	void launchCustomCommand( Tunnel_c *pt, QString label, QString command );
 	QTreeWidgetItem* markConnect( QTreeWidgetItem* twi );

@@ -10,7 +10,7 @@
 #include "pch.h"
 
 // For the about box
-const char *APP_VERSION = "0.9.61";
+const char *APP_VERSION = "0.9.62";
 const char *APP_NICE_NAME = "Doffen SSH Tunnel";
 
 // For the registry
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     // ATASSERT( app.connect(&app, &QApplication::lastWindowClosed, &app, &QApplication::quit) );
     app.setApplicationVersion(APP_VERSION);
     app.setApplicationName(SETTINGS_APP);
-    app.setApplicationDisplayName(APP_NICE_NAME);
+    app.setApplicationDisplayName(QString("%1 %2").arg(APP_NICE_NAME, APP_VERSION));
 
     g_strAppDirectoryPath = app.applicationDirPath();
 

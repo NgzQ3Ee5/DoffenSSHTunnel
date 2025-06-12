@@ -1974,7 +1974,7 @@ void ATSkeletonWindow::updateCurrentAndParentFoldersIcon(QTreeWidgetItem *twi)
             qDebug() << "Node [" << twiParent->text(0) << "] connection count = " << connectionCount;
             if(connectionCount > 0) {
                 ptParent->iConnectStatus = CONNECTED;
-                updateControlsTunnel(ptParent);
+                updateControls(ptParent);
                 if(twiParent->isExpanded()) {
                     treeTunnelSetIcon(twiParent, Images::icon("ht_160_folder_open_connected"));
                 } else {
@@ -1982,7 +1982,7 @@ void ATSkeletonWindow::updateCurrentAndParentFoldersIcon(QTreeWidgetItem *twi)
                 }
             } else if (delayRetryConnectionCount > 0) {
                 ptParent->iConnectStatus = MARKCONNECT;
-                updateControlsTunnel(ptParent);
+                updateControls(ptParent);
                 if(twiParent->isExpanded()) {
                     treeTunnelSetIcon(twiParent, Images::icon("ht_160_folder_open_connected"));
                 } else {
@@ -1990,7 +1990,7 @@ void ATSkeletonWindow::updateCurrentAndParentFoldersIcon(QTreeWidgetItem *twi)
                 }
             } else {
                 ptParent->iConnectStatus = DISCONNECTED;
-                updateControlsTunnel(ptParent);
+                updateControls(ptParent);
                 if(twiParent->isExpanded()) {
                     treeTunnelSetIcon(twiParent, Images::icon("ht_150_folder_open_disconnected"));
                 } else {
@@ -2279,39 +2279,46 @@ void ATSkeletonWindow::updateControlsTunnel()
 	updateControlsTunnel(getTunnel(twi));
 }
 
+void ATSkeletonWindow::updateControls(Tunnel_c *pt)
+{
+    ATASSERT(pt);
+    if(pt == nullptr) return;
+    ATASSERT(pt->iType == TUNNEL_TYPE_TUNNEL || pt->iType == TUNNEL_TYPE_FOLDER);
+    if(pt->iType == TUNNEL_TYPE_TUNNEL) {
+        updateControlsTunnel(pt);
+    } else if(pt->iType == TUNNEL_TYPE_FOLDER) {
+        updateControlsFolder(pt);
+    }
+}
+
 void ATSkeletonWindow::updateControlsTunnel(Tunnel_c *pt)
 {
-    if(pt != NULL && ui.treeTunnels->currentItem() != pt->twi) return;
     ui.btnConnect->setVisible(true);
     ui.btnDisconnect->setVisible(true);
-    ui.btnConnect->setEnabled(false);
-	ui.btnDisconnect->setEnabled(false);
-	if(pt != NULL) {
-        if( pt->isActiveTimerDelayRetryConnect() ) {
-            //waiting for timer to auto reconnect
-            ui.btnConnect->setEnabled(true);
-            ui.btnDisconnect->setEnabled(true);
-        } else if ( pt->iConnectStatus == CONNECTED || pt->iConnectStatus == CONNECTING || pt->iConnectStatus == MARKCONNECT) {
-			//connected or connecting/retrying
-			ui.btnConnect->setEnabled(false);
-			ui.btnDisconnect->setEnabled(true);
-		} else {
-            if(!pt->getSelectedSSHHost().trimmed().isEmpty()) {
-				ui.btnConnect->setEnabled(true);
-			}
-            if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
-                ui.btnConnect->setEnabled(true);
-            }
-            ui.btnDisconnect->setEnabled(false);
-		}
-	}
+    bool btnConnectEnabled = false;
+    bool btnDisconnectEnabled = false;
+
+    if(pt == NULL || ui.treeTunnels->currentItem() != pt->twi) return;
+
+    if( pt->isActiveTimerDelayRetryConnect() ) {
+        //waiting for timer to auto reconnect
+        btnConnectEnabled = true;
+        btnDisconnectEnabled = true;
+    } else if ( pt->iConnectStatus == CONNECTED || pt->iConnectStatus == CONNECTING || pt->iConnectStatus == MARKCONNECT) {
+        //connected or connecting/retrying
+        btnDisconnectEnabled = true;
+    } else {
+        if(!pt->getSelectedSSHHost().trimmed().isEmpty()) {
+            btnConnectEnabled = true;
+        }
+    }
 
     // TAB title
     ui.tabWidget->setTabText(ui.tabWidget->indexOf(ui.tabConnect), "Selected Host");
 
     // Connect button
     ui.btnConnect->setText("Connect");
-    if(ui.btnConnect->isEnabled()) {
+    if(btnConnectEnabled) {
         ui.btnConnect->setToolTip("Connect to this host");
     } else {
         if(pt->iConnectStatus == CONNECTED) {
@@ -2327,39 +2334,45 @@ void ATSkeletonWindow::updateControlsTunnel(Tunnel_c *pt)
 
 
     // Disconnect button
-    if(ui.btnDisconnect->isEnabled()) {
+    if(btnDisconnectEnabled) {
         ui.btnDisconnect->setToolTip("Disconnect this host");
     } else {
         ui.btnDisconnect->setToolTip("Host is not connected");
     }
+
+    ui.btnConnect->setEnabled(btnConnectEnabled);
+    ui.btnDisconnect->setEnabled(btnDisconnectEnabled);
 }
 
 void ATSkeletonWindow::updateControlsFolder()
 {
     ui.stackedWidgetEdit->setCurrentWidget(ui.widgetEditFolder);
 
+    QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
+    ui.btnDuplicate->setEnabled( twi != NULL );
+    ui.btnDeleteTunnel->setEnabled( twi != NULL );
+    ui.widgetEditTunnel->setEnabled( twi != NULL );
+    ui.widgetCustomActions->setEnabled( twi != NULL );
+
+    updateControlsFolder(getTunnel(twi));
+}
+
+void ATSkeletonWindow::updateControlsFolder(Tunnel_c *pt)
+{
     ui.btnConnect->setVisible(true);
     ui.btnDisconnect->setVisible(true);
-    ui.btnConnect->setEnabled(false);
-    ui.btnDisconnect->setEnabled(false);
+    bool btnConnectEnabled = false;
+    bool btnDisconnectEnabled = false;
 
-	QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
-	ui.btnDuplicate->setEnabled( twi != NULL );
-	ui.btnDeleteTunnel->setEnabled( twi != NULL );
+    if(pt == NULL || ui.treeTunnels->currentItem() != pt->twi) return;
 
-    //m_pTreeTunnelsActionClearLog->setEnabled( true );
-	ui.widgetEditTunnel->setEnabled(false);
-
-    ui.widgetCustomActions->setEnabled(true);
-
-    int connectionCount = getConnectionCountChildren(twi, true);
-    int delayRetryConnectCount = getDelayRetryConnectCountChildren(twi);
+    int connectionCount = getConnectionCountChildren(pt->twi, true);
+    int delayRetryConnectCount = getDelayRetryConnectCountChildren(pt->twi);
     if(connectionCount > 0 || delayRetryConnectCount > 0) {
-        ui.btnDisconnect->setEnabled(true);
+        btnDisconnectEnabled = true;
     }
-    Tunnel_c *pt = getTunnel(twi);
     if(pt->bChildNodesCommandEnabled && !pt->strChildNodesCommand.trimmed().isEmpty()) {
-        ui.btnConnect->setEnabled(true);
+        btnConnectEnabled = true;
     }
 
     // TAB Title
@@ -2385,6 +2398,9 @@ void ATSkeletonWindow::updateControlsFolder()
     } else {
         ui.btnDisconnect->setToolTip("No active connections to disconnect in this folder");
     }
+
+    ui.btnConnect->setEnabled(btnConnectEnabled);
+    ui.btnDisconnect->setEnabled(btnDisconnectEnabled);
 }
 
 void ATSkeletonWindow::slotUpdateClearLogButtons()
@@ -5643,7 +5659,7 @@ void ATSkeletonWindow::recursiveReplaceTunnelWithCopy( QTreeWidgetItem* twi )
 			treeTunnelSetIcon(twi, Images::icon("ht_170_folder_closed_disconnected"));
 		}
 	}
-	updateControlsTunnel(pt);
+    updateControls(pt);
 
 	Tunnel_c *ptCopy = new Tunnel_c();
 	ptCopy->copyFrom(pt);
@@ -5746,13 +5762,9 @@ int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi)
 
 int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi, QList<int> &excludePorts)
 {
-	//The well-known ports cover the range of possible port numbers from 0 through 1023. 
-	//The registered ports are numbered from 1024 through 49151. 
-	//The remaining ports, referred to as dynamic ports or private ports, are numbered from 49152 through 65535.
+    int portRangeStart = 30001;
 
 	//Find current ports
-	int hostCount = 0;
-	int maxPort = 50001; //figure out if we have any higher
 	QMap<int,bool> portMap;
 
     for(int i=0;i<excludePorts.size();i++) {
@@ -5785,70 +5797,11 @@ int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi, QList<int> &excl
                 int nLocalPort = strLocalPort.toInt(&bLocalPortOk);
                 if(bLocalPortOk) portMap.insert(nLocalPort, true);
             }
-            if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-                hostCount = hostCount + 1;
-            }
-            if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-                if(pt->iRemotePort == 22 && pt->iLocalPort > maxPort) {
-                    maxPort = pt->iLocalPort;
-                }
-            }
         }
 	}
 
-	int proposePort = 0;
+    int proposePort = portRangeStart;
 
-	//Just created a new tree ?
-	if(hostCount <= 1) {
-		proposePort = 50001;
-	}
-
-	//Find max port of other tunnels at same level
-	if(proposePort == 0) {
-		QTreeWidgetItem *twiParentNode = twi->parent();
-		int maxChildPort = 0;
-		if(twiParentNode != NULL) {
-			for(int i=0;i<twiParentNode->childCount();i++) {
-                QTreeWidgetItem *twiChild = twiParentNode->child(i);
-                Tunnel_c* pt = getTunnel(twiChild);
-                if(pt != NULL) {
-                    if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-                        if(pt->iRemotePort == 22 && pt->iLocalPort > maxChildPort) {
-                            maxChildPort = pt->iLocalPort;
-                        }
-                    }
-                }
-			}
-		}
-		if(maxChildPort > 0) {
-			proposePort = maxChildPort + 1;
-		}
-	}
-
-	if(proposePort == 0) {
-		//Find local port of parent tunnel
-		QTreeWidgetItem *twiParent = findParentTunnelNode(twi);
-		if(twiParent != NULL) {
-			Tunnel_c* pt = getTunnel(twiParent);
-            if(pt != NULL) {
-                if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-                    if(pt->iLocalPort > 0) {
-                        proposePort = pt->iLocalPort + 1;
-                    }
-                }
-            }
-		}
-	}
-
-	if(proposePort == 0) {
-		proposePort = maxPort + 1;
-	}
-
-	if(proposePort < 1025) {
-		//0-1024 are reserved
-		proposePort = 1025;
-    }
-	
 	//Make sure it is unique
 	while(portMap.contains(proposePort)) {
 		proposePort = proposePort + 1;

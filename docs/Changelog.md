@@ -1,5 +1,11 @@
 Changelog
 ==================
+v0.9.62 June 11, 2025
+------------------
++ Fix: Resolved an issue where the Connect and Disconnect buttons reverted to default "Host" label and tooltip after using Update Folder.
++ Fix: Restored version number display in the Windows title bar.
++ Update: Dynamic ports now start at 30001 (used to start at 50001)
+
 v0.9.61 June 6, 2025
 ------------------
 + Fix: The top search bar is working again after being broken in the last release.
