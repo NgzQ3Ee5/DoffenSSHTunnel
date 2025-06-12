@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>378</width>
-    <height>445</height>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,86 +27,6 @@
        <item row="0" column="0">
         <widget class="QWidget" name="widget" native="true">
          <layout class="QGridLayout" name="_3">
-          <item row="7" column="0">
-           <widget class="QSpinBox" name="spinAutoReconnectIntervalSeconds">
-            <property name="suffix">
-             <string/>
-            </property>
-            <property name="prefix">
-             <string>Auto reconnect interval in seconds: </string>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>99999</number>
-            </property>
-            <property name="value">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="12" column="0">
-           <spacer>
-            <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>41</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="11" column="0">
-           <widget class="QCheckBox" name="checkShowTreeSearch">
-            <property name="text">
-             <string>Show the search box below the tree by default</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0">
-           <widget class="QCheckBox" name="checkAutoSaveEditPane">
-            <property name="text">
-             <string>Automatically save changes in the Edit pane</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0">
-           <widget class="QCheckBox" name="checkAutoBackup">
-            <property name="text">
-             <string>Automatically backup before any change</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="6" column="0">
-           <widget class="QCheckBox" name="checkAutoReconnectEnabled">
-            <property name="text">
-             <string>Enable auto reconnect tunnels</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="checkAutoClearLogEnabled">
-            <property name="text">
-             <string>Clear log automatically </string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="checkHidePasswordsInLog">
             <property name="text">
@@ -117,17 +37,24 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="checkAutoConnectEnabled">
-            <property name="text">
-             <string>Enable auto connect tunnels on application start</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkConfirmOnQuit">
             <property name="text">
              <string>Confirm disconnection on quit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="0">
+           <widget class="QCheckBox" name="checkShowTreeSearch">
+            <property name="text">
+             <string>Show the search box below the tree by default</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QCheckBox" name="checkAutoSaveEditPane">
+            <property name="text">
+             <string>Automatically save changes in the Edit pane</string>
             </property>
            </widget>
           </item>
@@ -147,6 +74,20 @@
             </property>
            </widget>
           </item>
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="checkAutoReconnectEnabled">
+            <property name="text">
+             <string>Enable auto reconnect tunnels</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="checkAutoConnectEnabled">
+            <property name="text">
+             <string>Enable auto connect tunnels on application start</string>
+            </property>
+           </widget>
+          </item>
           <item row="4" column="0">
            <widget class="QCheckBox" name="checkWrapLogLinesEnabled">
             <property name="enabled">
@@ -154,6 +95,87 @@
             </property>
             <property name="text">
              <string>Wrap log lines</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkAutoBackup">
+            <property name="text">
+             <string>Automatically backup before any change</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkAutoClearLogEnabled">
+            <property name="text">
+             <string>Clear log automatically </string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QSpinBox" name="spinAutoReconnectIntervalSeconds">
+            <property name="suffix">
+             <string/>
+            </property>
+            <property name="prefix">
+             <string>Auto reconnect interval in seconds: </string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>99999</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="0">
+           <spacer>
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>41</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="9" column="0">
+           <widget class="QSpinBox" name="spinPortRangeStart">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When allocating a new port, the system first checks all ports currently in use.&lt;/p&gt;&lt;p&gt;It then selects the next available port starting from this number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="prefix">
+             <string>Auto port allocation starting at: </string>
+            </property>
+            <property name="minimum">
+             <number>1025</number>
+            </property>
+            <property name="maximum">
+             <number>60000</number>
+            </property>
+            <property name="singleStep">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>30000</number>
             </property>
            </widget>
           </item>

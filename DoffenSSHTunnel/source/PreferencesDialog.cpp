@@ -50,6 +50,9 @@ void PreferencesDialog::readSettings()
     int iAutoReconnectMaxAttempts = settings.value( "auto_reconnect_max_attempts", 2 ).toInt();
     spinAutoReconnectMaxAttempts->setValue(iAutoReconnectMaxAttempts);
 
+    int iPortRangeStart = settings.value( "portrange_start", 30000 ).toInt();
+    spinPortRangeStart->setValue(iPortRangeStart);
+
 	bool bAutoClearLogEnabled = settings.value( "auto_clearlog_enabled", true ).toBool();
 	checkAutoClearLogEnabled->setChecked( bAutoClearLogEnabled );
 
@@ -88,6 +91,7 @@ void PreferencesDialog::writeSettings()
     settings.setValue( "show_tree_search", checkShowTreeSearch->isChecked() );
     settings.setValue( "auto_reconnect_interval_seconds", spinAutoReconnectIntervalSeconds->value() );
     settings.setValue( "auto_reconnect_max_attempts", spinAutoReconnectMaxAttempts->value() );
+    settings.setValue( "portrange_start", spinPortRangeStart->value() );
 
 	settings.sync();
 }

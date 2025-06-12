@@ -5762,7 +5762,12 @@ int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi)
 
 int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi, QList<int> &excludePorts)
 {
-    int portRangeStart = 30001;
+    int portRangeStart = m_pMainWindow->preferences()->portRangeStart();
+    if(portRangeStart < 1025) {
+        portRangeStart = 1025;
+    } else if(portRangeStart > 60000) {
+        portRangeStart = 60000;
+    }
 
 	//Find current ports
 	QMap<int,bool> portMap;

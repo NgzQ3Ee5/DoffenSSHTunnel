@@ -10,7 +10,7 @@
 #include "pch.h"
 
 // For the about box
-const char *APP_VERSION = "0.9.62";
+const char *APP_VERSION = "0.9.63";
 const char *APP_NICE_NAME = "Doffen SSH Tunnel";
 
 // For the registry

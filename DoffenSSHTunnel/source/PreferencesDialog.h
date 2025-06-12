@@ -24,6 +24,7 @@ public:
     bool showTreeSearchEnabled() { return checkShowTreeSearch->isChecked(); }
     int autoReconnectIntervalSeconds() { return spinAutoReconnectIntervalSeconds->value(); }
     int autoReconnectMaxAttempts() { return spinAutoReconnectMaxAttempts->value(); }
+    int portRangeStart() { return spinPortRangeStart->value(); }
 
 	void enableEditingToggled(bool);
 
