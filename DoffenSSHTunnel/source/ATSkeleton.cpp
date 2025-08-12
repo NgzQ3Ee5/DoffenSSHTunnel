@@ -5268,16 +5268,23 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
     QAction* connectAct = m_pTreeTunnelsContextMenu->addAction("Connect");
     if(canConnect) {
         connect(connectAct, &QAction::triggered, this, [this, selectedItems] {
+            QHash<QUuid, QTreeWidgetItem*> rootTwiMap; //key: pt->uUid of root twi
             for(QTreeWidgetItem* twi : selectedItems) {
                 Tunnel_c *pt = getTunnel(twi);
                 ATASSERT( pt );
                 if(pt == NULL) return;
                 if(pt->iType == TUNNEL_TYPE_TUNNEL && pt->iConnectStatus != CONNECTED) {
-                    twi = markConnect(twi);
-                    if(twi != NULL) {
-                        crawlConnect(twi);
+                    QTreeWidgetItem* rootTwi = markConnect(twi); //Topmost parent if any
+                    Tunnel_c* rootPt = getTunnel(rootTwi);
+                    if(rootPt) {
+                        rootTwiMap.insert(rootPt->uUid, rootTwi);
                     }
                 }
+            }
+            for (auto it = rootTwiMap.cbegin(); it != rootTwiMap.cend(); ++it) {
+                QTreeWidgetItem* rootTwi = it.value();
+                qWarning() << rootTwi->text(0);
+                crawlConnect(rootTwi);
             }
         });
     } else {
