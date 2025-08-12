@@ -56,6 +56,9 @@
          <property name="defaultDropAction">
           <enum>Qt::DropAction::MoveAction</enum>
          </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+         </property>
          <property name="iconSize">
           <size>
            <width>16</width>

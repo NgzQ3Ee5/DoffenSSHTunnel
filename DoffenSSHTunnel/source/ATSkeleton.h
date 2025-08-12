@@ -504,6 +504,7 @@ protected:
 public slots:
 	void slotLoadIcons();
 	void slotEnableEditingToggled(bool);
+    void slotOnTreeTunnelsContextMenu(const QPoint&);
 	void slotTreeTunnelExportCurrent();
 	void slotTreeTunnelExportAll();
 	void slotTreeTunnelImportAfter();
@@ -535,7 +536,6 @@ public slots:
 	void slotDragMoveStarted(QTreeWidgetItem *twi);
 	void slotDragMoveFinished(QTreeWidgetItem *twi);
 	void slotCustomActionExec(const CustomActionStruct& cas);
-    static bool isCustomActionDependentOnConnectedTunnel(const CustomActionStruct& cas, Tunnel_c *pt);
 	void slotSelectTunnel();
     void slotSave();
 	void slotCancel();
@@ -676,11 +676,18 @@ private:
 
     void delayRetryConnect( Tunnel_c*, int autoReconnectIntervalSeconds );
 
+    void setupTreeTunnelsContextMenuSingleSelected();
+    void setupTreeTunnelsContextMenuMultipleSelected();
+    QAction* createQActionSeparator(QObject *parent);
+
+    static bool isCustomActionDependentOnConnectedTunnel(const CustomActionStruct& cas, Tunnel_c *pt);
+    void executeCustomAction(const CustomActionStruct& cas, Tunnel_c *pt);
+
 	QTreeWidgetItem *m_pTreeTunnelsItemEdit;
 	QTreeWidgetItem *m_pTreeTunnelsPaste;
 	int m_pTreeTunnelsPasteMode; //Copy or Cut
 
-	QMenu *m_pTreeTunnelsContextMenu;
+    QMenu *m_pTreeTunnelsContextMenu;
 	QAction *m_pTreeTunnelsActionExport;
 	QAction *m_pTreeTunnelsActionImportAfter;
 	QAction *m_pTreeTunnelsActionImportChild;

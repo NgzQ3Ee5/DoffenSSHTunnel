@@ -90,48 +90,52 @@ ATSkeletonWindow::ATSkeletonWindow(QWidget *parent)
 	ui.treeTunnels->setAllowItemsToBeParents(true);
 
 	// TREEVIEW CONTEXT MENU
-	//x,m,u,f,u,t,c,p,d,l
-	ui.treeTunnels->setContextMenuPolicy(Qt::ActionsContextMenu);
-	m_pTreeTunnelsContextMenu = new QMenu(ui.treeTunnels);
-    m_pTreeTunnelsActionExport = new QAction("E&xport...",m_pTreeTunnelsContextMenu);
-    m_pTreeTunnelsActionImportAfter = new QAction("Import After...",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionImportChild = new QAction("Import as Children...",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionRename = new QAction("Rena&me",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionDuplicate = new QAction("D&uplicate",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionInsertFolderAfter = new QAction("Insert &Folder After",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionInsertFolderBefore = new QAction("Insert Folder Before",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionInsertChildFolder = new QAction("Insert Folder Child",m_pTreeTunnelsContextMenu);
-    m_pTreeTunnelsActionInsertNodeAfter = new QAction("&Insert SSH Host After",m_pTreeTunnelsContextMenu);
+    //x,m,u,f,u,t,c,p,d,l
+
+    ui.treeTunnels->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_pTreeTunnelsContextMenu = new QMenu(ui.treeTunnels);
+
+    m_pTreeTunnelsActionExport = new QAction("E&xport...",this);
+    m_pTreeTunnelsActionImportAfter = new QAction("Import After...",this);
+    m_pTreeTunnelsActionImportChild = new QAction("Import as Children...",this);
+    m_pTreeTunnelsActionRename = new QAction("Rena&me",this);
+    m_pTreeTunnelsActionDuplicate = new QAction("D&uplicate",this);
+    m_pTreeTunnelsActionInsertFolderAfter = new QAction("Insert &Folder After",this);
+    m_pTreeTunnelsActionInsertFolderBefore = new QAction("Insert Folder Before",this);
+    m_pTreeTunnelsActionInsertChildFolder = new QAction("Insert Folder Child",this);
+    m_pTreeTunnelsActionInsertNodeAfter = new QAction("&Insert SSH Host After",this);
+
+
 #ifdef Q_OS_MACOS
     m_pTreeTunnelsActionInsertNodeAfter->setText(m_pTreeTunnelsActionInsertNodeAfter->text()+" (Cmd+N)");
 #else
     m_pTreeTunnelsActionInsertNodeAfter->setText(m_pTreeTunnelsActionInsertNodeAfter->text()+" (Ctrl+N)");
 #endif
-	m_pTreeTunnelsActionInsertNodeBefore = new QAction("Insert SSH Host Before",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionInsertChild = new QAction("Insert SSH Host Child",m_pTreeTunnelsContextMenu);
-    m_pTreeTunnelsActionCutNode = new QAction("Cu&t",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionInsertNodeBefore = new QAction("Insert SSH Host Before",this);
+    m_pTreeTunnelsActionInsertChild = new QAction("Insert SSH Host Child",this);
+    m_pTreeTunnelsActionCutNode = new QAction("Cu&t",this);
 #ifdef Q_OS_MACOS
     m_pTreeTunnelsActionCutNode->setText(m_pTreeTunnelsActionCutNode->text()+" (Cmd+X)");
 #else
     m_pTreeTunnelsActionCutNode->setText(m_pTreeTunnelsActionCutNode->text()+" (Ctrl+X)");
 #endif
-    m_pTreeTunnelsActionCopyNode = new QAction("&Copy",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionCopyNode = new QAction("&Copy",this);
 #ifdef Q_OS_MACOS
     m_pTreeTunnelsActionCopyNode->setText(m_pTreeTunnelsActionCopyNode->text()+" (Cmd+C)");
 #else
     m_pTreeTunnelsActionCopyNode->setText(m_pTreeTunnelsActionCopyNode->text()+" (Ctrl+C)");
 #endif
-    m_pTreeTunnelsActionPasteNodeAfter = new QAction("&Paste After",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionPasteNodeAfter = new QAction("&Paste After",this);
 #ifdef Q_OS_MACOS
     m_pTreeTunnelsActionPasteNodeAfter->setText(m_pTreeTunnelsActionPasteNodeAfter->text()+" (Cmd+V)");
 #else
     m_pTreeTunnelsActionPasteNodeAfter->setText(m_pTreeTunnelsActionPasteNodeAfter->text()+" (Ctrl+V)");
 #endif
-	m_pTreeTunnelsActionPasteNodeChild = new QAction("Paste Child",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionDeleteNode = new QAction("&Delete",m_pTreeTunnelsContextMenu);
-	m_pTreeTunnelsActionClearLog = new QAction("Clear &Log",m_pTreeTunnelsContextMenu);
-    m_pTreeTunnelsActionExpandAll = new QAction("Expand All",m_pTreeTunnelsContextMenu);
-    m_pTreeTunnelsActionCollapseAll = new QAction("Collapse All",m_pTreeTunnelsContextMenu);
+    m_pTreeTunnelsActionPasteNodeChild = new QAction("Paste Child",this);
+    m_pTreeTunnelsActionDeleteNode = new QAction("&Delete",this);
+    m_pTreeTunnelsActionClearLog = new QAction("Clear &Log",this);
+    m_pTreeTunnelsActionExpandAll = new QAction("Expand All",this);
+    m_pTreeTunnelsActionCollapseAll = new QAction("Collapse All",this);
 	enableTreeTunnelsPaste(false);
 
 #ifdef Q_OS_MACOS
@@ -154,50 +158,7 @@ ATSkeletonWindow::ATSkeletonWindow(QWidget *parent)
     ui.btnCustomActionAdd->setToolTip("Add a new action (Ctrl+N)");
 #endif
 
-QAction *sep0 = new QAction(m_pTreeTunnelsContextMenu);
-	sep0->setSeparator(true);
-	QAction *sep1 = new QAction(m_pTreeTunnelsContextMenu);
-	sep1->setSeparator(true);
-	QAction *sep2 = new QAction(m_pTreeTunnelsContextMenu);
-	sep2->setSeparator(true);
-	QAction *sep3 = new QAction(m_pTreeTunnelsContextMenu);
-	sep3->setSeparator(true);
-	QAction *sep4 = new QAction(m_pTreeTunnelsContextMenu);
-	sep4->setSeparator(true);
-	QAction *sep5 = new QAction(m_pTreeTunnelsContextMenu);
-	sep5->setSeparator(true);
-	QAction *sep6 = new QAction(m_pTreeTunnelsContextMenu);
-	sep6->setSeparator(true);
-    QAction *sep7 = new QAction(m_pTreeTunnelsContextMenu);
-    sep7->setSeparator(true);
 
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionClearLog);
-	ui.treeTunnels->addAction(sep0);
-    ui.treeTunnels->addAction(m_pTreeTunnelsActionExpandAll);
-    ui.treeTunnels->addAction(m_pTreeTunnelsActionCollapseAll);
-    ui.treeTunnels->addAction(sep1);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionRename);
-    ui.treeTunnels->addAction(sep2);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionExport);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionImportAfter);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionImportChild);
-    ui.treeTunnels->addAction(sep3);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionDuplicate);
-    ui.treeTunnels->addAction(sep4);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertFolderAfter);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertFolderBefore);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertChildFolder);
-    ui.treeTunnels->addAction(sep5);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertNodeAfter);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertNodeBefore);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionInsertChild);
-    ui.treeTunnels->addAction(sep6);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionCutNode);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionCopyNode);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionPasteNodeAfter);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionPasteNodeChild);
-    ui.treeTunnels->addAction(sep7);
-	ui.treeTunnels->addAction(m_pTreeTunnelsActionDeleteNode);
 
 	ui.widgetCustomActions->setup(this);
 	ui.widgetMoreTunnels->setup(this);
@@ -329,7 +290,10 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.widgetCustomActions, &CustomActionsEditWidget::signalActionExec, this, &ATSkeletonWindow::slotCustomActionExec ) );
     ATVERIFY( connect( ui.textBrowser,                         &QTextBrowser::textChanged, this, &ATSkeletonWindow::slotUpdateClearLogButtons ) );
 
-	// Connect tree
+    // Hosts Tree Context Menu display
+    ATVERIFY(connect(ui.treeTunnels, &QWidget::customContextMenuRequested, this, &ATSkeletonWindow::slotOnTreeTunnelsContextMenu) );
+
+    // Hosts Tree actions
     ATVERIFY( connect( &m_timerDelayUpdateUIFromTWI,               &QTimer::timeout, this, &ATSkeletonWindow::slotUpdateUIFromTWI, Qt::QueuedConnection ) );
     ATVERIFY( connect( &m_timerDelayWriteSettings,                 &QTimer::timeout, this, &ATSkeletonWindow::slotDelayWriteSettings, Qt::UniqueConnection ) );
     ATVERIFY( connect( ui.treeTunnels,      &TunnelTreeWidget::itemSelectionChanged, this, &ATSkeletonWindow::slotSelectTunnel, Qt::UniqueConnection ) );
@@ -2433,11 +2397,9 @@ void ATSkeletonWindow::slotEnableEditingToggled(bool checked)
 	//splitter left tunnel tree
 	if(checked) {
 		enableTreeTunnelDragDrop(true);
-		ui.treeTunnels->setContextMenuPolicy(Qt::ActionsContextMenu);
 		ui.treeTunnels->setEditTriggers(QAbstractItemView::EditKeyPressed);
 	} else {
 		enableTreeTunnelDragDrop(false);
-		ui.treeTunnels->setContextMenuPolicy(Qt::NoContextMenu);
 		ui.treeTunnels->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	}
 
@@ -2794,6 +2756,13 @@ void ATSkeletonWindow::slotCustomActionExec(const CustomActionStruct& cas)
             return;
         }
     }
+
+    executeCustomAction(cas, pt);
+}
+
+void ATSkeletonWindow::executeCustomAction(const CustomActionStruct& cas, Tunnel_c *pt) {
+    ATASSERT( pt );
+    if ( pt == NULL ) return;
 
     QString sCmd = QString(cas.sCmd);
 
@@ -5197,6 +5166,226 @@ void ATSkeletonWindow::enableTreeTunnelDragDrop(bool enable)
 	}
 }
 
+
+
+
+void ATSkeletonWindow::slotOnTreeTunnelsContextMenu(const QPoint& pos)
+{
+    // Antall valgte
+    const auto selected = ui.treeTunnels->selectedItems();
+    const int count = selected.size();
+
+    // Hvis du vil velge raden under musepekeren ved høyreklikk når ingen er valgt:
+    if (count == 0) {
+        if (QTreeWidgetItem* underMouse = ui.treeTunnels->itemAt(pos)) {
+            ui.treeTunnels->setCurrentItem(underMouse);
+            underMouse->setSelected(true);
+        }
+    }
+
+    // Oppdater på nytt etter ev. auto-seleksjon
+    const int newCount = ui.treeTunnels->selectedItems().size();
+
+    if (newCount <= 1) {
+        // Ett (eller null) valgt – vis enkeltmenyen
+        setupTreeTunnelsContextMenuSingleSelected();
+        // Skru av/på relevante actions
+    } else {
+        setupTreeTunnelsContextMenuMultipleSelected();
+    }
+
+    const QPoint global = ui.treeTunnels->viewport()->mapToGlobal(pos);
+    m_pTreeTunnelsContextMenu->exec(global);
+}
+
+void ATSkeletonWindow::setupTreeTunnelsContextMenuSingleSelected()
+{
+    m_pTreeTunnelsContextMenu->clear();
+
+    m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionClearLog);
+    m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+    m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionExpandAll);
+    m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionCollapseAll);
+    if(m_bEditingEnabled) {
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionRename);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionExport);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionImportAfter);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionImportChild);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionDuplicate);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertFolderAfter);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertFolderBefore);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertChildFolder);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertNodeAfter);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertNodeBefore);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionInsertChild);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionCutNode);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionCopyNode);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionPasteNodeAfter);
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionPasteNodeChild);
+        m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+        m_pTreeTunnelsContextMenu->addAction(m_pTreeTunnelsActionDeleteNode);
+    }
+}
+
+void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
+{
+    m_pTreeTunnelsContextMenu->clear();
+
+    const QList<QTreeWidgetItem*> selectedItems = ui.treeTunnels->selectedItems();
+    if(selectedItems.size() == 0) {
+        return;
+    }
+
+    QWidgetAction *labelAction = new QWidgetAction(m_pTreeTunnelsContextMenu);
+    QLabel *label = new QLabel("Multi Exec");
+    label->setAlignment(Qt::AlignCenter);  // center text
+    label->setStyleSheet("font-weight: bold; padding: 2px;");
+    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred); // fill width
+    labelAction->setDefaultWidget(label);
+    m_pTreeTunnelsContextMenu->addAction(labelAction);
+
+    m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+
+    bool canConnect = false;
+    bool canDisconnect = false;
+    for(QTreeWidgetItem* twi : selectedItems) {
+        Tunnel_c *pt = getTunnel(twi);
+        if(pt->iType == TUNNEL_TYPE_TUNNEL) {
+            if(pt->iConnectStatus == CONNECTED) {
+                canDisconnect = true;
+            } else if(pt->iConnectStatus == DISCONNECTED) {
+                canConnect = true;
+            }
+        }
+    }
+
+    QAction* connectAct = m_pTreeTunnelsContextMenu->addAction("Connect");
+    if(canConnect) {
+        connect(connectAct, &QAction::triggered, this, [this, selectedItems] {
+            for(QTreeWidgetItem* twi : selectedItems) {
+                Tunnel_c *pt = getTunnel(twi);
+                ATASSERT( pt );
+                if(pt == NULL) return;
+                if(pt->iType == TUNNEL_TYPE_TUNNEL && pt->iConnectStatus != CONNECTED) {
+                    twi = markConnect(twi);
+                    if(twi != NULL) {
+                        crawlConnect(twi);
+                    }
+                }
+            }
+        });
+    } else {
+        connectAct->setEnabled(false);
+    }
+
+    QAction* disconnectAct = m_pTreeTunnelsContextMenu->addAction("Disconnect");
+    if(canDisconnect) {
+        connect(disconnectAct, &QAction::triggered, this, [this, selectedItems] {
+            for(QTreeWidgetItem* twi : selectedItems) {
+                Tunnel_c *pt = getTunnel(twi);
+                ATASSERT( pt );
+                if(pt == NULL) return;
+                if(pt->iType == TUNNEL_TYPE_TUNNEL && pt->iConnectStatus != DISCONNECTED) {
+                    if(twi != NULL) {
+                        recursiveDisconnectTunnelSignals( twi );
+                        recursiveDisconnectTunnel( twi );
+                    }
+                }
+            }
+        });
+    } else {
+        disconnectAct->setEnabled(false);
+    }
+
+    m_pTreeTunnelsContextMenu->addAction(createQActionSeparator(m_pTreeTunnelsContextMenu));
+
+    // Quick Actions
+
+    struct CustomActionTarget {
+        QTreeWidgetItem* twi; //This is one Host in the tree
+        CustomActionStruct cas; //With the Quick Action to be executed
+    };
+
+    struct CustomActionMenuItem {
+        QString sLabel; // E.g. Putty or MobaXTerm. used as KEY in menuItemMap and as label in the context menu
+        QVector<CustomActionTarget> customActionTargetList; // (CustomActionTargetList) List of Quick Actions to be executed (a.i. Hosts to start e.g. Putty)
+    };
+
+    QHash<QString, CustomActionMenuItem> menuItemMap; //key: CustomActionMatcher.key
+
+    // --- List of quick action matchers ---
+    struct CustomActionMatcher {
+        QString sName; // Fallback to this if label is missing in the custom action
+        QStringList patterns;    // substrings to search for in sCmd
+    };
+    QVector<CustomActionMatcher> matchers = {
+        { "MobaXTerm", { "$mobaxterm", "${mobaxterm}" } },
+        { "Putty",     { "$putty", "${putty}" } },
+        { "WinSCP",    { "$winscp", "${winscp}" } },
+        { "SecureCRT", { "$securecrt", "${securecrt}" } }
+    };
+
+    for(QTreeWidgetItem* twi : selectedItems) {
+        Tunnel_c* pt = getTunnel(twi);
+        if(!pt || pt->iType != TUNNEL_TYPE_TUNNEL || pt->iConnectStatus != CONNECTED) {
+            continue;
+        }
+        for (const CustomActionMatcher& matcher : matchers) {
+            for(const CustomActionStruct &cas : std::as_const(pt->customActionList)) {
+                bool match = false;
+                for (const QString& pattern : matcher.patterns) {
+                    if (cas.sCmd.contains(pattern, Qt::CaseInsensitive)) {
+                        match = true;
+                        break;
+                    }
+                }
+                if(match) {
+                    QString menuLabel = cas.sLabel.trimmed();
+                    if(menuLabel.isEmpty()) {
+                        menuLabel = matcher.sName;
+                    }
+                    CustomActionMenuItem &menuItem = menuItemMap[menuLabel]; // Insert or get existing entry in one line
+                    if (menuItem.sLabel.isEmpty()) {
+                        menuItem.sLabel = menuLabel;
+                    }
+                    menuItem.customActionTargetList.push_back({twi, cas});
+                    break; //Only pick 1 putty quick action per host (the first one found)
+                }
+            }
+        }
+    }
+
+    for (auto it = menuItemMap.cbegin(); it != menuItemMap.cend(); ++it) {
+        const CustomActionMenuItem &menuItem = it.value();
+        QString actionLabel = QString("%1 (%2)").arg(menuItem.sLabel).arg(menuItem.customActionTargetList.size());
+        QAction* act = m_pTreeTunnelsContextMenu->addAction(actionLabel);
+        connect(act, &QAction::triggered, this, [this, menuItem] {
+            int delayMs = 0;
+            for(const CustomActionTarget &cat: menuItem.customActionTargetList) {
+                QTimer::singleShot(delayMs, this, [this, cat]() {
+                    Tunnel_c *pt = getTunnel(cat.twi);
+                    if (!pt) return;
+                    executeCustomAction(cat.cas, pt);
+                });
+                delayMs += 1000; // 1 second between each execution
+            }
+        });
+    }
+}
+
+QAction* ATSkeletonWindow::createQActionSeparator(QObject *parent)
+{
+    QAction *a = new QAction(parent);
+    a->setSeparator(true);
+    return a;
+}
+
 void ATSkeletonWindow::slotTreeTunnelExportAll()
 {
 	QList<QTreeWidgetItem*> twiExportList;
@@ -5544,6 +5733,7 @@ void ATSkeletonWindow::slotTreeTunnelDeleteNode()
 void ATSkeletonWindow::slotTreeTunnelClearNodeLog()
 {
 	QTreeWidgetItem *twi = ui.treeTunnels->currentItem();
+
 	ATASSERT( twi );
  	clearNodeLog( twi );
 }
