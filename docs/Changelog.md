@@ -1,5 +1,14 @@
 Changelog
 ==================
+
+v0.9.65 Aug 13, 2025
+------------------
++ Fix: multi-host parent host connection wait logic for hosts with one or more parents
+
+v0.9.64 Aug 12, 2025
+------------------
++ New: Add support for multi-host connect/disconnect and quick actions in the tree context menu
+
 v0.9.62 June 12, 2025
 ------------------
 + New: The starting port number for automatic port allocation is now configurable in Preferences (default: 30000).
