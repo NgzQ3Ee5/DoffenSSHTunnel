@@ -5283,7 +5283,6 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
             }
             for (auto it = rootTwiMap.cbegin(); it != rootTwiMap.cend(); ++it) {
                 QTreeWidgetItem* rootTwi = it.value();
-                qWarning() << rootTwi->text(0);
                 crawlConnect(rootTwi);
             }
         });
