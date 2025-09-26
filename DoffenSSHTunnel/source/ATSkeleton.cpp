@@ -4068,7 +4068,7 @@ QVersionNumber ATSkeletonWindow::getPlinkVersion(const QString& plinkPath, Tunne
 
     ManagedProcess versionProcess;
     versionProcess.start(plinkPath, arguments);
-    if (!versionProcess.waitForFinished(1000)) {
+    if (!versionProcess.waitForFinished()) {
         AddToLog( tunnel, "Timeout waiting for plink version process to finish" );
         return QVersionNumber(); // Invalid version
     }
