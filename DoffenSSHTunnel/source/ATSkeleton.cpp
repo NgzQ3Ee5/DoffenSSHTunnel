@@ -3029,7 +3029,11 @@ QString ATSkeletonWindow::replaceBuiltinVars( Tunnel_c *pt, QString str )
     replaced = replaced.replace("$aws.profile", pt->strSSMProfile, Qt::CaseInsensitive);
     replaced = replaced.replace("${rport}", QString("%1").arg(pt->iRemotePort), Qt::CaseInsensitive);
     replaced = replaced.replace("$rport", QString("%1").arg(pt->iRemotePort), Qt::CaseInsensitive);
+    QString slug = slugifyTunnel(pt);
+    replaced = replaced.replace("$slug", QString("%1").arg(slug), Qt::CaseInsensitive);
+    replaced = replaced.replace("${slug}", QString("%1").arg(slug), Qt::CaseInsensitive);
     replaced = replacePortAndIpVars(pt, replaced);
+
 	return replaced;
 }
 
@@ -3054,6 +3058,9 @@ QString ATSkeletonWindow::replacePortAndIpVars( Tunnel_c *pt, QString str ) {
             replaced = replaced.replace("$" + name + ".port", QString::number(pf.nLocalPort), Qt::CaseInsensitive);
             replaced = replaced.replace("${" + name + ".ip}", pf.strLocalIP, Qt::CaseInsensitive);
             replaced = replaced.replace("$" + name + ".ip", pf.strLocalIP, Qt::CaseInsensitive);
+            QString slug = slugifyPortForwardStruct(pt, pf);
+            replaced = replaced.replace("${" + name + ".slug}", slug, Qt::CaseInsensitive);
+            replaced = replaced.replace("$" + name + ".slug", slug, Qt::CaseInsensitive);
         }
     }
     return replaced;
@@ -3302,6 +3309,16 @@ QStringList ATSkeletonWindow::addQuotesIfNeeded(QStringList strList) {
 //static
 QString ATSkeletonWindow::removeQuotes(QString str) {
     return str.replace("\"","").replace("'","");
+}
+
+//static
+QString ATSkeletonWindow::slugifyTunnel(Tunnel_c *pt) {
+    return SanitizationUtils::slugify(pt->strName);
+}
+
+//static
+QString ATSkeletonWindow::slugifyPortForwardStruct(Tunnel_c *pt, const PortForwardStruct &pf) {
+    return SanitizationUtils::slugify(QStringList() << slugifyTunnel(pt) << pf.strName);
 }
 
 void ATSkeletonWindow::slotConnected( QTreeWidgetItem *twi )

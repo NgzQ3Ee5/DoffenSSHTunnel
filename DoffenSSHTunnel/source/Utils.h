@@ -12,6 +12,52 @@ namespace SanitizationUtils {
         return re;
     }
 
+    // Static regexes (only compiled once)
+    inline const QRegularExpression kWsUnderscores{R"([\s_]+)"};
+    inline const QRegularExpression kNonAlnumDash{R"([^a-z0-9-])"};
+    inline const QRegularExpression kMultiDash{R"(-{2,})"};
+
+    // Core implementation: slugify a single string
+    inline QString slugify(const QString &input) {
+        // 1) Trim + lowercase
+        QString s = input.trimmed().toLower();
+
+        // 2) Normalize (NFD) and strip diacritics
+        s = s.normalized(QString::NormalizationForm_D);
+        QString ascii;
+        ascii.reserve(s.size());
+        const int n = s.size();
+        for (int i = 0; i < n; ++i) {
+            const QChar c = s.at(i);
+            if (!c.isMark()) ascii.append(c);
+        }
+
+        // 3) Regex replacements
+        ascii.replace(kWsUnderscores, "-");   // spaces/underscores -> '-'
+        ascii.replace(kNonAlnumDash, "-");    // anything not [a-z0-9-] -> '-'
+        ascii.replace(kMultiDash, "-");       // collapse multiple '-'
+
+        // 4) Trim leading/trailing '-'
+        if (!ascii.isEmpty() && ascii.front() == QLatin1Char('-')) ascii.remove(0, 1);
+        if (!ascii.isEmpty() && ascii.back()  == QLatin1Char('-')) ascii.chop(1);
+
+        // 5) Limit length (safe for filesystem/URLs)
+        constexpr int kMaxLen = 64;
+        if (ascii.size() > kMaxLen) {
+            ascii.truncate(kMaxLen);
+            if (!ascii.isEmpty() && ascii.back() == QLatin1Char('-')) ascii.chop(1);
+        }
+
+        // 6) Fallback if empty
+        return ascii.isEmpty() ? QStringLiteral("unnamed") : ascii;
+    }
+
+    // Overload: slugify multiple inputs
+    inline QString slugify(const QStringList &inputs) {
+        QString combined = inputs.join(" ");
+        return slugify(combined);
+    }
+
 } // namespace SanitizationUtils
 
 namespace MatchUtils {

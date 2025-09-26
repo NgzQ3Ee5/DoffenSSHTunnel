@@ -23,6 +23,7 @@ SSH Tab
 *Field*            | *Variable* | *Description*
 -------------------|------------|--------------
 My Name            | $name      | Name of the tunnel/host ||
+Slug               | $slug      | Automatically compiled slug based on name ||
 SSH Host           | $host      | Address or IP of the SSH server to connect to (host:port, or host only for port 22) ||
 Local listen-IP    | $ip        | If you have several physical or virtual IP network interfaces on your machine then you can optionally specify the specific interface IP address to be used for the Tunnel. By default we use localhost. ||
 Local Port         | $port      | Port to use locally for the tunnel ||

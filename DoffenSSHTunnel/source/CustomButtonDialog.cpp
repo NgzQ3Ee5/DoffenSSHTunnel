@@ -128,6 +128,14 @@ void CustomButtonDialog::setVarTableData()
         "",
         VariableStruct::EDITPANE));
 
+    helpListEditPane.append(
+        VariableStruct(QUuid(),
+        m_pMainWindow->ui.btnTunnelNameMenu->text().replace(":",""),
+        "${slug}",
+        ATSkeletonWindow::slugifyTunnel(m_pTunnel),
+        "",
+        VariableStruct::EDITPANE));
+
 	helpListEditPane.append(
 		VariableStruct(QUuid(),
 		m_pMainWindow->ui.labelEditSSHHost->text().replace(":",""),
@@ -222,6 +230,13 @@ void CustomButtonDialog::setVarTableData()
               "Local IP",
               "${" + varIn.strName.trimmed() +  + ".ip}",
               varIn.strLocalIP,
+              "",
+              VariableStruct::EDITPANE));
+
+            helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
+              "Slug",
+              "${" + varIn.strName.trimmed() +  + ".slug}",
+              ATSkeletonWindow::slugifyPortForwardStruct(m_pTunnel, varIn),
               "",
               VariableStruct::EDITPANE));
         }

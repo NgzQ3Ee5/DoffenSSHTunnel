@@ -1,6 +1,11 @@
 Changelog
 ==================
 
+v0.9.66 Sep 26, 2025
+------------------
++ New: Builtin variable $slug / ${slug}, derived as a safe normalized identifier from Host 'My Name'.
++ New: Builtin variable $tunnelName.slug / ${tunnelName.slug}, a slugified form of a Tunnel’s name from the Host’s 'More Tunnels' (where tunnelName is the tunnel’s name).
+
 v0.9.65 Aug 13, 2025
 ------------------
 + Fix: multi-host parent host connection wait logic for hosts with one or more parents

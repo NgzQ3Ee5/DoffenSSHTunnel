@@ -472,6 +472,8 @@ public:
     static QString addQuotesIfNeeded(QString str);
     static QStringList addQuotesIfNeeded(QStringList strList);
     static QString removeQuotes(QString str);
+    static QString slugifyTunnel(Tunnel_c *pt);
+    static QString slugifyPortForwardStruct(Tunnel_c *pt, const PortForwardStruct &pf);
 
 	//Used for statistics.
 	//QUuid: VariableStruct.uUid
