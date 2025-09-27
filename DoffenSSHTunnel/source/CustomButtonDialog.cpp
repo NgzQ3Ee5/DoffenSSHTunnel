@@ -221,21 +221,21 @@ void CustomButtonDialog::setVarTableData()
         if(!varIn.strName.trimmed().isEmpty()) {
             helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
               "Local Port",
-              "${" + varIn.strName.trimmed() +  + ".port}",
+              "${" + varIn.strName.trimmed() + ".port}",
               QString::number(varIn.nLocalPort),
               "",
               VariableStruct::EDITPANE));
 
             helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
               "Local IP",
-              "${" + varIn.strName.trimmed() +  + ".ip}",
+              "${" + varIn.strName.trimmed() + ".ip}",
               varIn.strLocalIP,
               "",
               VariableStruct::EDITPANE));
 
             helpListEditPaneMoreTunnels.append(VariableStruct(varIn.uUid,
               "Slug",
-              "${" + varIn.strName.trimmed() +  + ".slug}",
+              "${" + varIn.strName.trimmed() + ".slug}",
               ATSkeletonWindow::slugifyPortForwardStruct(m_pTunnel, varIn),
               "",
               VariableStruct::EDITPANE));
