@@ -29,7 +29,8 @@ CustomButtonDialog::CustomButtonDialog(QWidget *parent, ATSkeletonWindow *pMainW
     ATVERIFY( connect( tableVarHelp,          &QWidget::customContextMenuRequested,   this, &CustomButtonDialog::slotTableVarCustomContextMenuRequested ) );
     ATVERIFY( connect( m_pTableVarActionCopy, &QAction::triggered,                    this, &CustomButtonDialog::slotTableVarCopy ) );
     ATVERIFY( connect( editCommand,           &PlainTextEdit::signalReturnKeyPressed, this, &CustomButtonDialog::accept ) );
-    ATVERIFY( connect( editCommand,           &PlainTextEdit::textChanged,            this, &CustomButtonDialog::slotCommandTextChanged ) );
+    ATVERIFY( connect( editCommand,           &PlainTextEdit::textChanged,            this, &CustomButtonDialog::slotCommandTextChanged  ) );
+    ATVERIFY( connect( filterEdit,            &QLineEdit::textChanged,                this, &CustomButtonDialog::applyFilter ) );
     ATVERIFY( connect( commandPreview,        &PlainTextEdit::signalReturnKeyPressed, this, &CustomButtonDialog::accept ) );
     ATVERIFY( connect( btnExecute,            &QAbstractButton::clicked,              this, &CustomButtonDialog::slotExecute ) );
 }
@@ -130,7 +131,7 @@ void CustomButtonDialog::setVarTableData()
 
     helpListEditPane.append(
         VariableStruct(QUuid(),
-        m_pMainWindow->ui.btnTunnelNameMenu->text().replace(":",""),
+        "Slug",
         "${slug}",
         ATSkeletonWindow::slugifyTunnel(m_pTunnel),
         "",
@@ -138,7 +139,7 @@ void CustomButtonDialog::setVarTableData()
 
 	helpListEditPane.append(
 		VariableStruct(QUuid(),
-		m_pMainWindow->ui.labelEditSSHHost->text().replace(":",""),
+        m_pMainWindow->ui.labelEditSSHHost->text().replace(":",""),
         "${host}",
         m_pTunnel->getSelectedSSHHost(),
         "",
@@ -461,6 +462,39 @@ void CustomButtonDialog::updateCommandPreview()
 {
     QString strPreview = m_pMainWindow->replaceVarsLog(*m_pTunnel,editCommand->toPlainText());
 	commandPreview->setPlainText(strPreview);
+}
+
+void CustomButtonDialog::applyFilter(const QString& text)
+{
+    const QString needle = text.trimmed();
+    const int rows = tableVarHelp->rowCount();
+    const int cols = tableVarHelp->columnCount();
+
+    if (needle.isEmpty()) {
+        // Filter is empty
+        for (int r = 0; r < rows; ++r) {
+            tableVarHelp->setRowHidden(r, false);
+        }
+        return;
+    }
+
+    for (int r = 0; r < rows; ++r) {
+        if(tableVarHelp->columnSpan(r, 0) == tableVarHelp->columnCount()) {
+            // A header row
+            tableVarHelp->setRowHidden(r, false);
+            continue;
+        }
+        bool match = false;
+        for (int c = 0; c < cols; ++c) {
+            if (QTableWidgetItem* it = tableVarHelp->item(r, c)) {
+                if (it->text().contains(needle, Qt::CaseInsensitive)) {
+                    match = true;
+                    break;
+                }
+            }
+        }
+        tableVarHelp->setRowHidden(r, !match);
+    }
 }
 
 void CustomButtonDialog::slotExecute()

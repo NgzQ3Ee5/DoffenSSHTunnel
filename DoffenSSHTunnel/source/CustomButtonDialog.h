@@ -39,6 +39,7 @@ private:
 
 private slots:
 	void slotCommandTextChanged();
+    void applyFilter(const QString &);
 	void slotTableVarCustomContextMenuRequested(const QPoint&);
 	void slotTableVarCopy();
 	void slotExecute();
