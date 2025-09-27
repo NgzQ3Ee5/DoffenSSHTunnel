@@ -5,7 +5,8 @@ v0.9.66 Sep 26, 2025
 ------------------
 + New: Builtin variable $slug / ${slug}, derived as a safe normalized identifier from Host 'My Name'.
 + New: Builtin variable $tunnelName.slug / ${tunnelName.slug}, a slugified form of a Tunnel’s name from the Host’s 'More Tunnels' (where tunnelName is the tunnel’s name).
-+ Fix: Increase timeout when waiting for plink from 1 sec to 30 sec.
++ New: Added filter functionality to the variable list in the edit wizard.
++ Fix: Increased the timeout for retrieving the plink version from 1 second to the default 30 seconds, ensuring compatibility even on slow network drives.
 
 v0.9.65 Aug 13, 2025
 ------------------
