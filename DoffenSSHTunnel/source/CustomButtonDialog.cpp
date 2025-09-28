@@ -369,7 +369,6 @@ void CustomButtonDialog::addHeaderToVarTable(const QString & strHeader)
 {
 	QTableWidgetItem *item = new QTableWidgetItem();
 	item->setText(strHeader);
-    item->setToolTip(strHeader); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	item->setFont(QFont(QString::fromUtf8("Tahoma"),8, QFont::Bold));
 	int row = tableVarHelp->rowCount();
 	tableVarHelp->insertRow(row);
@@ -381,7 +380,6 @@ void CustomButtonDialog::addEmptyToVarTable()
 {
 	QTableWidgetItem *item = new QTableWidgetItem();
 	item->setText("empty");
-    item->setToolTip("empty"); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	item->setFont(QFont(QString::fromUtf8("Tahoma"),8, QFont::Cursive));
 	int row = tableVarHelp->rowCount();
 	tableVarHelp->insertRow(row);
@@ -398,7 +396,6 @@ void CustomButtonDialog::addDataToVarTable(const QList<VariableStruct> & varList
 
 		QTableWidgetItem *itemName = new QTableWidgetItem();
 		itemName->setText(var.strName);
-        itemName->setToolTip(itemName->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableVarHelp->setItem(row,0,itemName);
 
 		QTableWidgetItem *itemValue = new QTableWidgetItem();
@@ -407,12 +404,10 @@ void CustomButtonDialog::addDataToVarTable(const QList<VariableStruct> & varList
         } else {
             itemValue->setText(var.strValue);
         }
-        itemValue->setToolTip(itemValue->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableVarHelp->setItem(row,1,itemValue);
 
 		QTableWidgetItem *itemDescr = new QTableWidgetItem();
 		itemDescr->setText(var.strDescription);
-        itemDescr->setToolTip(itemDescr->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableVarHelp->setItem(row,2,itemDescr);
 	}
 }
@@ -427,12 +422,10 @@ int CustomButtonDialog::addDataToVarTable(Tunnel_c* pt, const PortForwardStruct&
 
 	QTableWidgetItem *itemName = new QTableWidgetItem();
 	itemName->setText(pfs.strName);
-    itemName->setToolTip(itemName->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	tableVarHelp->setItem(row,0,itemName);
 
 	QTableWidgetItem *itemValue = new QTableWidgetItem();
 	itemValue->setText(QString("%1").arg(pfs.nLocalPort));
-    itemValue->setToolTip(itemValue->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	tableVarHelp->setItem(row,1,itemValue);
 
 	QString descr = "";
@@ -442,7 +435,6 @@ int CustomButtonDialog::addDataToVarTable(Tunnel_c* pt, const PortForwardStruct&
 	descr += pfs.strDescription;
 	QTableWidgetItem *itemDescr = new QTableWidgetItem();
 	itemDescr->setText(descr);
-    itemDescr->setToolTip(itemDescr->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	tableVarHelp->setItem(row,2,itemDescr);
 
 	return 1;

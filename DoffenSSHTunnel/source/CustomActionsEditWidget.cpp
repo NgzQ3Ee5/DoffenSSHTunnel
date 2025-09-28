@@ -119,11 +119,9 @@ void CustomActionsEditWidget::setData(Tunnel_c *pTunnel)
 		}
 
 		twi->setText(COL_LABEL, actionInfo.sLabel);
-        twi->setToolTip(COL_LABEL, twi->text(COL_LABEL)); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		//twi->setFont(COL_LABEL,QFont(QString::fromUtf8("Tahoma"),10));
 
 		twi->setText(COL_COMMAND, actionInfo.sCmd);
-        twi->setToolTip(COL_COMMAND, twi->text(COL_COMMAND)); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		//twi->setFont(COL_COMMAND,QFont(QString::fromUtf8("Courier New"),10));
 
 		lastTwi = twi;

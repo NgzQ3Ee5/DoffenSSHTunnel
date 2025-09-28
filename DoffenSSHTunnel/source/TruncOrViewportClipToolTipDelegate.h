@@ -14,7 +14,7 @@ public:
         if (!e || !view || !index.isValid())
             return false;
 
-        QString displayText = getDisplayText(index);
+        QString displayText = getTooltipDisplayText(index);
 
         QStyleOptionViewItem opt(option);
         initStyleOption(&opt, index);
@@ -67,12 +67,12 @@ public:
         return true; // consume so there’s no brief flash from default handling
     }
 
-    QString getDisplayText(const QModelIndex &index) {
+    virtual QString getTooltipDisplayText(const QModelIndex &index) const {
         QString displayText = index.data(Qt::ToolTipRole).toString().trimmed();
-        if(displayText.isEmpty()) {
-            displayText = index.data(Qt::DisplayRole).toString().trimmed();
+        if(!displayText.isEmpty()) {
+            return displayText;
         }
-        return displayText;
+        return index.data(Qt::DisplayRole).toString().trimmed();
     }
 };
 
