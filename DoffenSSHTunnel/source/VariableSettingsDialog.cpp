@@ -3,6 +3,7 @@
 #include "Images.h"
 #include "PasswordDialog.h"
 #include "PasswordDb.h"
+#include "TruncOrViewportClipToolTipDelegate.h"
 
 VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 : QDialog(parent)
@@ -51,8 +52,9 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	//Passwords table
 	tableIdents->clear();
 	tableIdents->setColumnCount(5);
-	tableExecutables->horizontalHeader()->show();
-	tableExecutables->verticalHeader()->hide();
+    tableIdents->horizontalHeader()->show();
+    tableIdents->verticalHeader()->hide();
+    tableIdents->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableIdents));
 
 	QStringList identHeaders;
 	identHeaders << "Used" << "Variable Name" << "User ID" << "Password" << "";
@@ -81,6 +83,7 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tableExecutables->horizontalHeader()->show();
 	tableExecutables->verticalHeader()->hide();
 	tableExecutables->setColumnWidth(EXECUTABLES_COL_VALUE,150);
+    tableExecutables->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableExecutables));
 
 	QStringList execHeaders;
     execHeaders << "Used" << "Variable Name" << "Executable File" << "Args" << "" << "Description";
@@ -115,6 +118,7 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tableUser->horizontalHeader()->show();
 	tableUser->verticalHeader()->hide();
 	tableUser->setColumnWidth(USERDEF_COL_VALUE,150);
+    tableUser->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableUser));
 
 	QStringList userHeaders;
 	userHeaders << "Used" << "Variable Name" << "Variable Value" << "" << "Description";
@@ -194,7 +198,6 @@ void VariableSettingsDialog::clearAllData()
     tableUser->clearContents();
     tableUser->setRowCount(0);
     tableUser->blockSignals(false);
-
 }
 
 void VariableSettingsDialog::slotLoadIcons()
@@ -518,16 +521,22 @@ void VariableSettingsDialog::setPasswordVariables(QList<VariableStruct> varList)
 		//the original value
 		itemName->setData( QT_USERROLE_VARNAME, QVariant::fromValue(var.strDescription) );
 
+        // built-in tooltip handling
+        itemName->setToolTip(var.strDescription);
+
+
 		QTableWidgetItem *itemLogin = new QTableWidgetItem();
         //must click button 'click me to enable editing'
         setReadOnly(itemLogin,  true);
 		itemLogin->setText(var.strName);
+        itemLogin->setToolTip(var.strName);
 		tableIdents->setItem(row, PWD_COL_LOGIN, itemLogin);
 
 		QTableWidgetItem *itemPwd = new QTableWidgetItem();
         //must click button 'click me to enable editing'
         setReadOnly(itemPwd,  true);
 		itemPwd->setText(var.strValue);
+        //itemPwd->setToolTip(var.strValue); Do not set this. Tooltip here would show the actual pwd which is hidden by default.
 		tableIdents->setItem(row, PWD_COL_PWD, itemPwd);
 
 		QTableWidgetItem *itemButton = new QTableWidgetItem();
@@ -623,6 +632,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemName,  true);
         }
 		itemName->setText(var.strName);
+        itemName->setToolTip(var.strName);
 		tableExecutables->setItem(row,EXECUTABLES_COL_NAME,itemName);
 
 		//store the UUID. Used to lookup statistics in m_statMap.
@@ -640,6 +650,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemValue,  true);
         }
 		itemValue->setText(var.strValue);
+        itemValue->setToolTip(var.strValue);
 		tableExecutables->setItem(row,EXECUTABLES_COL_VALUE,itemValue);
 
         QTableWidgetItem *itemArgs = new QTableWidgetItem();
@@ -647,6 +658,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemArgs,  true);
         }
         itemArgs->setText(var.strArgs);
+        itemArgs->setToolTip(var.strArgs);
         tableExecutables->setItem(row,EXECUTABLES_COL_ARGS,itemArgs);
 
         QTableWidgetItem *itemBrowse = new QTableWidgetItem();
@@ -659,6 +671,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemDescr,  true);
         }
 		itemDescr->setText(var.strDescription);
+        itemDescr->setToolTip(var.strDescription);
 		tableExecutables->setItem(row,EXECUTABLES_COL_DESCRIPTION,itemDescr);		
 	}
 
@@ -746,6 +759,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemName,  true);
 		}
 		itemName->setText(var.strName);
+        itemName->setToolTip(var.strName);
 		tableUser->setItem(row,USERDEF_COL_NAME,itemName);
 
 		//store the UUID. Used to lookup statistics in m_statMap.
@@ -763,6 +777,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemValue,  true);
 		}
 		itemValue->setText(var.strValue);
+        itemValue->setToolTip(var.strValue);
 		tableUser->setItem(row,USERDEF_COL_VALUE,itemValue);
 
         /*
@@ -777,6 +792,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemDescr,  true);
 		}
 		itemDescr->setText(var.strDescription);
+        itemDescr->setToolTip(var.strDescription);
 		tableUser->setItem(row,USERDEF_COL_DESCRIPTION,itemDescr);		
 	}
 
