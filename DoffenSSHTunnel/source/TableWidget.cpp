@@ -1,5 +1,6 @@
 #include "TableWidget.h"
 #include "pch.h"
+#include "TruncOrViewportClipToolTipDelegate.h"
 #include <QtCore/QDebug>
 #include <QtGui/QKeyEvent>
 
@@ -242,6 +243,8 @@ TableWidget::TableWidget(QWidget *parent)
 	m_timerModifiedSignal.setInterval(100);
 	m_timerSaveSignal.setSingleShot(true);
 	m_timerSaveSignal.setInterval(500);
+
+    this->setItemDelegate(new TruncOrViewportClipToolTipDelegate(this));
 
     ATVERIFY( connect( this,					&TableWidget::currentItemChanged,	this, &TableWidget::slotHandleModifiedAndSave ) );
     ATVERIFY( connect( &m_timerModifiedSignal,  &QTimer::timeout,           this, &TableWidget::slotModifiedTimerTimeout, Qt::QueuedConnection ) );

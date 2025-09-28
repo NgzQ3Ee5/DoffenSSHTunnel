@@ -189,6 +189,7 @@ void ImportHostsDialog::show(QString filePath, QTreeWidgetItem *twiImportAt, int
 			tunnel->twi->setFlags(tunnel->twi->flags() | Qt::ItemIsUserCheckable);
 			tunnel->twi->setCheckState(0,Qt::Checked);
 			tunnel->twi->setText( 0, tunnel->strName );
+            tunnel->twi->setToolTip( 0, tunnel->strName ); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 			ATSkeletonWindow::setTunnel(tunnel->twi, tunnel);
 			lastTwi = tunnel->twi;
 			lastLevel = tunnel->iLevel;

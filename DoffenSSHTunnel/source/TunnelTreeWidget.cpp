@@ -66,7 +66,7 @@ void TunnelTreeWidget::dropEvent(QDropEvent *event)
 
 
 TunnelTreeWidgetItemDelegate::TunnelTreeWidgetItemDelegate(QObject *parent)
-    : QStyledItemDelegate(parent)
+    : TruncOrViewportClipToolTipDelegate(parent)
 {
 }
 

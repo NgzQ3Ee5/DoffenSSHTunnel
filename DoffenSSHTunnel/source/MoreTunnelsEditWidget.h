@@ -4,6 +4,7 @@
 #include "pch.h"
 #include "Widget.h"
 #include "TableWidget.h"
+#include "TruncOrViewportClipToolTipDelegate.h"
 
 #include <QtCore>
 #include <QtWidgets>
@@ -64,7 +65,7 @@ signals:
 	void signalModified();
 };
 
-class MoreTunnelsItemDelegate : public QStyledItemDelegate
+class MoreTunnelsItemDelegate : public TruncOrViewportClipToolTipDelegate
 {
 	Q_OBJECT
 
@@ -75,7 +76,7 @@ signals:
 	void signalModified();
 
 public:
-	MoreTunnelsItemDelegate(QObject* parent) : QStyledItemDelegate(parent) { }
+    MoreTunnelsItemDelegate(QObject* parent) : TruncOrViewportClipToolTipDelegate(parent) { }
 	
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem & option, const QModelIndex & index) const
 	{

@@ -1,7 +1,6 @@
 
 #include "MoreTunnelsEditWidget.h"
 #include "ATSkeleton.h"
-#include "TruncOrViewportClipToolTipDelegate.h"
 
 MoreTunnelsEditWidget::MoreTunnelsEditWidget(QWidget *parent)
     : Widget(parent)
@@ -41,7 +40,6 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
 	QStringList identHeaders;
 	identHeaders << "Enabled" << "Variable Name" << "Type" << "Local IP   " << "Local Port" << "Remote Host" << "Rem.. Port" << "Description";
 	m_pTable->setHorizontalHeaderLabels(identHeaders);
-    m_pTable->setItemDelegate(new TruncOrViewportClipToolTipDelegate(m_pTable));
 
 /*
 	m_pTable->setColumnWidth(COL_NAME,70);
@@ -113,7 +111,7 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 
 	QTableWidgetItem *itemName = new QTableWidgetItem();
 	itemName->setText(pfs.strName.trimmed());
-    itemName->setToolTip(itemName->text());
+    itemName->setToolTip(itemName->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	itemName->setFlags(itemName->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_NAME, itemName);
 	if(!itemName->text().isEmpty()) {
@@ -134,7 +132,7 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 
 	QTableWidgetItem *itemLocalIP = new QTableWidgetItem();
 	itemLocalIP->setText(pfs.strLocalIP.trimmed());
-    itemLocalIP->setToolTip(itemLocalIP->text());
+    itemLocalIP->setToolTip(itemLocalIP->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	itemLocalIP->setFlags(itemLocalIP->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_LOCALIP, itemLocalIP);
 
@@ -145,12 +143,12 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 	} else {
 		itemLocalPort->setText("");
 	}
-    itemLocalPort->setToolTip(itemLocalPort->text());
+    itemLocalPort->setToolTip(itemLocalPort->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	m_pTable->setItem(row, COL_LOCALPORT, itemLocalPort);
 
 	QTableWidgetItem *itemDestHost = new QTableWidgetItem();
 	itemDestHost->setText(pfs.strDestinationHost.trimmed());
-    itemDestHost->setToolTip(itemDestHost->text());
+    itemDestHost->setToolTip(itemDestHost->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	itemDestHost->setFlags(itemDestHost->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_DESTHOST, itemDestHost);
 
@@ -161,12 +159,12 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 	} else {
 		itemDestPort->setText("");
 	}
-    itemDestPort->setToolTip(itemDestPort->text());
+    itemDestPort->setToolTip(itemDestPort->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	m_pTable->setItem(row, COL_DESTPORT, itemDestPort);
 
 	QTableWidgetItem *itemDescription = new QTableWidgetItem();
 	itemDescription->setText(pfs.strDescription.trimmed());
-    itemDescription->setToolTip(itemDescription->text());
+    itemDescription->setToolTip(itemDescription->text()); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 	itemDescription->setFlags(itemDescription->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_DESCRIPTION, itemDescription);
 

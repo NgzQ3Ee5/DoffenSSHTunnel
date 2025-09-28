@@ -527,6 +527,7 @@ void ATSkeletonWindow::readSettings()
 			tunnel->twi->setFlags(tunnel->twi->flags() | Qt::ItemIsEditable);
 			tunnel->twi->setExpanded(tunnel->bIsExpanded);
 			tunnel->twi->setText( 0, tunnel->strName );
+            tunnel->twi->setToolTip( 0, tunnel->strName ); // Only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 			setTunnel(tunnel->twi, tunnel);
 			treeTunnelUpdateFromParent(tunnel->twi);
 			lastTwi = tunnel->twi;
@@ -4385,7 +4386,13 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
         // Text
         newTwi->setFlags(newTwi->flags() | Qt::ItemIsEditable);
         newTwi->setText(0, newTunnel->strName);
-        newTwi->setToolTip(0, jsonHost.value("Tooltip").toString().trimmed());
+        // Note! Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
+        QString jsonTooltip = jsonHost.value("Tooltip").toString().trimmed();
+        if(jsonTooltip.isEmpty()) {
+            newTwi->setToolTip(0, newTwi->text(0));
+        } else {
+            newTwi->setToolTip(0, jsonTooltip);
+        }
 
         setTunnel(newTwi, newTunnel);
         treeTunnelUpdateFromParent(newTwi);

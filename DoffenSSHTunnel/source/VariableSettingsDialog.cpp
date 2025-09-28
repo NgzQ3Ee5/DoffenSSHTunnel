@@ -3,7 +3,6 @@
 #include "Images.h"
 #include "PasswordDialog.h"
 #include "PasswordDb.h"
-#include "TruncOrViewportClipToolTipDelegate.h"
 
 VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 : QDialog(parent)
@@ -54,7 +53,6 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tableIdents->setColumnCount(5);
     tableIdents->horizontalHeader()->show();
     tableIdents->verticalHeader()->hide();
-    tableIdents->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableIdents));
 
 	QStringList identHeaders;
 	identHeaders << "Used" << "Variable Name" << "User ID" << "Password" << "";
@@ -83,7 +81,6 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tableExecutables->horizontalHeader()->show();
 	tableExecutables->verticalHeader()->hide();
 	tableExecutables->setColumnWidth(EXECUTABLES_COL_VALUE,150);
-    tableExecutables->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableExecutables));
 
 	QStringList execHeaders;
     execHeaders << "Used" << "Variable Name" << "Executable File" << "Args" << "" << "Description";
@@ -118,7 +115,6 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
 	tableUser->horizontalHeader()->show();
 	tableUser->verticalHeader()->hide();
 	tableUser->setColumnWidth(USERDEF_COL_VALUE,150);
-    tableUser->setItemDelegate(new TruncOrViewportClipToolTipDelegate(tableUser));
 
 	QStringList userHeaders;
 	userHeaders << "Used" << "Variable Name" << "Variable Value" << "" << "Description";
@@ -522,14 +518,14 @@ void VariableSettingsDialog::setPasswordVariables(QList<VariableStruct> varList)
 		itemName->setData( QT_USERROLE_VARNAME, QVariant::fromValue(var.strDescription) );
 
         // built-in tooltip handling
-        itemName->setToolTip(var.strDescription);
+        itemName->setToolTip(var.strDescription); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 
 
 		QTableWidgetItem *itemLogin = new QTableWidgetItem();
         //must click button 'click me to enable editing'
         setReadOnly(itemLogin,  true);
 		itemLogin->setText(var.strName);
-        itemLogin->setToolTip(var.strName);
+        itemLogin->setToolTip(var.strName); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableIdents->setItem(row, PWD_COL_LOGIN, itemLogin);
 
 		QTableWidgetItem *itemPwd = new QTableWidgetItem();
@@ -650,7 +646,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemValue,  true);
         }
 		itemValue->setText(var.strValue);
-        itemValue->setToolTip(var.strValue);
+        itemValue->setToolTip(var.strValue); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableExecutables->setItem(row,EXECUTABLES_COL_VALUE,itemValue);
 
         QTableWidgetItem *itemArgs = new QTableWidgetItem();
@@ -658,7 +654,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemArgs,  true);
         }
         itemArgs->setText(var.strArgs);
-        itemArgs->setToolTip(var.strArgs);
+        itemArgs->setToolTip(var.strArgs); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
         tableExecutables->setItem(row,EXECUTABLES_COL_ARGS,itemArgs);
 
         QTableWidgetItem *itemBrowse = new QTableWidgetItem();
@@ -671,7 +667,7 @@ void VariableSettingsDialog::setExecutableVariables(QList<VariableStruct> varLis
             setReadOnly(itemDescr,  true);
         }
 		itemDescr->setText(var.strDescription);
-        itemDescr->setToolTip(var.strDescription);
+        itemDescr->setToolTip(var.strDescription); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableExecutables->setItem(row,EXECUTABLES_COL_DESCRIPTION,itemDescr);		
 	}
 
@@ -759,7 +755,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemName,  true);
 		}
 		itemName->setText(var.strName);
-        itemName->setToolTip(var.strName);
+        itemName->setToolTip(var.strName); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableUser->setItem(row,USERDEF_COL_NAME,itemName);
 
 		//store the UUID. Used to lookup statistics in m_statMap.
@@ -777,7 +773,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemValue,  true);
 		}
 		itemValue->setText(var.strValue);
-        itemValue->setToolTip(var.strValue);
+        itemValue->setToolTip(var.strValue); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableUser->setItem(row,USERDEF_COL_VALUE,itemValue);
 
         /*
@@ -792,7 +788,7 @@ void VariableSettingsDialog::setUserDefinedVariables(QList<VariableStruct> varLi
             setReadOnly(itemDescr,  true);
 		}
 		itemDescr->setText(var.strDescription);
-        itemDescr->setToolTip(var.strDescription);
+        itemDescr->setToolTip(var.strDescription); // Tooltip is only shown then text is truncated or clipped by viewport (thanks to TruncOrViewportClipToolTipDelegate)
 		tableUser->setItem(row,USERDEF_COL_DESCRIPTION,itemDescr);		
 	}
 

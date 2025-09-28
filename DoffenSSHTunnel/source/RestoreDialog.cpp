@@ -94,7 +94,7 @@ int TableModel::columnCount(const QModelIndex & parent) const
 
 QVariant TableModel::data(const QModelIndex &index, int role) const
 {
-	if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::ToolTipRole)
 	{
 		int rowIndex = index.row();
 		int colIndex = index.column();

@@ -1,5 +1,6 @@
 #include "TreeWidget.h"
 #include "pch.h"
+#include "TruncOrViewportClipToolTipDelegate.h"
 
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtCore/QModelIndex>
@@ -31,6 +32,8 @@ TreeWidget::TreeWidget(QWidget *parent)
 	//setContextMenuPolicy(Qt::ActionsContextMenu);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	m_pContextMenu = new QMenu(this);
+
+    this->setItemDelegate(new TruncOrViewportClipToolTipDelegate(this));
 
     ATVERIFY( connect( &m_timerModifiedSignal,  &QTimer::timeout,       this, &TreeWidget::slotModifiedTimerTimeout, Qt::QueuedConnection ) );
     ATVERIFY( connect( &m_timerSaveSignal,      &QTimer::timeout,       this, &TreeWidget::slotSaveTimerTimeout, Qt::QueuedConnection ) );
