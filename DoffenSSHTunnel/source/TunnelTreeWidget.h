@@ -2,7 +2,6 @@
 #define TUNNELTREEWIDGET_H
 
 #include "TreeWidget.h"
-#include "TruncOrViewportClipToolTipDelegate.h"
 
 #include <QtCore>
 #include <QtWidgets>
@@ -31,7 +30,7 @@ signals:
 };
 
 
-class TunnelTreeWidgetItemDelegate : public TruncOrViewportClipToolTipDelegate
+class TunnelTreeWidgetItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 
@@ -44,6 +43,13 @@ public:
     // Optionally override sizeHint if needed
     QSize sizeHint(const QStyleOptionViewItem &option,
                    const QModelIndex &index) const override;
+
+    // Display tooltip
+    bool helpEvent(QHelpEvent *e, QAbstractItemView *view,
+                   const QStyleOptionViewItem &option,
+                   const QModelIndex &idx) override;
+
+    QString getDisplayText(const QModelIndex &index);
 };
 
 #endif
