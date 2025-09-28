@@ -1,6 +1,7 @@
 
 #include "MoreTunnelsEditWidget.h"
 #include "ATSkeleton.h"
+#include "TruncOrViewportClipToolTipDelegate.h"
 
 MoreTunnelsEditWidget::MoreTunnelsEditWidget(QWidget *parent)
     : Widget(parent)
@@ -40,6 +41,8 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
 	QStringList identHeaders;
 	identHeaders << "Enabled" << "Variable Name" << "Type" << "Local IP   " << "Local Port" << "Remote Host" << "Rem.. Port" << "Description";
 	m_pTable->setHorizontalHeaderLabels(identHeaders);
+    m_pTable->setItemDelegate(new TruncOrViewportClipToolTipDelegate(m_pTable));
+
 /*
 	m_pTable->setColumnWidth(COL_NAME,70);
 	m_pTable->setColumnWidth(COL_TYPE,70);
@@ -64,6 +67,8 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
     //m_pTable->hideColumn(COL_NAME);
 	//slotMoreToggled(false);
 	slotUpdateControls();
+
+
 
 	m_pTable->blockSignals(blocked);
 }
@@ -108,6 +113,7 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 
 	QTableWidgetItem *itemName = new QTableWidgetItem();
 	itemName->setText(pfs.strName.trimmed());
+    itemName->setToolTip(itemName->text());
 	itemName->setFlags(itemName->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_NAME, itemName);
 	if(!itemName->text().isEmpty()) {
@@ -128,6 +134,7 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 
 	QTableWidgetItem *itemLocalIP = new QTableWidgetItem();
 	itemLocalIP->setText(pfs.strLocalIP.trimmed());
+    itemLocalIP->setToolTip(itemLocalIP->text());
 	itemLocalIP->setFlags(itemLocalIP->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_LOCALIP, itemLocalIP);
 
@@ -138,10 +145,12 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 	} else {
 		itemLocalPort->setText("");
 	}
+    itemLocalPort->setToolTip(itemLocalPort->text());
 	m_pTable->setItem(row, COL_LOCALPORT, itemLocalPort);
 
 	QTableWidgetItem *itemDestHost = new QTableWidgetItem();
 	itemDestHost->setText(pfs.strDestinationHost.trimmed());
+    itemDestHost->setToolTip(itemDestHost->text());
 	itemDestHost->setFlags(itemDestHost->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_DESTHOST, itemDestHost);
 
@@ -152,10 +161,12 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 	} else {
 		itemDestPort->setText("");
 	}
+    itemDestPort->setToolTip(itemDestPort->text());
 	m_pTable->setItem(row, COL_DESTPORT, itemDestPort);
 
 	QTableWidgetItem *itemDescription = new QTableWidgetItem();
 	itemDescription->setText(pfs.strDescription.trimmed());
+    itemDescription->setToolTip(itemDescription->text());
 	itemDescription->setFlags(itemDescription->flags() | Qt::ItemIsEditable);
 	m_pTable->setItem(row, COL_DESCRIPTION, itemDescription);
 
