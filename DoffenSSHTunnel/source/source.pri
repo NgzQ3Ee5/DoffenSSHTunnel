@@ -78,7 +78,8 @@ HEADERS  += \
     treesearchwidgetlineedit.h \
     searchwidget.h \
     searchwidgetlineedit.h \
-    OutputWindow.h
+    OutputWindow.h \
+    TruncOrViewportClipToolTipDelegate.h
 
 FORMS    += \
     ATSkeleton.ui \
