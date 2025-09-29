@@ -66,6 +66,7 @@ VariableSettingsDialog::VariableSettingsDialog(ATSkeletonWindow *parent)
     ATVERIFY( connect( btnPwdDelete,        &QAbstractButton::clicked,              this, &VariableSettingsDialog::slotPwdDelete ) );
     ATVERIFY( connect( tableIdents,         &TableWidget::signalKeyDeletePressed,   this, &VariableSettingsDialog::slotPwdDelete ) );
     ATVERIFY( connect( btnPwdEnableEdit,    &QAbstractButton::toggled,              this, &VariableSettingsDialog::slotPwdEnableEditView ) );
+    ATVERIFY( connect( editPwdFilter,       &QLineEdit::textChanged,                this, &VariableSettingsDialog::slotPwdApplyFilter ) );
 
 #ifdef Q_OS_MACOS
     btnPwdAdd->setToolTip("Add (Cmd+N))");
@@ -183,6 +184,7 @@ void VariableSettingsDialog::clearAllData()
     tableIdents->setRowCount(0);
     buttonPwdShowAll->setChecked(false);
     btnPwdEnableEdit->setChecked(false);
+    editPwdFilter->clear();
     tableIdents->blockSignals(false);
 
     tableExecutables->blockSignals(true);
@@ -1314,6 +1316,40 @@ void VariableSettingsDialog::slotPwdUpdateTableWidgets()
 			btn->setChecked(false);
 			editPwd->setEchoMode(QLineEdit::Password);
 		}
+    }
+}
+
+
+void VariableSettingsDialog::slotPwdApplyFilter(const QString& text)
+{
+    const QString needle = text.trimmed();
+    const int rows = tableIdents->rowCount();
+    const int cols = tableIdents->columnCount();
+
+    if (needle.isEmpty()) {
+        // Filter is empty
+        for (int r = 0; r < rows; ++r) {
+            tableIdents->setRowHidden(r, false);
+        }
+        return;
+    }
+
+    for (int r = 0; r < rows; ++r) {
+        if(tableIdents->columnSpan(r, 0) == tableIdents->columnCount()) {
+            // A header row
+            tableIdents->setRowHidden(r, false);
+            continue;
+        }
+        bool match = false;
+        for (int c = 0; c < cols; ++c) {
+            if (QTableWidgetItem* it = tableIdents->item(r, c)) {
+                if (it->text().contains(needle, Qt::CaseInsensitive)) {
+                    match = true;
+                    break;
+                }
+            }
+        }
+        tableIdents->setRowHidden(r, !match);
     }
 }
 

@@ -68,6 +68,7 @@ private slots:
 	void slotPwdUpdateControls();
 	void slotPwdUpdateTableWidgets();
     void slotPwdEnableEditView(bool enable);
+    void slotPwdApplyFilter(const QString& text);
 	//signales from QTableWidget
 	void slotExecItemChanged(QTableWidgetItem *item);
 	void slotUserItemChanged(QTableWidgetItem *item);
