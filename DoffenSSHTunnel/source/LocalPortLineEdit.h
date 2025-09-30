@@ -12,6 +12,7 @@ public:
 
 signals:
     void signalValidatePort(int port);
+    void signalSetNewPort(int currentPort);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *e) override {
@@ -22,6 +23,12 @@ protected:
         connect(validateAct, &QAction::triggered, this, [this] {
             int port = this->text().toInt();   // returns 0 if conversion fails
             emit signalValidatePort(port);
+        });
+
+        QAction *newAct = menu->addAction(tr("Propose New Port"));
+        connect(newAct, &QAction::triggered, this, [this] {
+            int currentPort = this->text().toInt();   // returns 0 if conversion fails
+            emit signalSetNewPort(currentPort);
         });
 
         menu->exec(e->globalPos());

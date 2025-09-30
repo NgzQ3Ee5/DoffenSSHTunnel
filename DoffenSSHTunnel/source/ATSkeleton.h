@@ -546,6 +546,7 @@ public slots:
 	void slotComboPasswordSelectSelectionChanged(int index);
 	void slotComboKeyPasswordSelectSelectionChanged(int index);
     void slotValidateTunnelLocalPort(int port);
+    void slotSetNewTunnelLocalPort(int currentPort);
 	void slotEditSSHHost();
 	void slotEditRemoteHost();
 	void slotTabChanged();

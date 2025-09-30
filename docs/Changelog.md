@@ -3,7 +3,8 @@ Changelog
 
 v0.9.67 Oct 1, 2025
 ------------------
-+ New: Extended the Local Port context menu with a Validate Port option, which checks whether the port is valid and unique, and proposes a new port if it is not.
++ New: Added a Validate Port option to the Local Port context menu, which checks whether the port is valid and unique, and proposes a new port if it is not.
++ New: Added a Propose New Port option to the Local Port context menu, which finds an available unique port and prompts you to apply it.
 
 v0.9.66 Sep 29, 2025
 ------------------

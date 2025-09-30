@@ -247,6 +247,7 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.comboPasswordSelect,	  &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboPasswordSelectSelectionChanged ) );
     ATVERIFY( connect( ui.comboKeyPasswordSelect, &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged ) );
     ATVERIFY( connect( ui.editLocalPort,        &LocalPortLineEdit::signalValidatePort, this, &ATSkeletonWindow::slotValidateTunnelLocalPort ) );
+    ATVERIFY( connect( ui.editLocalPort,        &LocalPortLineEdit::signalSetNewPort, this, &ATSkeletonWindow::slotSetNewTunnelLocalPort ) );
 	ui.widgetEditTunnel->wireSignals();
     ATVERIFY( connect( ui.widgetEditTunnel,		&Widget::signalChildWidgetModified, this, &ATSkeletonWindow::slotHostModified ) );
 	
@@ -5038,6 +5039,24 @@ void ATSkeletonWindow::slotValidateTunnelLocalPort(int port)
     }
 }
 
+void ATSkeletonWindow::slotSetNewTunnelLocalPort(int currentPort)
+{
+    qDebug( "%s", Q_FUNC_INFO );
+    ATASSERT(m_pTreeTunnelsItemEdit);
+    if(m_pTreeTunnelsItemEdit == NULL) {
+        return;
+    }
+
+    int newPort = proposeNewLocalPort(QList<int>() << currentPort);
+    QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Set New Port"),
+        tr("Do you want to assign %1?").arg(newPort),
+        QMessageBox::Yes | QMessageBox::No
+    );
+    if (reply == QMessageBox::Yes) {
+        ui.editLocalPort->setText( QString("%1").arg(newPort) );
+    }
+}
+
 QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignoreUuid) {
     int lowestPort = 1025;
     int highestPort = 65000;
@@ -5045,7 +5064,7 @@ QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignore
     if(port <= 0) {
         int newPort = proposeNewLocalPort();
         QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
-            tr("Port is not specified (%1).\nDo you want to assign %2").arg(port).arg(newPort),
+            tr("Port is not specified (%1).\nDo you want to assign %2?").arg(port).arg(newPort),
             QMessageBox::Yes | QMessageBox::No
         );
         if (reply == QMessageBox::Yes) {
@@ -5053,8 +5072,8 @@ QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignore
         }
     } else if(port < lowestPort) {
         int newPort = proposeNewLocalPort();
-        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
-            tr("Port is below %1.\nDo you want to assign %2").arg(lowestPort).arg(newPort),
+        QMessageBox::StandardButton reply = QMessageBox::warning(this, tr("Validate Port"),
+            tr("Port is below %1.\nDo you want to assign %2?").arg(lowestPort).arg(newPort),
             QMessageBox::Yes | QMessageBox::No
         );
         if (reply == QMessageBox::Yes) {
@@ -5062,8 +5081,8 @@ QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignore
         }
     } else if(port > highestPort) {
         int newPort = proposeNewLocalPort();
-        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
-            tr("Port is above %1.\nDo you want to assign %2").arg(highestPort).arg(newPort),
+        QMessageBox::StandardButton reply = QMessageBox::warning(this, tr("Validate Port"),
+            tr("Port is above %1.\nDo you want to assign %2?").arg(highestPort).arg(newPort),
             QMessageBox::Yes | QMessageBox::No
         );
         if (reply == QMessageBox::Yes) {
@@ -5088,7 +5107,7 @@ QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignore
         }
         if(ports.contains(port)) {
             int newPort = proposeNewLocalPort();
-            QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
+            QMessageBox::StandardButton reply = QMessageBox::warning(this, tr("Validate Port"),
                 tr("Port %1 is in use.\nDo you want to assign %2 instead?").arg(port).arg(newPort),
                 QMessageBox::Yes | QMessageBox::No
             );
