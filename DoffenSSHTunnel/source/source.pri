@@ -40,6 +40,7 @@ SOURCES += main.cpp\
     OutputWindow.cpp
 
 HEADERS  += \
+    $$PWD/LocalPortLineEdit.h \
     $$PWD/ManagedProcess.h \
     $$PWD/Utils.h \
     Paths.h \

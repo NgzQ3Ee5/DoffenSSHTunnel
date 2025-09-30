@@ -246,6 +246,7 @@ void ATSkeletonWindow::wireSignals()
     ATVERIFY( connect( ui.btnCancel,			&QToolButton::clicked, this, &ATSkeletonWindow::slotCancel ) );
     ATVERIFY( connect( ui.comboPasswordSelect,	  &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboPasswordSelectSelectionChanged ) );
     ATVERIFY( connect( ui.comboKeyPasswordSelect, &QComboBox::currentIndexChanged, this, &ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged ) );
+    ATVERIFY( connect( ui.editLocalPort,        &LocalPortLineEdit::signalValidatePort, this, &ATSkeletonWindow::slotValidateTunnelLocalPort ) );
 	ui.widgetEditTunnel->wireSignals();
     ATVERIFY( connect( ui.widgetEditTunnel,		&Widget::signalChildWidgetModified, this, &ATSkeletonWindow::slotHostModified ) );
 	
@@ -1364,7 +1365,7 @@ void ATSkeletonWindow::importTunnels(QList<Tunnel_c*> &tunnelList, QTreeWidgetIt
 		lastLevel = tunnel->iLevel;
 
 		if(portMap.contains(tunnel->iLocalPort)) {
-			int newPort = proposeNewLocalPort(tunnel->twi);
+            int newPort = proposeNewLocalPort();
 			tunnel->iLocalPort = newPort;
 			portMap.insert(newPort,true);
 		}
@@ -4467,7 +4468,7 @@ void ATSkeletonWindow::addHostsRecursively(const QJsonArray& jsonHosts, QTreeWid
                             pfs.nLocalPort = ptToKeepPorts->portForwardList[i].nLocalPort;
                         } else {
                             // I set lport: 0 in my populateFolder nodejs script when I want to autoassign the port
-                            pfs.nLocalPort = proposeNewLocalPort(newTwi, excludePorts);
+                            pfs.nLocalPort = proposeNewLocalPort(excludePorts);
                         }
                     }
                 }
@@ -5017,6 +5018,92 @@ void ATSkeletonWindow::slotComboKeyPasswordSelectSelectionChanged(int index)
 	if(index > 0) {
 		ui.editSSHKeyFilePassword->setText( "${" + ui.comboKeyPasswordSelect->itemText(index) + ".pwd}" );
 	}
+}
+
+void ATSkeletonWindow::slotValidateTunnelLocalPort(int port)
+{
+    qDebug( "%s", Q_FUNC_INFO );
+    ATASSERT(m_pTreeTunnelsItemEdit);
+    if(m_pTreeTunnelsItemEdit == NULL) {
+        return;
+    }
+
+    Tunnel_c *pt = getTunnel(m_pTreeTunnelsItemEdit);
+    ATASSERT(pt);
+    if(pt == NULL) return;
+
+    QPair<int,int> result = validateLocalPort(port, pt->uUid);
+    if(result.first != result.second) {
+        ui.editLocalPort->setText( QString("%1").arg(result.second) );
+    }
+}
+
+QPair<int,int> ATSkeletonWindow::validateLocalPort(int port, const QUuid &ignoreUuid) {
+    int lowestPort = 1025;
+    int highestPort = 65000;
+
+    if(port <= 0) {
+        int newPort = proposeNewLocalPort();
+        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
+            tr("Port is not specified (%1).\nDo you want to assign %2").arg(port).arg(newPort),
+            QMessageBox::Yes | QMessageBox::No
+        );
+        if (reply == QMessageBox::Yes) {
+            return QPair<int,int>(port, newPort);
+        }
+    } else if(port < lowestPort) {
+        int newPort = proposeNewLocalPort();
+        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
+            tr("Port is below %1.\nDo you want to assign %2").arg(lowestPort).arg(newPort),
+            QMessageBox::Yes | QMessageBox::No
+        );
+        if (reply == QMessageBox::Yes) {
+            return QPair<int,int>(port, newPort);
+        }
+    } else if(port > highestPort) {
+        int newPort = proposeNewLocalPort();
+        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
+            tr("Port is above %1.\nDo you want to assign %2").arg(highestPort).arg(newPort),
+            QMessageBox::Yes | QMessageBox::No
+        );
+        if (reply == QMessageBox::Yes) {
+            return QPair<int,int>(port, newPort);
+        }
+    } else {
+        QSet<int> ports;
+        QList<QTreeWidgetItem*> treeTunnelItems = ui.treeTunnels->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
+        for(int i=0;i<treeTunnelItems.size();i++) {
+            Tunnel_c* pt = getTunnel(treeTunnelItems[i]);
+            if( pt && pt->iType == TUNNEL_TYPE_TUNNEL) {
+                if(pt->uUid != ignoreUuid) {
+                    ports.insert(pt->iLocalPort);
+                }
+                for(int j=0; j<pt->portForwardList.size(); j++) {
+                    PortForwardStruct pfs = pt->portForwardList.at(j);
+                    if(pfs.uUid != ignoreUuid) {
+                        ports.insert(pfs.nLocalPort);
+                    }
+                }
+            }
+        }
+        if(ports.contains(port)) {
+            int newPort = proposeNewLocalPort();
+            QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Validate Port"),
+                tr("Port %1 is in use.\nDo you want to assign %2 instead?").arg(port).arg(newPort),
+                QMessageBox::Yes | QMessageBox::No
+            );
+            if (reply == QMessageBox::Yes) {
+                return QPair<int,int>(port, newPort);
+            }
+        } else {
+            QMessageBox::information(this, tr("Validate Port"),
+                tr("Port %1 is OK").arg(port),
+                QMessageBox::Ok
+            );
+        }
+    }
+
+    return QPair<int,int>(port, port);
 }
 
 void ATSkeletonWindow::slotEditSSHHost()
@@ -5946,7 +6033,7 @@ void ATSkeletonWindow::setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChil
 	int tunnelLocalPort = 0;
 	
 	if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-        tunnelLocalPort = proposeNewLocalPort(twi, excludePorts);
+        tunnelLocalPort = proposeNewLocalPort(excludePorts);
 	}
 
 	if(tunnelLocalPort != 0) {
@@ -5966,13 +6053,13 @@ void ATSkeletonWindow::setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChil
     }
 }
 
-int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi)
+int ATSkeletonWindow::proposeNewLocalPort()
 {
     QList<int> empty;
-    return proposeNewLocalPort(twi,empty);
+    return proposeNewLocalPort(empty);
 }
 
-int ATSkeletonWindow::proposeNewLocalPort(QTreeWidgetItem *twi, QList<int> &excludePorts)
+int ATSkeletonWindow::proposeNewLocalPort(QList<int> &excludePorts)
 {
     int portRangeStart = m_pMainWindow->preferences()->portRangeStart();
     if(portRangeStart < 1025) {

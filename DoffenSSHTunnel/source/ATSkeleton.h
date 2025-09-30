@@ -492,12 +492,13 @@ public:
 	static void resolveVariable(VariableStruct var, QList<VariableStruct> &addToList, QList<VariableStruct> &checkList);
     void setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChildren);
     void setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChildren, QList<int> &excludePorts);
-	int proposeNewLocalPort(QTreeWidgetItem *twi);
-    int proposeNewLocalPort(QTreeWidgetItem *twi, QList<int> &excludePorts);
+    int proposeNewLocalPort();
+    int proposeNewLocalPort(QList<int> &excludePorts);
 	QList<int> getLocalTunnelPortsInUse(Tunnel_c *pt);
 	QMap<int,int> getAllLocalTunnelPortsInUse(Tunnel_c *ptIgnore=NULL);
     QVersionNumber getPlinkVersion(const QString& plinkPath, Tunnel_c &tunnel);
     static Tunnel_c* getTunnel(QTreeWidgetItem* twi);
+    QPair<int,int> validateLocalPort(int port, const QUuid &ignoreUuid);
 
 //override
 protected:
@@ -544,6 +545,7 @@ public slots:
     void slotComboTunnelTypeSelectionChanged(int index);
 	void slotComboPasswordSelectSelectionChanged(int index);
 	void slotComboKeyPasswordSelectSelectionChanged(int index);
+    void slotValidateTunnelLocalPort(int port);
 	void slotEditSSHHost();
 	void slotEditRemoteHost();
 	void slotTabChanged();

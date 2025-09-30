@@ -1308,7 +1308,7 @@
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="editLocalPort">
+                <widget class="LocalPortLineEdit" name="editLocalPort">
                  <property name="enabled">
                   <bool>true</bool>
                  </property>
@@ -2351,6 +2351,11 @@
    <class>TreeSearchWidgetLineEdit</class>
    <extends>QLineEdit</extends>
    <header>treesearchwidgetlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LocalPortLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>LocalPortLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

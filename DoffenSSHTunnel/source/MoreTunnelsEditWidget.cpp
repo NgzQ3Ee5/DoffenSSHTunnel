@@ -346,7 +346,7 @@ void MoreTunnelsEditWidget::slotAdd()
 	pfs.nType = PortForwardStruct::LOCAL;
 	pfs.strName = "";
 	pfs.strLocalIP = "localhost";
-	pfs.nLocalPort = m_pSkeletonWindow->proposeNewLocalPort(m_pSkeletonWindow->m_pTreeTunnelsItemEdit);
+    pfs.nLocalPort = m_pSkeletonWindow->proposeNewLocalPort();
 	pfs.strDestinationHost = "";
 	pfs.nDestinationPort = 0;
 	pfs.strDescription = "";
