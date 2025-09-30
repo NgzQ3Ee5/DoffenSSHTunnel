@@ -5,6 +5,7 @@
 #include "Widget.h"
 #include "TableWidget.h"
 #include "TruncOrViewportClipToolTipDelegate.h"
+#include "LocalPortLineEdit.h"
 
 #include <QtCore>
 #include <QtWidgets>
@@ -15,6 +16,7 @@ class TableWidgetComboBox;
 class TableWidgetLineEdit;
 class TableWidgetCheckBox;
 class TableWidget;
+class MoreTunnelsTableWidget;
 struct PortForwardStruct;
 
 class MoreTunnelsEditWidget : public Widget
@@ -42,7 +44,7 @@ private:
 
 private:
 	ATSkeletonWindow *m_pSkeletonWindow;
-	TableWidget *m_pTable;
+    MoreTunnelsTableWidget *m_pTable;
 	QToolButton *m_pBtnAdd;
 	QToolButton *m_pBtnDelete;
 	QToolButton *m_pBtnMoveUp;
@@ -60,6 +62,7 @@ private slots:
 	void slotMoveDown();
 	void slotMoreToggled(bool);
 	void slotModified() { emit signalModified(); }
+    void slotValidatePort(int port, QPersistentModelIndex pidx);
 
 signals:
 	void signalModified();
@@ -71,9 +74,19 @@ class MoreTunnelsItemDelegate : public TruncOrViewportClipToolTipDelegate
 
 private slots:
 	void slotModified() { emit signalModified(); }
+    void slotValidatePort(int port) {
+        auto *ed = qobject_cast<LocalPortLineEdit*>(sender());
+        if (!ed) return;
+        QPersistentModelIndex pidx = ed->property("editorIndex").value<QPersistentModelIndex>();
+        if (pidx.isValid()) {
+            emit signalValidatePort(port, pidx);
+        }
+    }
 
 signals:
 	void signalModified();
+    void signalValidatePort(int port, QPersistentModelIndex pidx);
+    void signalSetNewPort(int currentPort, QPersistentModelIndex pidx);
 
 public:
     MoreTunnelsItemDelegate(QObject* parent) : TruncOrViewportClipToolTipDelegate(parent) { }
@@ -102,10 +115,12 @@ public:
 			return le;
 		} 
 		if(index.column() == MoreTunnelsEditWidget::COL_LOCALPORT) {
-			QLineEdit *le = new QLineEdit(parent);
+            LocalPortLineEdit *le = new LocalPortLineEdit(parent);
+            le->setProperty("editorIndex", QVariant::fromValue(QPersistentModelIndex(index))); // Store the index inside the editor
 			QIntValidator *v = new QIntValidator(0,65535,parent);
 			le->setValidator(v);
-            ATVERIFY( connect( le,	&QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
+            ATVERIFY( connect( le, &QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
+            ATVERIFY( connect( le, &LocalPortLineEdit::signalValidatePort, this, &MoreTunnelsItemDelegate::slotValidatePort ) );
 			le->setFrame(false);
 			return le;
 		} 
@@ -244,18 +259,20 @@ private:
 	MoreTunnelsItemDelegate* m_pItemDelegate;
 
 public:
-	MoreTunnelsTableWidget(QWidget *parent = 0) : TableWidget(parent) {
+    MoreTunnelsTableWidget(QWidget *parent = 0) : TableWidget(parent) {
 		m_pItemDelegate = new MoreTunnelsItemDelegate(this);
 		setItemDelegate(m_pItemDelegate);
         ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalModified, this, &MoreTunnelsTableWidget::slotModified ) );
+        ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalValidatePort, this, &MoreTunnelsTableWidget::slotValidatePort ) );
 	}
 
 private slots:
 	void slotModified() { emit signalModified(); }
+    void slotValidatePort(int port, QPersistentModelIndex pidx) { emit signalValidatePort(port, pidx); }
 
 signals:
 	void signalModified();
-
+    void signalValidatePort(int port, QPersistentModelIndex pidx);
 };
 
 

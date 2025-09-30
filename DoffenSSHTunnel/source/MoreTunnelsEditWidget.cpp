@@ -59,6 +59,7 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
     ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlUpPressed,   this, &MoreTunnelsEditWidget::slotMoveUp ) );
     ATVERIFY( connect( m_pBtnMoveDown,  &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget::slotMoveDown ) );
     ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlDownPressed,	this, &MoreTunnelsEditWidget::slotMoveDown ) );
+    ATVERIFY( connect( m_pTable,        &MoreTunnelsTableWidget::signalValidatePort, this, &MoreTunnelsEditWidget::slotValidatePort, Qt::QueuedConnection ) );
     ATVERIFY( connect( m_pTable,        &TableWidget::signalModified,           this, &MoreTunnelsEditWidget::slotModified ) );
 
 	m_pBtnMoreTunnelsMore->setVisible(false);
@@ -141,6 +142,7 @@ void MoreTunnelsEditWidget::setRowData(int row, PortForwardStruct& pfs)
 	} else {
 		itemLocalPort->setText("");
 	}
+    itemLocalPort->setData(Qt::UserRole, pfs.uUid);
 	m_pTable->setItem(row, COL_LOCALPORT, itemLocalPort);
 
 	QTableWidgetItem *itemDestHost = new QTableWidgetItem();
@@ -412,6 +414,20 @@ void MoreTunnelsEditWidget::slotMoreToggled(bool checked)
 		m_pBtnMoreTunnelsMore->setText("more");
 	}
 	m_pTable->blockSignals(blocked);
+}
+
+void MoreTunnelsEditWidget::slotValidatePort(int port, QPersistentModelIndex pidx)
+{
+    //TODO Endre pidx til int row og column isteden. Kan ikke send pidx på denne måten.
+    int row = pidx.row();
+    int column = pidx.column();
+    PortForwardStruct pfs = getOrigStruct(row);
+    QPair<int,int> result = m_pSkeletonWindow->validateLocalPort(port, pfs.uUid);
+    if(result.first != result.second) {
+        QTableWidgetItem *itemLocalPort = m_pTable->item(row, column);
+        qWarning() << "HEIIII" << row << column;
+        itemLocalPort->setText(QString("%1").arg(result.second));
+    }
 }
 
 
