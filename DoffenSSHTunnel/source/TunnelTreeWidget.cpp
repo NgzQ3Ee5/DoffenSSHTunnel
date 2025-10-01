@@ -13,6 +13,7 @@ TunnelTreeWidget::TunnelTreeWidget(QWidget *parent)
 QList<QTreeWidgetItem*> TunnelTreeWidget::findTunnelItemsMatching(const QString& searchText)
 {
     QList<QTreeWidgetItem*> matchingItems;
+    QString searchTextTrimmed = searchText.trimmed();
 
     QList<QTreeWidgetItem*> treeTunnelItems = this->findItems(".*", Qt::MatchFlags(Qt::MatchRegularExpression | Qt::MatchRecursive), 0);
     for(int i=0;i<treeTunnelItems.size();i++) {
@@ -20,13 +21,23 @@ QList<QTreeWidgetItem*> TunnelTreeWidget::findTunnelItemsMatching(const QString&
         QString testStr = twi->text(0);
 
         Tunnel_c *tunnel = ATSkeletonWindow::getTunnel(twi);
-        if(tunnel && !tunnel->strDescription.trimmed().isEmpty()) {
-            testStr = QString("%0 - %1").arg(testStr, tunnel->strDescription.trimmed());
-        }
-
-        bool match = MatchUtils::matchesAllWords(testStr, searchText);
-        if (match) {
-            matchingItems.append(twi);
+        if(tunnel != nullptr) {
+            if(!tunnel->strDescription.trimmed().isEmpty()) {
+                testStr = QString("%0 - %1").arg(testStr, tunnel->strDescription.trimmed());
+            }
+            bool match = MatchUtils::matchesAllWords(testStr, searchTextTrimmed);
+            if(!match) {
+                match = searchTextTrimmed == QString("%1").arg(tunnel->iLocalPort);
+            }
+            if(!match) {
+                for(int i=0;!match && i<tunnel->portForwardList.length();i++) {
+                    PortForwardStruct pfs = tunnel->portForwardList.at(i);
+                    match = searchTextTrimmed == QString("%1").arg(pfs.nLocalPort);
+                }
+            }
+            if (match) {
+                matchingItems.append(twi);
+            }
         }
     }
 
