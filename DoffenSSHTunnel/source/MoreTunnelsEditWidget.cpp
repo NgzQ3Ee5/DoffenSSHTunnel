@@ -60,6 +60,7 @@ void MoreTunnelsEditWidget::setup(ATSkeletonWindow *pSkeletonWindow)
     ATVERIFY( connect( m_pBtnMoveDown,  &QAbstractButton::clicked,              this, &MoreTunnelsEditWidget::slotMoveDown ) );
     ATVERIFY( connect( m_pTable,        &TableWidget::signalKeyCtrlDownPressed,	this, &MoreTunnelsEditWidget::slotMoveDown ) );
     ATVERIFY( connect( m_pTable,        &MoreTunnelsTableWidget::signalValidatePort, this, &MoreTunnelsEditWidget::slotValidatePort, Qt::QueuedConnection ) );
+    ATVERIFY( connect( m_pTable,        &MoreTunnelsTableWidget::signalSetNewPort, this, &MoreTunnelsEditWidget::slotSetNewPort, Qt::QueuedConnection ) );
     ATVERIFY( connect( m_pTable,        &TableWidget::signalModified,           this, &MoreTunnelsEditWidget::slotModified ) );
 
 	m_pBtnMoreTunnelsMore->setVisible(false);
@@ -423,6 +424,18 @@ void MoreTunnelsEditWidget::slotValidatePort(int port, int row, int column)
     if(result.first != result.second) {
         QTableWidgetItem *itemLocalPort = m_pTable->item(row, column);
         itemLocalPort->setText(QString("%1").arg(result.second));
+    }
+}
+
+void MoreTunnelsEditWidget::slotSetNewPort(int currentPort, int row, int column)
+{
+    int newPort = m_pSkeletonWindow->proposeNewLocalPort(QList<int>() << currentPort);
+    QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Set New Port"),
+        tr("Do you want to assign %1?").arg(newPort),
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        QTableWidgetItem *itemLocalPort = m_pTable->item(row, column);
+        itemLocalPort->setText(QString("%1").arg(newPort));
     }
 }
 

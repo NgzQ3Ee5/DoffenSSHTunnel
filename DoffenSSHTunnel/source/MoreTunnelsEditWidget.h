@@ -63,6 +63,7 @@ private slots:
 	void slotMoreToggled(bool);
 	void slotModified() { emit signalModified(); }
     void slotValidatePort(int port, int row, int column);
+    void slotSetNewPort(int currentPort, int row, int column);
 
 signals:
 	void signalModified();
@@ -80,6 +81,14 @@ private slots:
         QPersistentModelIndex pidx = ed->property("editorIndex").value<QPersistentModelIndex>();
         if (pidx.isValid()) {
             emit signalValidatePort(port, pidx.row(), pidx.column());
+        }
+    }
+    void slotSetNewPort(int currentPort) {
+        auto *ed = qobject_cast<LocalPortLineEdit*>(sender());
+        if (!ed) return;
+        QPersistentModelIndex pidx = ed->property("editorIndex").value<QPersistentModelIndex>();
+        if (pidx.isValid()) {
+            emit signalSetNewPort(currentPort, pidx.row(), pidx.column());
         }
     }
 
@@ -121,6 +130,7 @@ public:
 			le->setValidator(v);
             ATVERIFY( connect( le, &QLineEdit::textEdited, this, &MoreTunnelsItemDelegate::slotModified ) );
             ATVERIFY( connect( le, &LocalPortLineEdit::signalValidatePort, this, &MoreTunnelsItemDelegate::slotValidatePort ) );
+            ATVERIFY( connect( le, &LocalPortLineEdit::signalSetNewPort, this, &MoreTunnelsItemDelegate::slotSetNewPort ) );
 			le->setFrame(false);
 			return le;
 		} 
@@ -264,15 +274,18 @@ public:
 		setItemDelegate(m_pItemDelegate);
         ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalModified, this, &MoreTunnelsTableWidget::slotModified ) );
         ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalValidatePort, this, &MoreTunnelsTableWidget::slotValidatePort ) );
+        ATVERIFY( connect( m_pItemDelegate,	&MoreTunnelsItemDelegate::signalSetNewPort, this, &MoreTunnelsTableWidget::slotSetNewPort ) );
 	}
 
 private slots:
 	void slotModified() { emit signalModified(); }
     void slotValidatePort(int port, int row, int column) { emit signalValidatePort(port, row, column); }
+    void slotSetNewPort(int currentPort, int row, int column) { emit signalSetNewPort(currentPort, row, column); }
 
 signals:
 	void signalModified();
     void signalValidatePort(int port, int row, int column);
+    void signalSetNewPort(int currentPort, int row, int column);
 };
 
 
