@@ -6049,19 +6049,34 @@ void ATSkeletonWindow::setNewLocalPort(QTreeWidgetItem *twi, bool alsoUpdateChil
 	ATASSERT(pt);
 	if(pt == NULL) return;
 
-	int tunnelLocalPort = 0;
+
 	
 	if(pt->iType == TUNNEL_TYPE_TUNNEL) {
-        tunnelLocalPort = proposeNewLocalPort(excludePorts);
-	}
-
-	if(tunnelLocalPort != 0) {
-		pt->iLocalPort = tunnelLocalPort;
-		if(twi == ui.treeTunnels->currentItem()) {
-			bool blocked = ui.editLocalPort->blockSignals(true);
-			ui.editLocalPort->setText( QString("%1").arg(pt->iLocalPort) );
-			ui.editLocalPort->blockSignals(blocked);
-		}
+        int tunnelNewLocalPort = proposeNewLocalPort(excludePorts);
+        if(tunnelNewLocalPort != 0) {
+            excludePorts.append(tunnelNewLocalPort);
+            pt->iLocalPort = tunnelNewLocalPort;
+            if(twi == ui.treeTunnels->currentItem()) {
+                bool blocked = ui.editLocalPort->blockSignals(true);
+                ui.editLocalPort->setText( QString("%1").arg(pt->iLocalPort) );
+                ui.editLocalPort->blockSignals(blocked);
+            }
+        }
+        if(!pt->portForwardList.isEmpty()) {
+            for(int i=0;i<pt->portForwardList.size();i++) {
+                PortForwardStruct &pfs = pt->portForwardList[i]; //Reference
+                if(pfs.nLocalPort > 0) {
+                    int pfsNewLocalPort = proposeNewLocalPort(excludePorts);
+                    if(pfsNewLocalPort != 0) {
+                        excludePorts.append(pfsNewLocalPort);
+                        pfs.nLocalPort = pfsNewLocalPort;
+                    }
+                }
+            }
+            if(twi == ui.treeTunnels->currentItem()) {
+                ui.widgetMoreTunnels->setData(pt->portForwardList);
+            }
+        }
 	}
 
 	if(alsoUpdateChildren) {
