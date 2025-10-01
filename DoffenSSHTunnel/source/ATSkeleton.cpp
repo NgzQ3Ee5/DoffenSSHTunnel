@@ -1277,14 +1277,18 @@ void ATSkeletonWindow::importTunnels(QList<Tunnel_c*> &tunnelList, QTreeWidgetIt
 		Tunnel_c* pt = getTunnel(treeTunnelItems[i]);
 		ATASSERT(pt);
 		portMap.insert(pt->iLocalPort, true);
+        for(int j=0;j<pt->portForwardList.size();j++) {
+            PortForwardStruct &pfs = pt->portForwardList[j]; //Reference
+            portMap.insert(pfs.nLocalPort, true);
+        }
 	}
 
-	QMap<QTreeWidgetItem*,int> mapLastChildIndex;
+    QMap<QTreeWidgetItem*,int> mapLastChildIndex;
 	int lastTopLevelIndex = -1;
 
 	for(int i=0;i<tunnelList.size();i++) {
 		Tunnel_c *tunnelImport = tunnelList.at(i);
-		Tunnel_c *tunnel = new Tunnel_c();
+        Tunnel_c *tunnel = new Tunnel_c();
 		tunnel->copyFrom(tunnelImport);
 		tunnel->iLevel += levelOffset;
 		tunnelListCreated.append(tunnel);
@@ -1366,10 +1370,25 @@ void ATSkeletonWindow::importTunnels(QList<Tunnel_c*> &tunnelList, QTreeWidgetIt
 		lastLevel = tunnel->iLevel;
 
 		if(portMap.contains(tunnel->iLocalPort)) {
-            int newPort = proposeNewLocalPort();
-			tunnel->iLocalPort = newPort;
-			portMap.insert(newPort,true);
+            QList<int> excludePorts = portMap.keys();
+            int newPort = proposeNewLocalPort(excludePorts);
+            if(newPort > 0) {
+                tunnel->iLocalPort = newPort;
+                portMap.insert(newPort,true);
+            }
 		}
+
+        for(int j=0;j<tunnel->portForwardList.size();j++) {
+            PortForwardStruct &pfs = tunnel->portForwardList[j]; //Reference
+            if(portMap.contains(pfs.nLocalPort)) {
+                QList<int> excludePorts = portMap.keys();
+                int newPort = proposeNewLocalPort(excludePorts);
+                if(newPort > 0) {
+                    pfs.nLocalPort = newPort;
+                    portMap.insert(newPort,true);
+                }
+            }
+        }
 
 	} // end - for each Tunnel
 

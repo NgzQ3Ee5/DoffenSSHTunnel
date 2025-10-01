@@ -8,6 +8,7 @@ v0.9.67 Oct 1, 2025
 + New: Added Validate Port and Propose New Port options to the More Tunnels table context menu, providing the same functionality as in the Local Port context menu.
 + New: Jump search extended to include local tunnel port numbers.
 + Fix: More Tunnels table now receives new unique ports on duplicate/copy-paste.
++ Fix: More Tunnels table now receives new unique ports on import.
 
 v0.9.66 Sep 29, 2025
 ------------------
