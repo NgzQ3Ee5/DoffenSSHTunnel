@@ -416,16 +416,12 @@ void MoreTunnelsEditWidget::slotMoreToggled(bool checked)
 	m_pTable->blockSignals(blocked);
 }
 
-void MoreTunnelsEditWidget::slotValidatePort(int port, QPersistentModelIndex pidx)
+void MoreTunnelsEditWidget::slotValidatePort(int port, int row, int column)
 {
-    //TODO Endre pidx til int row og column isteden. Kan ikke send pidx på denne måten.
-    int row = pidx.row();
-    int column = pidx.column();
     PortForwardStruct pfs = getOrigStruct(row);
     QPair<int,int> result = m_pSkeletonWindow->validateLocalPort(port, pfs.uUid);
     if(result.first != result.second) {
         QTableWidgetItem *itemLocalPort = m_pTable->item(row, column);
-        qWarning() << "HEIIII" << row << column;
         itemLocalPort->setText(QString("%1").arg(result.second));
     }
 }

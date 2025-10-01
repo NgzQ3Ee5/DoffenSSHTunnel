@@ -33,7 +33,7 @@ public:
 	void setData(QList<PortForwardStruct> &portForwardStructList);
 	QList<PortForwardStruct> getData();
     enum { COL_ENABLED, COL_NAME, COL_TYPE, COL_LOCALIP, COL_LOCALPORT, COL_DESTHOST, COL_DESTPORT, COL_DESCRIPTION };
-	enum {QT_USERROLE_ORIG=Qt::UserRole, QT_USERROLE_NAME=Qt::UserRole+1, QT_USERROLE_UUID=Qt::UserRole+2};
+    enum {QT_USERROLE_ORIG=Qt::UserRole, QT_USERROLE_NAME=Qt::UserRole+1, QT_USERROLE_UUID=Qt::UserRole+2};
 
 private: 
 	void setRowData(int row, PortForwardStruct& pfs);
@@ -62,7 +62,7 @@ private slots:
 	void slotMoveDown();
 	void slotMoreToggled(bool);
 	void slotModified() { emit signalModified(); }
-    void slotValidatePort(int port, QPersistentModelIndex pidx);
+    void slotValidatePort(int port, int row, int column);
 
 signals:
 	void signalModified();
@@ -79,14 +79,14 @@ private slots:
         if (!ed) return;
         QPersistentModelIndex pidx = ed->property("editorIndex").value<QPersistentModelIndex>();
         if (pidx.isValid()) {
-            emit signalValidatePort(port, pidx);
+            emit signalValidatePort(port, pidx.row(), pidx.column());
         }
     }
 
 signals:
 	void signalModified();
-    void signalValidatePort(int port, QPersistentModelIndex pidx);
-    void signalSetNewPort(int currentPort, QPersistentModelIndex pidx);
+    void signalValidatePort(int port, int row, int column);
+    void signalSetNewPort(int currentPort, int row, int column);
 
 public:
     MoreTunnelsItemDelegate(QObject* parent) : TruncOrViewportClipToolTipDelegate(parent) { }
@@ -268,11 +268,11 @@ public:
 
 private slots:
 	void slotModified() { emit signalModified(); }
-    void slotValidatePort(int port, QPersistentModelIndex pidx) { emit signalValidatePort(port, pidx); }
+    void slotValidatePort(int port, int row, int column) { emit signalValidatePort(port, row, column); }
 
 signals:
 	void signalModified();
-    void signalValidatePort(int port, QPersistentModelIndex pidx);
+    void signalValidatePort(int port, int row, int column);
 };
 
 
