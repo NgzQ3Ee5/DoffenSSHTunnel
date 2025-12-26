@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <QRegularExpression>
+#include <QProcess>
 
 namespace SanitizationUtils {
 
@@ -103,6 +104,47 @@ namespace StringUtils {
             naturalCut = end;
 
         return input.left(naturalCut) + QStringLiteral("…");
+    }
+}
+
+namespace ProcessUtils {
+    /**
+     * Checks whether a process is running.
+     * Substring / command-line match.
+     *
+     * @param processName Name or substring to search for
+     */
+    inline bool isProcessRunning(const QString& processName)
+    {
+        if (processName.isEmpty()) {
+            return false;
+        }
+
+    #ifdef Q_OS_WIN
+        QProcess p;
+        p.start("tasklist");
+        if (!p.waitForFinished(1500)) {
+            p.kill();
+            return false;
+        }
+
+        const QString output = QString::fromLocal8Bit(p.readAllStandardOutput());
+        return output.contains(processName, Qt::CaseInsensitive);
+
+    #elif defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
+        QProcess p;
+        p.start("pgrep", { "-f", processName }); // Substring match on full command line
+
+        if (!p.waitForFinished(1500)) {
+            p.kill();
+            return false;
+        }
+
+        return p.exitCode() == 0;
+
+    #else
+        return false;
+    #endif
     }
 }
 

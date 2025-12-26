@@ -1,5 +1,8 @@
 Changelog
 ==================
+v0.9.68 Oct 1, 2025
+------------------
++ Fix: Multi-Exec opening multiple MobaXTerm terminals now works correctly when MobaXTerm is not already running.
 
 v0.9.67 Oct 1, 2025
 ------------------

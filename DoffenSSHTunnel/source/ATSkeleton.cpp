@@ -5520,6 +5520,10 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
                     if (!pt) return;
                     executeCustomAction(cat.cas, pt);
                 });
+                if(delayMs == 0 && menuItem.sLabel.compare("MobaXTerm", Qt::CaseInsensitive) == 0 && !ProcessUtils::isProcessRunning("MobaXterm")) {
+                    //This is the first MobaXTerm command AND MobaXterm is not running
+                    delayMs += 3000; //Wait additional 3 seconds for MobaXTerm start for the first time
+                }
                 delayMs += 1000; // 1 second between each execution
             }
         });
