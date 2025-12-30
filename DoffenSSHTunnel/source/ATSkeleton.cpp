@@ -5384,10 +5384,13 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
     }
 
     QWidgetAction *labelAction = new QWidgetAction(m_pTreeTunnelsContextMenu);
-    QLabel *label = new QLabel("Multi Exec");
-    label->setAlignment(Qt::AlignCenter);  // center text
-    label->setStyleSheet("font-weight: bold; padding: 2px;");
+    QLabel *label = new QLabel("Multi Exec:");
+    //label->setAlignment(Qt::AlignCenter);  // center text
+    label->setAlignment(Qt::AlignLeft);  // left text
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred); // fill width
+    //label->setStyleSheet("font-weight: bold; padding: 7px;");
+    label->setStyleSheet("padding: 7px;");
+
     labelAction->setDefaultWidget(label);
     m_pTreeTunnelsContextMenu->addAction(labelAction);
 
