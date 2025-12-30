@@ -25,6 +25,8 @@ public:
     int autoReconnectIntervalSeconds() { return spinAutoReconnectIntervalSeconds->value(); }
     int autoReconnectMaxAttempts() { return spinAutoReconnectMaxAttempts->value(); }
     int portRangeStart() { return spinPortRangeStart->value(); }
+    int mobaXTermNewTabDelaySeconds() { return m_nMobaXTermNewTabDelaySeconds; }
+    int mobaXTermStartupDelaySeconds() { return m_nMobaXTermStartupDelaySeconds; }
 
 	void enableEditingToggled(bool);
 
@@ -40,6 +42,8 @@ private slots:
 
 private:
 	ATSkeletonWindow *m_pSkeletonWindow;
+    int m_nMobaXTermNewTabDelaySeconds; // In settings file only
+    int m_nMobaXTermStartupDelaySeconds; // In settings file only
 
 };
 

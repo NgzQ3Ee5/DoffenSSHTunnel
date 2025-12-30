@@ -72,6 +72,19 @@ void PreferencesDialog::readSettings()
     checkShowTreeSearch->setChecked( bShowTreeSearch );
 
 	//--- General
+
+    //+++ In settings file only
+
+    m_nMobaXTermNewTabDelaySeconds = settings.value("mobaxterm_newtab_delay_seconds", 1).toInt();
+    if(m_nMobaXTermNewTabDelaySeconds < 1) {
+        m_nMobaXTermNewTabDelaySeconds = 1;
+    }
+    m_nMobaXTermStartupDelaySeconds = settings.value("mobaxterm_startup_delay_seconds", 3).toInt();
+    if(m_nMobaXTermStartupDelaySeconds < 2) {
+        m_nMobaXTermStartupDelaySeconds = 2;
+    }
+
+    //--- In settings file only
 }
 
 void PreferencesDialog::writeSettings()
@@ -92,7 +105,8 @@ void PreferencesDialog::writeSettings()
     settings.setValue( "auto_reconnect_interval_seconds", spinAutoReconnectIntervalSeconds->value() );
     settings.setValue( "auto_reconnect_max_attempts", spinAutoReconnectMaxAttempts->value() );
     settings.setValue( "portrange_start", spinPortRangeStart->value() );
-
+    settings.setValue( "mobaxterm_newtab_delay_seconds", m_nMobaXTermNewTabDelaySeconds);
+    settings.setValue( "mobaxterm_startup_delay_seconds", m_nMobaXTermStartupDelaySeconds);
 	settings.sync();
 }
 
