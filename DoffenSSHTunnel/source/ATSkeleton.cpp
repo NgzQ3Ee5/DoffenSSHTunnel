@@ -5468,6 +5468,7 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
     };
 
     QHash<QString, CustomActionMenuItem> menuItemMap; //key: CustomActionMatcher.key
+    QVector<QString> menuItemMapOrder; //key order
 
     // --- List of quick action matchers ---
     struct CustomActionMatcher {
@@ -5486,8 +5487,9 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
         if(!pt || pt->iType != TUNNEL_TYPE_TUNNEL || pt->iConnectStatus != CONNECTED) {
             continue;
         }
-        for (const CustomActionMatcher& matcher : matchers) {
-            for(const CustomActionStruct &cas : std::as_const(pt->customActionList)) {
+
+        for(const CustomActionStruct &cas : std::as_const(pt->customActionList)) {
+            for (const CustomActionMatcher& matcher : matchers) {
                 bool match = false;
                 for (const QString& pattern : matcher.patterns) {
                     if (cas.sCmd.contains(pattern, Qt::CaseInsensitive)) {
@@ -5500,6 +5502,9 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
                     if(menuLabel.isEmpty()) {
                         menuLabel = matcher.sName;
                     }
+                    if(!menuItemMap.contains(menuLabel)) {
+                        menuItemMapOrder.append(menuLabel);
+                    }
                     CustomActionMenuItem &menuItem = menuItemMap[menuLabel]; // Insert or get existing entry in one line
                     if (menuItem.sLabel.isEmpty()) {
                         menuItem.sLabel = menuLabel;
@@ -5511,8 +5516,8 @@ void ATSkeletonWindow::setupTreeTunnelsContextMenuMultipleSelected()
         }
     }
 
-    for (auto it = menuItemMap.cbegin(); it != menuItemMap.cend(); ++it) {
-        const CustomActionMenuItem &menuItem = it.value();
+    for(const QString &menuItemMapKey : menuItemMapOrder) {
+        const CustomActionMenuItem &menuItem = menuItemMap.value(menuItemMapKey);
         QString actionLabel = QString("%1 (%2)").arg(menuItem.sLabel).arg(menuItem.customActionTargetList.size());
         QAction* act = m_pTreeTunnelsContextMenu->addAction(actionLabel);
         connect(act, &QAction::triggered, this, [this, menuItem] {

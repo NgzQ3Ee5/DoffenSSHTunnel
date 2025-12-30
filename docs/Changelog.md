@@ -2,8 +2,8 @@ Changelog
 ==================
 v0.9.68 Oct 1, 2025
 ------------------
-+ Update: Improved Multi-Exec integration with MobaXTerm to reliably open multiple SSH sessions, including when MobaXTerm is not already running.
 + New: Added configurable MobaXTerm timing settings in DoffenSSHTunnelApp.ini (mobaxterm_startup_delay_seconds and mobaxterm_newtab_delay_seconds) to ensure stable startup and tab creation when opening multiple sessions.
++ Update: Multi-Exec context menu items now follow the order of the custom actions. 
 
 v0.9.67 Oct 1, 2025
 ------------------
