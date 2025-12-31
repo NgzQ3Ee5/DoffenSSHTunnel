@@ -3,7 +3,8 @@ Changelog
 v0.9.68 Oct 1, 2025
 ------------------
 + New: Added configurable MobaXTerm timing settings in DoffenSSHTunnelApp.ini (mobaxterm_startup_delay_seconds and mobaxterm_newtab_delay_seconds) to ensure stable startup and tab creation when opening multiple sessions.
-+ Update: Multi-Exec context menu items now follow the order of the custom actions. 
++ Update: Multi-Exec context menu items now follow the order of the custom actions.
++ Fix: Fixed incorrect QString/byte length handling in Botan CryptoBox encryption/decryption, preventing potential data corruption.
 
 v0.9.67 Oct 1, 2025
 ------------------

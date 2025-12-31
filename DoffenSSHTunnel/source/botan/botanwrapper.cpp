@@ -75,44 +75,70 @@ QString BotanWrapper::GenerateRandomString()
 
 QString BotanWrapper::EncryptWithPassword(QString Data, QString Password)
 {
+    Botan::AutoSeeded_RNG rng;
 
-    AutoSeeded_RNG rng;
-    string str = CryptoBox::encrypt(
-        reinterpret_cast<const Botan::byte*>(Data.toStdString().data()),
-        Data.size(),
-        Password.toStdString(),
-        rng);
-    return QString::fromStdString(str);
+    // Konverter eksplisitt til bytes (UTF-8) og bruk korrekt byte-lengde
+    const QByteArray dataBytes = Data.toUtf8();
+    const std::string passwordStd = Password.toUtf8().toStdString();
+
+    const std::string str = Botan::CryptoBox::encrypt(
+        reinterpret_cast<const Botan::byte*>(dataBytes.constData()),
+        static_cast<size_t>(dataBytes.size()),
+        passwordStd,
+        rng
+        );
+
+    // CryptoBox::encrypt returnerer PEM-tekst -> trygt å mappe til QString via UTF-8/Latin1
+    // PEM er ASCII, så Latin1 er også ok. UTF-8 er også ok.
+    return QString::fromLatin1(str.data(), static_cast<int>(str.size()));
 }
 
 
 QByteArray BotanWrapper::EncryptWithPassword(QByteArray Data, QString Password)
 {
-    AutoSeeded_RNG rng;
-    string str = CryptoBox::encrypt(
-        reinterpret_cast<const Botan::byte *>(Data.constData()),
-        Data.size(),
-        Password.toStdString(),
-        rng);
-    return QByteArray(str.data());
+    Botan::AutoSeeded_RNG rng;
+
+    const std::string passwordStd = Password.toUtf8().toStdString();
+
+    const std::string str = Botan::CryptoBox::encrypt(
+        reinterpret_cast<const Botan::byte*>(Data.constData()),
+        static_cast<size_t>(Data.size()),
+        passwordStd,
+        rng
+        );
+
+    // Viktig: bruk lengde for å unngå NUL-trunkering (du gjorde dette riktig her)
+    return QByteArray(str.data(), static_cast<int>(str.size()));
 }
 
 QString BotanWrapper::Decrypt(QString Data, QString Password)
 {
-    string str = CryptoBox::decrypt(
-        reinterpret_cast<const Botan::byte*>(Data.toStdString().data()),
-        Data.size(),
-        Password.toStdString());
-    return QString::fromStdString(str);;
+    // PEM er tekst; vi må dekode tilbake til bytes før vi sender til Botan
+    const QByteArray pemBytes = Data.toLatin1(); // PEM er ASCII
+    const std::string passwordStd = Password.toUtf8().toStdString();
+
+    const std::string str = Botan::CryptoBox::decrypt(
+        reinterpret_cast<const Botan::byte*>(pemBytes.constData()),
+        static_cast<size_t>(pemBytes.size()),
+        passwordStd
+        );
+
+    // "str" er plaintext som du tidligere tolket som std::string -> QString.
+    // Hvis plaintext egentlig er bytes (ikke nødvendigvis tekst), bør du ikke ha QString-varianten.
+    return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 }
 
 QByteArray BotanWrapper::Decrypt(QByteArray Data, QString Password)
 {
-    string str = CryptoBox::decrypt(
-        reinterpret_cast<const Botan::byte*>(Data.toStdString().data()),
-        Data.size(),
-        Password.toStdString());
-    return QByteArray(str.data());
+    const std::string passwordStd = Password.toUtf8().toStdString();
+
+    const std::string str = Botan::CryptoBox::decrypt(
+        reinterpret_cast<const Botan::byte*>(Data.constData()),
+        static_cast<size_t>(Data.size()),
+        passwordStd
+        );
+
+    return QByteArray(str.data(), static_cast<int>(str.size()));
 }
 
 QString BotanWrapper::BCryptGenerate(QString Password)
