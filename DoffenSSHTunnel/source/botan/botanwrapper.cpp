@@ -1,7 +1,19 @@
 #include "botanwrapper.h"
-#include "botan_all.h"
+
 #include <span>
 #include <string>
+
+#ifdef Q_OS_WIN
+    #include "win/botan_all.h"
+#endif
+
+#ifdef Q_OS_MACOS
+    #include "mac/botan_all.h"
+#endif
+
+#ifdef Q_OS_LINUX
+    #include "linux/botan_all.h"
+#endif
 
 BotanWrapper::BotanWrapper(QObject* parent)
     : QObject(parent)
