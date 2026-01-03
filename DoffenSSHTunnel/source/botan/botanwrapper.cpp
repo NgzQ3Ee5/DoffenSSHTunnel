@@ -3,9 +3,6 @@
 #include <span>
 #include <string>
 
-#pragma warning(push)
-#pragma warning(disable:4005) // NOMINMAX redefinition in botan_all.cpp
-
 #ifdef Q_OS_WIN
     #include "win/botan_all.h"
 #endif
@@ -17,8 +14,6 @@
 #ifdef Q_OS_LINUX
     #include "linux/botan_all.h"
 #endif
-
-#pragma warning(pop)
 
 BotanWrapper::BotanWrapper(QObject* parent)
     : QObject(parent)

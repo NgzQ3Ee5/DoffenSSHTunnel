@@ -1425,10 +1425,10 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 * @file  target_info.h
 *
 * Automatically generated from
-* 'configure.py --cc=msvc --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy'
+* 'configure.py --cc=clang --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy'
 *
 * Target
-*  - Compiler: cl  /Zc:preprocessor /std:c++20 /EHs /GR /MD /bigobj /O2 /Oi /Zc:throwingNew
+*  - Compiler: clang++ -fstack-protector -m64 -pthread -std=c++20 -D_REENTRANT -O3
 *  - Arch: x86_64
 *  - OS: windows
 */
@@ -1438,6 +1438,7 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 /*
 * Configuration
 */
+#define BOTAN_CT_VALUE_BARRIER_USE_ASM
 
 [[maybe_unused]] static constexpr bool OptimizeForSize = false;
 
@@ -1446,10 +1447,11 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 /*
 * Compiler Information
 */
-#define BOTAN_BUILD_COMPILER_IS_MSVC
+#define BOTAN_BUILD_COMPILER_IS_CLANG
 
-#define BOTAN_COMPILER_INVOCATION_STRING "cl  /MD /bigobj /O2 /Oi /Zc:throwingNew"
+#define BOTAN_COMPILER_INVOCATION_STRING "clang++ -fstack-protector -m64 -pthread -O3"
 
+#define BOTAN_USE_GCC_INLINE_ASM
 
 
 /*
@@ -1471,12 +1473,18 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 #define BOTAN_TARGET_ARCH_SUPPORTS_AESNI
 #define BOTAN_TARGET_ARCH_SUPPORTS_AVX2
 #define BOTAN_TARGET_ARCH_SUPPORTS_AVX512
+#define BOTAN_TARGET_ARCH_SUPPORTS_BMI2
+#define BOTAN_TARGET_ARCH_SUPPORTS_GFNI
 #define BOTAN_TARGET_ARCH_SUPPORTS_RDRAND
 #define BOTAN_TARGET_ARCH_SUPPORTS_RDSEED
 #define BOTAN_TARGET_ARCH_SUPPORTS_SHA
+#define BOTAN_TARGET_ARCH_SUPPORTS_SHA512
+#define BOTAN_TARGET_ARCH_SUPPORTS_SM3
+#define BOTAN_TARGET_ARCH_SUPPORTS_SM4
 #define BOTAN_TARGET_ARCH_SUPPORTS_SSE2
 #define BOTAN_TARGET_ARCH_SUPPORTS_SSE41
 #define BOTAN_TARGET_ARCH_SUPPORTS_SSSE3
+#define BOTAN_TARGET_ARCH_SUPPORTS_VAES
 
 
 /*
@@ -1502,7 +1510,7 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 #define BOTAN_INSTALL_HEADER_DIR R"(include/botan-3)"
 #define BOTAN_INSTALL_LIB_DIR R"(c:\Botan\lib)"
 #define BOTAN_LIB_LINK ""
-#define BOTAN_LINK_FLAGS ""
+#define BOTAN_LINK_FLAGS "-fstack-protector -m64 -pthread"
 
 
 /* NOLINTEND(*-macro-usage,*-macro-to-enum) */
@@ -15042,9 +15050,7 @@ void CTR_BE::seek(uint64_t offset) {
 #if defined(BOTAN_TARGET_OS_HAS_POSIX1)
    #include <dlfcn.h>
 #elif defined(BOTAN_TARGET_OS_HAS_WIN32)
-   #ifndef NOMINMAX
-      #define NOMINMAX 1
-   #endif
+   #define NOMINMAX 1
    #define _WINSOCKAPI_  // stop windows.h including winsock.h
    #include <windows.h>
 #endif
@@ -24395,9 +24401,7 @@ BigInt Modular_Reducer::reduce(const BigInt& x) const {
 #endif
 
 #if defined(BOTAN_TARGET_OS_HAS_WIN32)
-   #ifndef NOMINMAX
-      #define NOMINMAX 1
-   #endif
+   #define NOMINMAX 1
    #define _WINSOCKAPI_  // stop windows.h including winsock.h
    #include <windows.h>
    #if defined(BOTAN_BUILD_COMPILER_IS_MSVC)
@@ -29119,9 +29123,7 @@ void StreamCipher::generate_keystream(uint8_t out[], size_t len) {
 
 
 #if defined(BOTAN_TARGET_OS_HAS_WIN32)
-   #ifndef NOMINMAX
-      #define NOMINMAX 1
-   #endif
+   #define NOMINMAX 1
    #define _WINSOCKAPI_  // stop windows.h including winsock.h
    #include <windows.h>
 #endif
@@ -30283,9 +30285,7 @@ Not_Implemented::Not_Implemented(std::string_view err) : Exception("Not implemen
    #include <sys/stat.h>
    #include <sys/types.h>
 #elif defined(BOTAN_TARGET_OS_HAS_WIN32)
-   #ifndef NOMINMAX
-      #define NOMINMAX 1
-   #endif
+   #define NOMINMAX 1
    #define _WINSOCKAPI_  // stop windows.h including winsock.h
    #include <windows.h>
 #endif
@@ -30438,9 +30438,7 @@ bool constant_time_compare(std::span<const uint8_t> x, std::span<const uint8_t> 
 #endif
 
 #if defined(BOTAN_TARGET_OS_HAS_RTLSECUREZEROMEMORY)
-   #ifndef NOMINMAX
-      #define NOMINMAX 1
-   #endif
+   #define NOMINMAX 1
    #define _WINSOCKAPI_  // stop windows.h including winsock.h
    #include <windows.h>
 #endif
