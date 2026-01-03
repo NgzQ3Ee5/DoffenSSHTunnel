@@ -1,0 +1,35 @@
+<project name="doffensshtunnel" default="win32" basedir=".">
+	
+	<description>
+        Botan Amalgamation Build (botan_all.h / botan_all.cpp)
+    </description>
+	
+	<!-- QT VERSION DIR -->
+	<property name="botan_download_dir" value="../../Botan-3.10.0"/>
+	<property name="botan_dir" value="../DoffenSSHTunnel/source/botan"/>
+	<property name="botan_modules" value="cryptobox,bcrypt,auto_rng,system_rng,entropy"/>
+	
+	<target name="nothing"></target>
+		
+	<target name="botan" description="create botan files">
+	
+		<echo message="Create Botan for windows"/>
+		<exec executable="python" dir="${botan_download_dir}" failonerror="true" failifexecutionfails="true">
+			<arg value="configure.py"/>
+			<arg value="--cc=msvc"/>
+			<arg value="--amalgamation"/>
+			<arg value="--disable-shared"/>
+			<arg value="--minimized-build"/>
+			<arg value="--enable-modules=${botan_modules}"/>
+		</exec>
+		
+		<echo message="Copy botan_all.h / botan_all.cpp to ${botan_dir}/win"/>
+		<copy todir="${botan_dir}/win" overwrite="true" failonerror="true">
+			<fileset dir="${botan_download_dir}">
+				<include name="botan_all.h"/>
+				<include name="botan_all.cpp"/>
+			</fileset>
+		</copy>
+		
+	</target>
+</project>
