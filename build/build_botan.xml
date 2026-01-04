@@ -33,7 +33,7 @@
 		cryptobox is required to decrypt legacy ciphertext.
 		chacha20poly1305 + hkdf + base64 are for the DTENC1 modern format.
 	-->
-	<property name="botan_modules" value="cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32"/>
+	<property name="botan_modules" value="cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32,argon2"/>
 	
 	<target name="nothing"></target>
 		

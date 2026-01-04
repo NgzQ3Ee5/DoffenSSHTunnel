@@ -142,12 +142,14 @@
 */
 #define BOTAN_HAS_AEAD_CHACHA20_POLY1305 20180807
 #define BOTAN_HAS_AEAD_MODES 20131128
+#define BOTAN_HAS_ARGON2 20210407
 #define BOTAN_HAS_ASN1 20201106
 #define BOTAN_HAS_AUTO_RNG 20161126
 #define BOTAN_HAS_AUTO_SEEDING_RNG 20160821
 #define BOTAN_HAS_BASE64_CODEC 20131128
 #define BOTAN_HAS_BCRYPT 20131128
 #define BOTAN_HAS_BIGINT 20240529
+#define BOTAN_HAS_BLAKE2B 20130131
 #define BOTAN_HAS_BLOCK_CIPHER 20131128
 #define BOTAN_HAS_BLOWFISH 20180718
 #define BOTAN_HAS_CHACHA 20180807
@@ -1699,6 +1701,414 @@ class BOTAN_PUBLIC_API(2, 0) AEAD_Mode : public Cipher_Mode {
 */
 BOTAN_DEPRECATED("Use AEAD_Mode::create") inline AEAD_Mode* get_aead(std::string_view name, Cipher_Dir direction) {
    return AEAD_Mode::create(name, direction, "").release();
+}
+
+}  // namespace Botan
+
+namespace Botan {
+
+/**
+* Base class for password based key derivation functions.
+*
+* Converts a password into a key using a salt and iterated hashing to
+* make brute force attacks harder.
+*/
+class BOTAN_PUBLIC_API(2, 8) PasswordHash /* NOLINT(*-special-member-functions) */ {
+   public:
+      virtual ~PasswordHash() = default;
+
+      virtual std::string to_string() const = 0;
+
+      /**
+      * Most password hashes have some notion of iterations.
+      */
+      virtual size_t iterations() const = 0;
+
+      /**
+      * Some password hashing algorithms have a parameter which controls how
+      * much memory is used. If not supported by some algorithm, returns 0.
+      */
+      virtual size_t memory_param() const { return 0; }
+
+      /**
+      * Some password hashing algorithms have a parallelism parameter.
+      * If the algorithm does not support this notion, then the
+      * function returns zero. This allows distinguishing between a
+      * password hash which just does not support parallel operation,
+      * vs one that does support parallel operation but which has been
+      * configured to use a single lane.
+      */
+      virtual size_t parallelism() const { return 0; }
+
+      /**
+      * Returns an estimate of the total number of bytes required to perform this
+      * key derivation.
+      *
+      * If this algorithm uses a small and constant amount of memory, with no
+      * effort made towards being memory hard, this function returns 0.
+      */
+      virtual size_t total_memory_usage() const { return 0; }
+
+      /**
+      * @returns true if this password hash supports supplying a key
+      */
+      virtual bool supports_keyed_operation() const { return false; }
+
+      /**
+      * @returns true if this password hash supports supplying associated data
+      */
+      virtual bool supports_associated_data() const { return false; }
+
+      /**
+      * Hash a password into a bitstring
+      *
+      * Derive a key from the specified @p password and  @p salt, placing it into
+      * @p out.
+      *
+      * @param out a span where the derived key will be placed
+      * @param password the password to derive the key from
+      * @param salt a randomly chosen salt
+      *
+      * This function is const, but is not thread safe. Different threads should
+      * either use unique objects, or serialize all access.
+      */
+      void hash(std::span<uint8_t> out, std::string_view password, std::span<const uint8_t> salt) const {
+         this->derive_key(out.data(), out.size(), password.data(), password.size(), salt.data(), salt.size());
+      }
+
+      /**
+      * Hash a password into a bitstring
+      *
+      * Derive a key from the specified @p password, @p salt, @p
+      * associated_data, and secret @p key, placing it into @p out. The
+      * @p associated_data and @p key are both allowed to be empty. Currently
+      * non-empty AD/key is only supported with Argon2.
+      *
+      * @param out a span where the derived key will be placed
+      * @param password the password to derive the key from
+      * @param salt a randomly chosen salt
+      * @param associated_data some additional data
+      * @param key a secret key
+      *
+      * This function is const, but is not thread safe. Different threads should
+      * either use unique objects, or serialize all access.
+      */
+      void hash(std::span<uint8_t> out,
+                std::string_view password,
+                std::span<const uint8_t> salt,
+                std::span<const uint8_t> associated_data,
+                std::span<const uint8_t> key) const {
+         this->derive_key(out.data(),
+                          out.size(),
+                          password.data(),
+                          password.size(),
+                          salt.data(),
+                          salt.size(),
+                          associated_data.data(),
+                          associated_data.size(),
+                          key.data(),
+                          key.size());
+      }
+
+      /**
+      * Derive a key from a password
+      *
+      * @param out buffer to store the derived key, must be of out_len bytes
+      * @param out_len the desired length of the key to produce
+      * @param password the password to derive the key from
+      * @param password_len the length of password in bytes
+      * @param salt a randomly chosen salt
+      * @param salt_len length of salt in bytes
+      *
+      * This function is const, but is not thread safe. Different threads should
+      * either use unique objects, or serialize all access.
+      */
+      virtual void derive_key(uint8_t out[],
+                              size_t out_len,
+                              const char* password,
+                              size_t password_len,
+                              const uint8_t salt[],
+                              size_t salt_len) const = 0;
+
+      /**
+      * Derive a key from a password plus additional data and/or a secret key
+      *
+      * Currently this is only supported for Argon2. Using a non-empty AD or key
+      * with other algorithms will cause a Not_Implemented exception.
+      *
+      * @param out buffer to store the derived key, must be of out_len bytes
+      * @param out_len the desired length of the key to produce
+      * @param password the password to derive the key from
+      * @param password_len the length of password in bytes
+      * @param salt a randomly chosen salt
+      * @param salt_len length of salt in bytes
+      * @param ad some additional data
+      * @param ad_len length of ad in bytes
+      * @param key a secret key
+      * @param key_len length of key in bytes
+      *
+      * This function is const, but is not thread safe. Different threads should
+      * either use unique objects, or serialize all access.
+      */
+      virtual void derive_key(uint8_t out[],
+                              size_t out_len,
+                              const char* password,
+                              size_t password_len,
+                              const uint8_t salt[],
+                              size_t salt_len,
+                              const uint8_t ad[],
+                              size_t ad_len,
+                              const uint8_t key[],
+                              size_t key_len) const;
+};
+
+class BOTAN_PUBLIC_API(2, 8) PasswordHashFamily /* NOLINT(*-special-member-functions) */ {
+   public:
+      /**
+      * Create an instance based on a name
+      * If provider is empty then best available is chosen.
+      * @param algo_spec algorithm name
+      * @param provider provider implementation to choose
+      * @return a null pointer if the algo/provider combination cannot be found
+      */
+      static std::unique_ptr<PasswordHashFamily> create(std::string_view algo_spec, std::string_view provider = "");
+
+      /**
+      * Create an instance based on a name, or throw if the
+      * algo/provider combination cannot be found. If provider is
+      * empty then best available is chosen.
+      */
+      static std::unique_ptr<PasswordHashFamily> create_or_throw(std::string_view algo_spec,
+                                                                 std::string_view provider = "");
+
+      /**
+      * @return list of available providers for this algorithm, empty if not available
+      */
+      static std::vector<std::string> providers(std::string_view algo_spec);
+
+      virtual ~PasswordHashFamily() = default;
+
+      /**
+      * @return name of this PasswordHash
+      */
+      virtual std::string name() const = 0;
+
+      /**
+      * Return a new parameter set tuned for this machine
+      *
+      * Return a password hash instance tuned to run for approximately @p msec
+      * milliseconds when producing an output of length @p output_length.
+      * (Accuracy may vary, use the command line utility ``botan pbkdf_tune`` to
+      * check.)
+      *
+      * The parameters will be selected to use at most @p max_memory_usage_mb
+      * megabytes of memory, or if left as zero any size is allowed.
+      *
+      * This function works by running a short tuning loop to estimate the
+      * performance of the algorithm, then scaling the parameters appropriately
+      * to hit the target size. The length of time the tuning loop runs can be
+      * controlled using the @p tuning_msec parameter.
+      *
+      * @param output_length how long the output length will be
+      * @param msec the desired execution time in milliseconds
+      *
+      * @param max_memory_usage_mb some password hash functions can use a
+      * tunable amount of memory, in this case max_memory_usage limits the
+      * amount of RAM the returned parameters will require, in mebibytes (2**20
+      * bytes). It may require some small amount above the request. Set to zero
+      * to place no limit at all.
+      * @param tuning_msec how long to run the tuning loop
+      */
+      virtual std::unique_ptr<PasswordHash> tune(
+         size_t output_length,
+         std::chrono::milliseconds msec,
+         size_t max_memory_usage_mb = 0,
+         std::chrono::milliseconds tuning_msec = std::chrono::milliseconds(10)) const = 0;
+
+      /**
+      * Return some default parameter set for this PBKDF that should be good
+      * enough for most users. The value returned may change over time as
+      * processing power and attacks improve.
+      */
+      virtual std::unique_ptr<PasswordHash> default_params() const = 0;
+
+      /**
+      * Return a parameter chosen based on a rough approximation with the
+      * specified iteration count. The exact value this returns for a particular
+      * algorithm may change from over time. Think of it as an alternative to
+      * tune, where time is expressed in terms of PBKDF2 iterations rather than
+      * milliseconds.
+      */
+      virtual std::unique_ptr<PasswordHash> from_iterations(size_t iterations) const = 0;
+
+      /**
+      * Create a password hash using some scheme specific format. Parameters are as follows:
+      * - For PBKDF2, PGP-S2K, and Bcrypt-PBKDF, i1 is iterations
+      * - Scrypt uses N, r, p for i{1-3}
+      * - Argon2 family uses memory (in KB), iterations, and parallelism for i{1-3}
+      *
+      * All unneeded parameters should be set to 0 or left blank.
+      */
+      virtual std::unique_ptr<PasswordHash> from_params(size_t i1, size_t i2 = 0, size_t i3 = 0) const = 0;
+};
+
+}  // namespace Botan
+
+#if defined(BOTAN_HAS_ARGON2_FMT)
+#endif
+
+BOTAN_FUTURE_INTERNAL_HEADER(argon2.h)
+
+namespace Botan {
+
+class RandomNumberGenerator;
+
+/**
+* Argon2 key derivation function
+*/
+class BOTAN_PUBLIC_API(2, 11) Argon2 final : public PasswordHash {
+   public:
+      Argon2(uint8_t family, size_t M, size_t t, size_t p);
+
+      /**
+      * Derive a new key under the current Argon2 parameter set
+      */
+      void derive_key(uint8_t out[],
+                      size_t out_len,
+                      const char* password,
+                      size_t password_len,
+                      const uint8_t salt[],
+                      size_t salt_len) const override;
+
+      void derive_key(uint8_t out[],
+                      size_t out_len,
+                      const char* password,
+                      size_t password_len,
+                      const uint8_t salt[],
+                      size_t salt_len,
+                      const uint8_t ad[],
+                      size_t ad_len,
+                      const uint8_t key[],
+                      size_t key_len) const override;
+
+      std::string to_string() const override;
+
+      size_t M() const { return m_M; }
+
+      size_t t() const { return m_t; }
+
+      size_t p() const { return m_p; }
+
+      bool supports_keyed_operation() const override { return true; }
+
+      bool supports_associated_data() const override { return true; }
+
+      size_t iterations() const override { return t(); }
+
+      size_t parallelism() const override { return p(); }
+
+      size_t memory_param() const override { return M(); }
+
+      size_t total_memory_usage() const override { return M() * 1024; }
+
+      /**
+      * Argon2's BLAMKA function
+      */
+      static void blamka(uint64_t N[128], uint64_t T[128]);
+
+   private:
+#if defined(BOTAN_HAS_ARGON2_AVX2)
+      static void blamka_avx2(uint64_t N[128], uint64_t T[128]);
+#endif
+
+#if defined(BOTAN_HAS_ARGON2_SSSE3)
+      static void blamka_ssse3(uint64_t N[128], uint64_t T[128]);
+#endif
+
+      void argon2(uint8_t output[],
+                  size_t output_len,
+                  const char* password,
+                  size_t password_len,
+                  const uint8_t salt[],
+                  size_t salt_len,
+                  const uint8_t key[],
+                  size_t key_len,
+                  const uint8_t ad[],
+                  size_t ad_len) const;
+
+      uint8_t m_family;
+      size_t m_M, m_t, m_p;
+};
+
+class BOTAN_PUBLIC_API(2, 11) Argon2_Family final : public PasswordHashFamily {
+   public:
+      BOTAN_FUTURE_EXPLICIT Argon2_Family(uint8_t family);
+
+      std::string name() const override;
+
+      std::unique_ptr<PasswordHash> tune(size_t output_length,
+                                         std::chrono::milliseconds msec,
+                                         size_t max_memory,
+                                         std::chrono::milliseconds tune_msec) const override;
+
+      std::unique_ptr<PasswordHash> default_params() const override;
+
+      std::unique_ptr<PasswordHash> from_iterations(size_t iter) const override;
+
+      std::unique_ptr<PasswordHash> from_params(size_t M, size_t t, size_t p) const override;
+
+   private:
+      const uint8_t m_family;
+};
+
+/**
+* Argon2 key derivation function
+*
+* @param output the output will be placed here
+* @param output_len length of output
+* @param password the user password
+* @param password_len the length of password
+* @param salt the salt
+* @param salt_len length of salt
+* @param key an optional secret key
+* @param key_len the length of key
+* @param ad an optional additional input
+* @param ad_len the length of ad
+* @param y the Argon2 variant (0 = Argon2d, 1 = Argon2i, 2 = Argon2id)
+* @param p the parallelization parameter
+* @param M the amount of memory to use in Kb
+* @param t the number of iterations to use
+*/
+BOTAN_DEPRECATED("Use PasswordHashFamily+PasswordHash")
+
+inline void argon2(uint8_t output[],
+                   size_t output_len,
+                   const char* password,
+                   size_t password_len,
+                   const uint8_t salt[],
+                   size_t salt_len,
+                   const uint8_t key[],
+                   size_t key_len,
+                   const uint8_t ad[],
+                   size_t ad_len,
+                   uint8_t y,
+                   size_t p,
+                   size_t M,
+                   size_t t) {
+   auto pwdhash_fam = PasswordHashFamily::create_or_throw([y] {
+      switch(y) {
+         case 0:
+            return "Argon2d";
+         case 1:
+            return "Argon2i";
+         case 2:
+            return "Argon2id";
+         default:
+            throw Not_Implemented("Unknown Argon2 family type");
+      }
+   }());
+   auto pwdhash = pwdhash_fam->from_params(M, t, p);
+   pwdhash->derive_key(output, output_len, password, password_len, salt, salt_len, ad, ad_len, key, key_len);
 }
 
 }  // namespace Botan
@@ -7564,255 +7974,6 @@ inline PBKDF* get_pbkdf(std::string_view algo_spec, std::string_view provider = 
 BOTAN_DEPRECATED("Use PasswordHashFamily + PasswordHash") inline PBKDF* get_s2k(std::string_view algo_spec) {
    return PBKDF::create_or_throw(algo_spec).release();
 }
-
-}  // namespace Botan
-
-namespace Botan {
-
-/**
-* Base class for password based key derivation functions.
-*
-* Converts a password into a key using a salt and iterated hashing to
-* make brute force attacks harder.
-*/
-class BOTAN_PUBLIC_API(2, 8) PasswordHash /* NOLINT(*-special-member-functions) */ {
-   public:
-      virtual ~PasswordHash() = default;
-
-      virtual std::string to_string() const = 0;
-
-      /**
-      * Most password hashes have some notion of iterations.
-      */
-      virtual size_t iterations() const = 0;
-
-      /**
-      * Some password hashing algorithms have a parameter which controls how
-      * much memory is used. If not supported by some algorithm, returns 0.
-      */
-      virtual size_t memory_param() const { return 0; }
-
-      /**
-      * Some password hashing algorithms have a parallelism parameter.
-      * If the algorithm does not support this notion, then the
-      * function returns zero. This allows distinguishing between a
-      * password hash which just does not support parallel operation,
-      * vs one that does support parallel operation but which has been
-      * configured to use a single lane.
-      */
-      virtual size_t parallelism() const { return 0; }
-
-      /**
-      * Returns an estimate of the total number of bytes required to perform this
-      * key derivation.
-      *
-      * If this algorithm uses a small and constant amount of memory, with no
-      * effort made towards being memory hard, this function returns 0.
-      */
-      virtual size_t total_memory_usage() const { return 0; }
-
-      /**
-      * @returns true if this password hash supports supplying a key
-      */
-      virtual bool supports_keyed_operation() const { return false; }
-
-      /**
-      * @returns true if this password hash supports supplying associated data
-      */
-      virtual bool supports_associated_data() const { return false; }
-
-      /**
-      * Hash a password into a bitstring
-      *
-      * Derive a key from the specified @p password and  @p salt, placing it into
-      * @p out.
-      *
-      * @param out a span where the derived key will be placed
-      * @param password the password to derive the key from
-      * @param salt a randomly chosen salt
-      *
-      * This function is const, but is not thread safe. Different threads should
-      * either use unique objects, or serialize all access.
-      */
-      void hash(std::span<uint8_t> out, std::string_view password, std::span<const uint8_t> salt) const {
-         this->derive_key(out.data(), out.size(), password.data(), password.size(), salt.data(), salt.size());
-      }
-
-      /**
-      * Hash a password into a bitstring
-      *
-      * Derive a key from the specified @p password, @p salt, @p
-      * associated_data, and secret @p key, placing it into @p out. The
-      * @p associated_data and @p key are both allowed to be empty. Currently
-      * non-empty AD/key is only supported with Argon2.
-      *
-      * @param out a span where the derived key will be placed
-      * @param password the password to derive the key from
-      * @param salt a randomly chosen salt
-      * @param associated_data some additional data
-      * @param key a secret key
-      *
-      * This function is const, but is not thread safe. Different threads should
-      * either use unique objects, or serialize all access.
-      */
-      void hash(std::span<uint8_t> out,
-                std::string_view password,
-                std::span<const uint8_t> salt,
-                std::span<const uint8_t> associated_data,
-                std::span<const uint8_t> key) const {
-         this->derive_key(out.data(),
-                          out.size(),
-                          password.data(),
-                          password.size(),
-                          salt.data(),
-                          salt.size(),
-                          associated_data.data(),
-                          associated_data.size(),
-                          key.data(),
-                          key.size());
-      }
-
-      /**
-      * Derive a key from a password
-      *
-      * @param out buffer to store the derived key, must be of out_len bytes
-      * @param out_len the desired length of the key to produce
-      * @param password the password to derive the key from
-      * @param password_len the length of password in bytes
-      * @param salt a randomly chosen salt
-      * @param salt_len length of salt in bytes
-      *
-      * This function is const, but is not thread safe. Different threads should
-      * either use unique objects, or serialize all access.
-      */
-      virtual void derive_key(uint8_t out[],
-                              size_t out_len,
-                              const char* password,
-                              size_t password_len,
-                              const uint8_t salt[],
-                              size_t salt_len) const = 0;
-
-      /**
-      * Derive a key from a password plus additional data and/or a secret key
-      *
-      * Currently this is only supported for Argon2. Using a non-empty AD or key
-      * with other algorithms will cause a Not_Implemented exception.
-      *
-      * @param out buffer to store the derived key, must be of out_len bytes
-      * @param out_len the desired length of the key to produce
-      * @param password the password to derive the key from
-      * @param password_len the length of password in bytes
-      * @param salt a randomly chosen salt
-      * @param salt_len length of salt in bytes
-      * @param ad some additional data
-      * @param ad_len length of ad in bytes
-      * @param key a secret key
-      * @param key_len length of key in bytes
-      *
-      * This function is const, but is not thread safe. Different threads should
-      * either use unique objects, or serialize all access.
-      */
-      virtual void derive_key(uint8_t out[],
-                              size_t out_len,
-                              const char* password,
-                              size_t password_len,
-                              const uint8_t salt[],
-                              size_t salt_len,
-                              const uint8_t ad[],
-                              size_t ad_len,
-                              const uint8_t key[],
-                              size_t key_len) const;
-};
-
-class BOTAN_PUBLIC_API(2, 8) PasswordHashFamily /* NOLINT(*-special-member-functions) */ {
-   public:
-      /**
-      * Create an instance based on a name
-      * If provider is empty then best available is chosen.
-      * @param algo_spec algorithm name
-      * @param provider provider implementation to choose
-      * @return a null pointer if the algo/provider combination cannot be found
-      */
-      static std::unique_ptr<PasswordHashFamily> create(std::string_view algo_spec, std::string_view provider = "");
-
-      /**
-      * Create an instance based on a name, or throw if the
-      * algo/provider combination cannot be found. If provider is
-      * empty then best available is chosen.
-      */
-      static std::unique_ptr<PasswordHashFamily> create_or_throw(std::string_view algo_spec,
-                                                                 std::string_view provider = "");
-
-      /**
-      * @return list of available providers for this algorithm, empty if not available
-      */
-      static std::vector<std::string> providers(std::string_view algo_spec);
-
-      virtual ~PasswordHashFamily() = default;
-
-      /**
-      * @return name of this PasswordHash
-      */
-      virtual std::string name() const = 0;
-
-      /**
-      * Return a new parameter set tuned for this machine
-      *
-      * Return a password hash instance tuned to run for approximately @p msec
-      * milliseconds when producing an output of length @p output_length.
-      * (Accuracy may vary, use the command line utility ``botan pbkdf_tune`` to
-      * check.)
-      *
-      * The parameters will be selected to use at most @p max_memory_usage_mb
-      * megabytes of memory, or if left as zero any size is allowed.
-      *
-      * This function works by running a short tuning loop to estimate the
-      * performance of the algorithm, then scaling the parameters appropriately
-      * to hit the target size. The length of time the tuning loop runs can be
-      * controlled using the @p tuning_msec parameter.
-      *
-      * @param output_length how long the output length will be
-      * @param msec the desired execution time in milliseconds
-      *
-      * @param max_memory_usage_mb some password hash functions can use a
-      * tunable amount of memory, in this case max_memory_usage limits the
-      * amount of RAM the returned parameters will require, in mebibytes (2**20
-      * bytes). It may require some small amount above the request. Set to zero
-      * to place no limit at all.
-      * @param tuning_msec how long to run the tuning loop
-      */
-      virtual std::unique_ptr<PasswordHash> tune(
-         size_t output_length,
-         std::chrono::milliseconds msec,
-         size_t max_memory_usage_mb = 0,
-         std::chrono::milliseconds tuning_msec = std::chrono::milliseconds(10)) const = 0;
-
-      /**
-      * Return some default parameter set for this PBKDF that should be good
-      * enough for most users. The value returned may change over time as
-      * processing power and attacks improve.
-      */
-      virtual std::unique_ptr<PasswordHash> default_params() const = 0;
-
-      /**
-      * Return a parameter chosen based on a rough approximation with the
-      * specified iteration count. The exact value this returns for a particular
-      * algorithm may change from over time. Think of it as an alternative to
-      * tune, where time is expressed in terms of PBKDF2 iterations rather than
-      * milliseconds.
-      */
-      virtual std::unique_ptr<PasswordHash> from_iterations(size_t iterations) const = 0;
-
-      /**
-      * Create a password hash using some scheme specific format. Parameters are as follows:
-      * - For PBKDF2, PGP-S2K, and Bcrypt-PBKDF, i1 is iterations
-      * - Scrypt uses N, r, p for i{1-3}
-      * - Argon2 family uses memory (in KB), iterations, and parallelism for i{1-3}
-      *
-      * All unneeded parameters should be set to 0 or left blank.
-      */
-      virtual std::unique_ptr<PasswordHash> from_params(size_t i1, size_t i2 = 0, size_t i3 = 0) const = 0;
-};
 
 }  // namespace Botan
 

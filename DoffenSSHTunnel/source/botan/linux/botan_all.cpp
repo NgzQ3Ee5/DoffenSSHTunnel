@@ -1085,6 +1085,64 @@ BOTAN_FORCE_INLINE constexpr uint8_t ct_popcount(T x) {
 
 namespace Botan {
 
+class BLAKE2bMAC;
+
+constexpr size_t BLAKE2B_BLOCKBYTES = 128;
+
+/**
+* BLAKE2B
+*/
+class BLAKE2b final : public HashFunction,
+                      public SymmetricAlgorithm {
+   public:
+      /**
+      * @param output_bits the output size of BLAKE2b in bits
+      */
+      explicit BLAKE2b(size_t output_bits = 512);
+
+      size_t hash_block_size() const override { return 128; }
+
+      size_t output_length() const override { return m_output_bits / 8; }
+
+      size_t key_size() const { return m_key_size; }
+
+      Key_Length_Specification key_spec() const override;
+
+      std::unique_ptr<HashFunction> new_object() const override;
+      std::string name() const override;
+      void clear() override;
+      bool has_keying_material() const override;
+
+      std::unique_ptr<HashFunction> copy_state() const override;
+
+   protected:
+      friend class BLAKE2bMAC;
+
+      void key_schedule(std::span<const uint8_t> key) override;
+
+      void add_data(std::span<const uint8_t> input) override;
+      void final_result(std::span<uint8_t> out) override;
+
+   private:
+      void state_init();
+      void compress(const uint8_t* data, size_t blocks, uint64_t increment);
+
+      const size_t m_output_bits;
+
+      AlignmentBuffer<uint8_t, BLAKE2B_BLOCKBYTES, AlignmentBufferFinalBlock::must_be_deferred> m_buffer;
+
+      secure_vector<uint64_t> m_H;
+      uint64_t m_T[2];
+      uint64_t m_F;
+
+      size_t m_key_size;
+      secure_vector<uint8_t> m_padded_key_buffer;
+};
+
+}  // namespace Botan
+
+namespace Botan {
+
 /**
 * Blowfish
 */
@@ -1588,7 +1646,7 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 * @file  target_info.h
 *
 * Automatically generated from
-* 'configure.py --cc=gcc --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32'
+* 'configure.py --cc=gcc --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32,argon2'
 *
 * Target
 *  - Compiler: g++ -fstack-protector -m64 -pthread -std=c++20 -D_REENTRANT -O3
@@ -8248,6 +8306,554 @@ std::unique_ptr<AEAD_Mode> AEAD_Mode::create(std::string_view algo, Cipher_Dir d
 }
 
 }  // namespace Botan
+/**
+* (C) 2018,2019,2022 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+#include <limits>
+
+#if defined(BOTAN_HAS_THREAD_UTILS)
+#endif
+
+#if defined(BOTAN_HAS_CPUID)
+#endif
+
+namespace Botan {
+
+namespace {
+
+const size_t SYNC_POINTS = 4;
+
+void argon2_H0(uint8_t H0[64],
+               HashFunction& blake2b,
+               size_t output_len,
+               const char* password,
+               size_t password_len,
+               const uint8_t salt[],
+               size_t salt_len,
+               const uint8_t key[],
+               size_t key_len,
+               const uint8_t ad[],
+               size_t ad_len,
+               size_t y,
+               size_t p,
+               size_t M,
+               size_t t) {
+   const uint8_t v = 19;  // Argon2 version code
+
+   blake2b.update_le(static_cast<uint32_t>(p));
+   blake2b.update_le(static_cast<uint32_t>(output_len));
+   blake2b.update_le(static_cast<uint32_t>(M));
+   blake2b.update_le(static_cast<uint32_t>(t));
+   blake2b.update_le(static_cast<uint32_t>(v));
+   blake2b.update_le(static_cast<uint32_t>(y));
+
+   blake2b.update_le(static_cast<uint32_t>(password_len));
+   blake2b.update(as_span_of_bytes(password, password_len));
+
+   blake2b.update_le(static_cast<uint32_t>(salt_len));
+   blake2b.update(salt, salt_len);
+
+   blake2b.update_le(static_cast<uint32_t>(key_len));
+   blake2b.update(key, key_len);
+
+   blake2b.update_le(static_cast<uint32_t>(ad_len));
+   blake2b.update(ad, ad_len);
+
+   blake2b.final(H0);
+}
+
+void extract_key(uint8_t output[], size_t output_len, const secure_vector<uint64_t>& B, size_t memory, size_t threads) {
+   const size_t lanes = memory / threads;
+
+   uint64_t sum[128] = {0};
+
+   for(size_t lane = 0; lane != threads; ++lane) {
+      const size_t start = 128 * (lane * lanes + lanes - 1);
+      const size_t end = 128 * (lane * lanes + lanes);
+
+      for(size_t j = start; j != end; ++j) {
+         sum[j % 128] ^= B[j];
+      }
+   }
+
+   if(output_len <= 64) {
+      auto blake2b = HashFunction::create_or_throw(fmt("BLAKE2b({})", output_len * 8));
+      blake2b->update_le(static_cast<uint32_t>(output_len));
+      for(size_t i = 0; i != 128; ++i) {  // NOLINT(modernize-loop-convert)
+         blake2b->update_le(sum[i]);
+      }
+      blake2b->final(output);
+   } else {
+      secure_vector<uint8_t> T(64);
+
+      auto blake2b = HashFunction::create_or_throw("BLAKE2b(512)");
+      blake2b->update_le(static_cast<uint32_t>(output_len));
+      for(size_t i = 0; i != 128; ++i) {  // NOLINT(modernize-loop-convert)
+         blake2b->update_le(sum[i]);
+      }
+      blake2b->final(std::span{T});
+
+      while(output_len > 64) {
+         copy_mem(output, T.data(), 32);
+         output_len -= 32;
+         output += 32;
+
+         if(output_len > 64) {
+            blake2b->update(T);
+            blake2b->final(std::span{T});
+         }
+      }
+
+      if(output_len == 64) {
+         blake2b->update(T);
+         blake2b->final(output);
+      } else {
+         auto blake2b_f = HashFunction::create_or_throw(fmt("BLAKE2b({})", output_len * 8));
+         blake2b_f->update(T);
+         blake2b_f->final(output);
+      }
+   }
+}
+
+void init_blocks(
+   secure_vector<uint64_t>& B, HashFunction& blake2b, const uint8_t H0[64], size_t memory, size_t threads) {
+   BOTAN_ASSERT_NOMSG(B.size() >= threads * 256);
+
+   for(size_t i = 0; i != threads; ++i) {
+      const size_t B_off = i * (memory / threads);
+
+      BOTAN_ASSERT_NOMSG(B.size() >= 128 * (B_off + 2));
+
+      for(size_t j = 0; j != 2; ++j) {
+         uint8_t T[64] = {0};
+
+         blake2b.update_le(static_cast<uint32_t>(1024));
+         blake2b.update(H0, 64);
+         blake2b.update_le(static_cast<uint32_t>(j));
+         blake2b.update_le(static_cast<uint32_t>(i));
+         blake2b.final(T);
+
+         for(size_t k = 0; k != 30; ++k) {
+            load_le(&B[128 * (B_off + j) + 4 * k], T, 32 / 8);
+            blake2b.update(T, 64);
+            blake2b.final(T);
+         }
+
+         load_le(&B[128 * (B_off + j) + 4 * 30], T, 64 / 8);
+      }
+   }
+}
+
+BOTAN_FORCE_INLINE void blamka_G(uint64_t& A, uint64_t& B, uint64_t& C, uint64_t& D) {
+   A += B + (static_cast<uint64_t>(2) * static_cast<uint32_t>(A)) * static_cast<uint32_t>(B);
+   D = rotr<32>(A ^ D);
+
+   C += D + (static_cast<uint64_t>(2) * static_cast<uint32_t>(C)) * static_cast<uint32_t>(D);
+   B = rotr<24>(B ^ C);
+
+   A += B + (static_cast<uint64_t>(2) * static_cast<uint32_t>(A)) * static_cast<uint32_t>(B);
+   D = rotr<16>(A ^ D);
+
+   C += D + (static_cast<uint64_t>(2) * static_cast<uint32_t>(C)) * static_cast<uint32_t>(D);
+   B = rotr<63>(B ^ C);
+}
+
+}  // namespace
+
+void Argon2::blamka(uint64_t N[128], uint64_t T[128]) {
+#if defined(BOTAN_HAS_ARGON2_AVX2)
+   if(CPUID::has(CPUID::Feature::AVX2)) {
+      return Argon2::blamka_avx2(N, T);
+   }
+#endif
+
+#if defined(BOTAN_HAS_ARGON2_SSSE3)
+   if(CPUID::has(CPUID::Feature::SSSE3)) {
+      return Argon2::blamka_ssse3(N, T);
+   }
+#endif
+
+   copy_mem(T, N, 128);
+
+   for(size_t i = 0; i != 128; i += 16) {
+      blamka_G(T[i + 0], T[i + 4], T[i + 8], T[i + 12]);
+      blamka_G(T[i + 1], T[i + 5], T[i + 9], T[i + 13]);
+      blamka_G(T[i + 2], T[i + 6], T[i + 10], T[i + 14]);
+      blamka_G(T[i + 3], T[i + 7], T[i + 11], T[i + 15]);
+
+      blamka_G(T[i + 0], T[i + 5], T[i + 10], T[i + 15]);
+      blamka_G(T[i + 1], T[i + 6], T[i + 11], T[i + 12]);
+      blamka_G(T[i + 2], T[i + 7], T[i + 8], T[i + 13]);
+      blamka_G(T[i + 3], T[i + 4], T[i + 9], T[i + 14]);
+   }
+
+   for(size_t i = 0; i != 128 / 8; i += 2) {
+      blamka_G(T[i + 0], T[i + 32], T[i + 64], T[i + 96]);
+      blamka_G(T[i + 1], T[i + 33], T[i + 65], T[i + 97]);
+      blamka_G(T[i + 16], T[i + 48], T[i + 80], T[i + 112]);
+      blamka_G(T[i + 17], T[i + 49], T[i + 81], T[i + 113]);
+
+      blamka_G(T[i + 0], T[i + 33], T[i + 80], T[i + 113]);
+      blamka_G(T[i + 1], T[i + 48], T[i + 81], T[i + 96]);
+      blamka_G(T[i + 16], T[i + 49], T[i + 64], T[i + 97]);
+      blamka_G(T[i + 17], T[i + 32], T[i + 65], T[i + 112]);
+   }
+
+   for(size_t i = 0; i != 128; ++i) {
+      N[i] ^= T[i];
+   }
+}
+
+namespace {
+
+void gen_2i_addresses(uint64_t T[128],
+                      uint64_t B[128],
+                      size_t n,
+                      size_t lane,
+                      size_t slice,
+                      size_t memory,
+                      size_t time,
+                      size_t mode,
+                      size_t cnt) {
+   clear_mem(B, 128);
+
+   B[0] = n;
+   B[1] = lane;
+   B[2] = slice;
+   B[3] = memory;
+   B[4] = time;
+   B[5] = mode;
+   B[6] = cnt;
+
+   for(size_t r = 0; r != 2; ++r) {
+      Argon2::blamka(B, T);
+   }
+}
+
+uint32_t index_alpha(
+   uint64_t random, size_t lanes, size_t segments, size_t threads, size_t n, size_t slice, size_t lane, size_t index) {
+   size_t ref_lane = static_cast<uint32_t>(random >> 32) % threads;
+
+   if(n == 0 && slice == 0) {
+      ref_lane = lane;
+   }
+
+   size_t m = 3 * segments;
+   size_t s = ((slice + 1) % 4) * segments;
+
+   if(lane == ref_lane) {
+      m += index;
+   }
+
+   if(n == 0) {
+      m = slice * segments;
+      s = 0;
+      if(slice == 0 || lane == ref_lane) {
+         m += index;
+      }
+   }
+
+   if(index == 0 || lane == ref_lane) {
+      m -= 1;
+   }
+
+   uint64_t p = static_cast<uint32_t>(random);
+   p = (p * p) >> 32;
+   p = (p * m) >> 32;
+
+   return static_cast<uint32_t>(ref_lane * lanes + (s + m - (p + 1)) % lanes);
+}
+
+void process_block(secure_vector<uint64_t>& B,
+                   size_t n,
+                   size_t slice,
+                   size_t lane,
+                   size_t lanes,
+                   size_t segments,
+                   size_t threads,
+                   uint8_t mode,
+                   size_t memory,
+                   size_t time) {
+   uint64_t T[128];
+   size_t index = 0;
+   if(n == 0 && slice == 0) {
+      index = 2;
+   }
+
+   const bool use_2i = mode == 1 || (mode == 2 && n == 0 && slice < SYNC_POINTS / 2);
+
+   uint64_t addresses[128];
+   size_t address_counter = 1;
+
+   if(use_2i) {
+      gen_2i_addresses(T, addresses, n, lane, slice, memory, time, mode, address_counter);
+   }
+
+   while(index < segments) {
+      const size_t offset = lane * lanes + slice * segments + index;
+
+      size_t prev = offset - 1;
+      if(index == 0 && slice == 0) {
+         prev += lanes;
+      }
+
+      if(use_2i && index > 0 && index % 128 == 0) {
+         address_counter += 1;
+         gen_2i_addresses(T, addresses, n, lane, slice, memory, time, mode, address_counter);
+      }
+
+      const uint64_t random = use_2i ? addresses[index % 128] : B.at(128 * prev);
+      const size_t new_offset = index_alpha(random, lanes, segments, threads, n, slice, lane, index);
+
+      uint64_t N[128];
+      for(size_t i = 0; i != 128; ++i) {
+         N[i] = B[128 * prev + i] ^ B[128 * new_offset + i];
+      }
+
+      Argon2::blamka(N, T);
+
+      for(size_t i = 0; i != 128; ++i) {
+         B[128 * offset + i] ^= N[i];
+      }
+
+      index += 1;
+   }
+}
+
+void process_blocks(secure_vector<uint64_t>& B, size_t t, size_t memory, size_t threads, uint8_t mode) {
+   const size_t lanes = memory / threads;
+   const size_t segments = lanes / SYNC_POINTS;
+
+#if defined(BOTAN_HAS_THREAD_UTILS)
+   if(threads > 1) {
+      auto& thread_pool = Thread_Pool::global_instance();
+
+      for(size_t n = 0; n != t; ++n) {
+         for(size_t slice = 0; slice != SYNC_POINTS; ++slice) {
+            std::vector<std::future<void>> fut_results;
+            fut_results.reserve(threads);
+
+            for(size_t lane = 0; lane != threads; ++lane) {
+               fut_results.push_back(thread_pool.run(
+                  process_block, std::ref(B), n, slice, lane, lanes, segments, threads, mode, memory, t));
+            }
+
+            for(auto& fut : fut_results) {
+               fut.get();
+            }
+         }
+      }
+
+      return;
+   }
+#endif
+
+   for(size_t n = 0; n != t; ++n) {
+      for(size_t slice = 0; slice != SYNC_POINTS; ++slice) {
+         for(size_t lane = 0; lane != threads; ++lane) {
+            process_block(B, n, slice, lane, lanes, segments, threads, mode, memory, t);
+         }
+      }
+   }
+}
+
+}  // namespace
+
+void Argon2::argon2(uint8_t output[],
+                    size_t output_len,
+                    const char* password,
+                    size_t password_len,
+                    const uint8_t salt[],
+                    size_t salt_len,
+                    const uint8_t key[],
+                    size_t key_len,
+                    const uint8_t ad[],
+                    size_t ad_len) const {
+   BOTAN_ARG_CHECK(output_len >= 4 && output_len <= std::numeric_limits<uint32_t>::max(),
+                   "Invalid Argon2 output length");
+   BOTAN_ARG_CHECK(password_len <= std::numeric_limits<uint32_t>::max(), "Invalid Argon2 password length");
+   BOTAN_ARG_CHECK(salt_len <= std::numeric_limits<uint32_t>::max(), "Invalid Argon2 salt length");
+   BOTAN_ARG_CHECK(key_len <= std::numeric_limits<uint32_t>::max(), "Invalid Argon2 key length");
+   BOTAN_ARG_CHECK(ad_len <= std::numeric_limits<uint32_t>::max(), "Invalid Argon2 ad length");
+
+   auto blake2 = HashFunction::create_or_throw("BLAKE2b");
+
+   uint8_t H0[64] = {0};
+   argon2_H0(H0,
+             *blake2,
+             output_len,
+             password,
+             password_len,
+             salt,
+             salt_len,
+             key,
+             key_len,
+             ad,
+             ad_len,
+             m_family,
+             m_p,
+             m_M,
+             m_t);
+
+   const size_t memory = (m_M / (SYNC_POINTS * m_p)) * (SYNC_POINTS * m_p);
+
+   secure_vector<uint64_t> B(memory * 1024 / 8);
+
+   init_blocks(B, *blake2, H0, memory, m_p);
+   process_blocks(B, m_t, memory, m_p, m_family);
+
+   clear_mem(output, output_len);
+   extract_key(output, output_len, B, memory, m_p);
+}
+
+}  // namespace Botan
+/**
+* (C) 2019 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+#include <algorithm>
+
+namespace Botan {
+
+Argon2::Argon2(uint8_t family, size_t M, size_t t, size_t p) : m_family(family), m_M(M), m_t(t), m_p(p) {
+   BOTAN_ARG_CHECK(m_p >= 1 && m_p <= 128, "Invalid Argon2 threads parameter");
+   BOTAN_ARG_CHECK(m_M >= 8 * m_p && m_M <= 8192 * 1024, "Invalid Argon2 M parameter");
+   BOTAN_ARG_CHECK(m_t >= 1 && m_t <= std::numeric_limits<uint32_t>::max(), "Invalid Argon2 t parameter");
+}
+
+void Argon2::derive_key(uint8_t output[],
+                        size_t output_len,
+                        const char* password,
+                        size_t password_len,
+                        const uint8_t salt[],
+                        size_t salt_len) const {
+   argon2(output, output_len, password, password_len, salt, salt_len, nullptr, 0, nullptr, 0);
+}
+
+void Argon2::derive_key(uint8_t output[],
+                        size_t output_len,
+                        const char* password,
+                        size_t password_len,
+                        const uint8_t salt[],
+                        size_t salt_len,
+                        const uint8_t ad[],
+                        size_t ad_len,
+                        const uint8_t key[],
+                        size_t key_len) const {
+   argon2(output, output_len, password, password_len, salt, salt_len, key, key_len, ad, ad_len);
+}
+
+namespace {
+
+std::string argon2_family_name(uint8_t f) {
+   switch(f) {
+      case 0:
+         return "Argon2d";
+      case 1:
+         return "Argon2i";
+      case 2:
+         return "Argon2id";
+      default:
+         throw Invalid_Argument("Unknown Argon2 parameter");
+   }
+}
+
+}  // namespace
+
+std::string Argon2::to_string() const {
+   return fmt("{}({},{},{})", argon2_family_name(m_family), m_M, m_t, m_p);
+}
+
+Argon2_Family::Argon2_Family(uint8_t family) : m_family(family) {
+   if(m_family != 0 && m_family != 1 && m_family != 2) {
+      throw Invalid_Argument("Unknown Argon2 family identifier");
+   }
+}
+
+std::string Argon2_Family::name() const {
+   return argon2_family_name(m_family);
+}
+
+std::unique_ptr<PasswordHash> Argon2_Family::tune(size_t /*output_length*/,
+                                                  std::chrono::milliseconds msec,
+                                                  size_t max_memory,
+                                                  std::chrono::milliseconds tune_time) const {
+   const size_t max_kib = (max_memory == 0) ? 256 * 1024 : max_memory * 1024;
+
+   // Tune with a large memory otherwise we measure cache vs RAM speeds and underestimate
+   // costs for larger params. Default is 36 MiB, or use 128 for long times.
+   const size_t tune_M = (msec >= std::chrono::milliseconds(200) ? 128 : 36) * 1024;
+   const size_t p = 1;
+   size_t t = 1;
+
+   size_t M = 4 * 1024;
+
+   auto pwhash = this->from_params(tune_M, t, p);
+
+   auto tune_fn = [&]() {
+      uint8_t output[64] = {0};
+      pwhash->derive_key(output, sizeof(output), "test", 4, nullptr, 0);
+   };
+
+   const uint64_t measured_time = measure_cost(tune_time, tune_fn) / (tune_M / M);
+
+   const uint64_t target_nsec = msec.count() * static_cast<uint64_t>(1000000);
+
+   /*
+   * Argon2 scaling rules:
+   * k*M, k*t, k*p all increase cost by about k
+   *
+   * First preference is to increase M up to max allowed value.
+   * Any remaining time budget is spent on increasing t.
+   */
+
+   uint64_t est_nsec = measured_time;
+
+   if(est_nsec < target_nsec && M < max_kib) {
+      const uint64_t desired_cost_increase = (target_nsec + est_nsec - 1) / est_nsec;
+      const uint64_t mem_headroom = max_kib / M;
+
+      const uint64_t M_mult = std::min(desired_cost_increase, mem_headroom);
+      M *= static_cast<size_t>(M_mult);
+      est_nsec *= M_mult;
+   }
+
+   if(est_nsec < target_nsec / 2) {
+      const uint64_t desired_cost_increase = (target_nsec + est_nsec - 1) / est_nsec;
+      t *= static_cast<size_t>(desired_cost_increase);
+   }
+
+   return this->from_params(M, t, p);
+}
+
+std::unique_ptr<PasswordHash> Argon2_Family::default_params() const {
+   return this->from_params(128 * 1024, 1, 1);
+}
+
+std::unique_ptr<PasswordHash> Argon2_Family::from_iterations(size_t iter) const {
+   /*
+   These choices are arbitrary, but should not change in future
+   releases since they will break applications expecting deterministic
+   mapping from iteration count to params
+   */
+   const size_t M = iter;
+   const size_t t = 1;
+   const size_t p = 1;
+   return this->from_params(M, t, p);
+}
+
+std::unique_ptr<PasswordHash> Argon2_Family::from_params(size_t M, size_t t, size_t p) const {
+   return std::make_unique<Argon2>(m_family, M, t, p);
+}
+
+}  // namespace Botan
 /*
 * Algorithm Identifier
 * (C) 1999-2007 Jack Lloyd
@@ -8537,7 +9143,6 @@ bool maybe_BER(DataSource& source) {
 */
 
 
-#include <algorithm>
 #include <span>
 
 namespace Botan {
@@ -14398,6 +15003,208 @@ void vartime_divide(const BigInt& x, const BigInt& y_arg, BigInt& q_out, BigInt&
 
    r_out = r;
    q_out = q;
+}
+
+}  // namespace Botan
+/*
+* BLAKE2b
+* (C) 2016 cynecx
+* (C) 2017 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+#include <array>
+
+namespace Botan {
+
+namespace {
+
+constexpr std::array<uint64_t, 8> blake2b_IV{0x6a09e667f3bcc908,
+                                             0xbb67ae8584caa73b,
+                                             0x3c6ef372fe94f82b,
+                                             0xa54ff53a5f1d36f1,
+                                             0x510e527fade682d1,
+                                             0x9b05688c2b3e6c1f,
+                                             0x1f83d9abfb41bd6b,
+                                             0x5be0cd19137e2179};
+
+}  // namespace
+
+BLAKE2b::BLAKE2b(size_t output_bits) : m_output_bits(output_bits), m_H(blake2b_IV.size()), m_T(), m_F(), m_key_size(0) {
+   if(output_bits == 0 || output_bits > 512 || output_bits % 8 != 0) {
+      throw Invalid_Argument("Bad output bits size for BLAKE2b");
+   }
+
+   state_init();
+}
+
+void BLAKE2b::state_init() {
+   copy_mem(m_H.data(), blake2b_IV.data(), blake2b_IV.size());
+   m_H[0] ^= (0x01010000 | (static_cast<uint8_t>(m_key_size) << 8) | static_cast<uint8_t>(output_length()));
+   m_T[0] = m_T[1] = 0;
+   m_F = 0;
+
+   m_buffer.clear();
+   if(m_key_size > 0) {
+      m_buffer.append(m_padded_key_buffer);
+   }
+}
+
+namespace {
+
+BOTAN_FORCE_INLINE void G(uint64_t& a, uint64_t& b, uint64_t& c, uint64_t& d, uint64_t M0, uint64_t M1) {
+   a = a + b + M0;
+   d = rotr<32>(d ^ a);
+   c = c + d;
+   b = rotr<24>(b ^ c);
+   a = a + b + M1;
+   d = rotr<16>(d ^ a);
+   c = c + d;
+   b = rotr<63>(b ^ c);
+}
+
+template <size_t i0,
+          size_t i1,
+          size_t i2,
+          size_t i3,
+          size_t i4,
+          size_t i5,
+          size_t i6,
+          size_t i7,
+          size_t i8,
+          size_t i9,
+          size_t iA,
+          size_t iB,
+          size_t iC,
+          size_t iD,
+          size_t iE,
+          size_t iF>
+BOTAN_FORCE_INLINE void ROUND(uint64_t* v, const uint64_t* M) {
+   G(v[0], v[4], v[8], v[12], M[i0], M[i1]);
+   G(v[1], v[5], v[9], v[13], M[i2], M[i3]);
+   G(v[2], v[6], v[10], v[14], M[i4], M[i5]);
+   G(v[3], v[7], v[11], v[15], M[i6], M[i7]);
+   G(v[0], v[5], v[10], v[15], M[i8], M[i9]);
+   G(v[1], v[6], v[11], v[12], M[iA], M[iB]);
+   G(v[2], v[7], v[8], v[13], M[iC], M[iD]);
+   G(v[3], v[4], v[9], v[14], M[iE], M[iF]);
+}
+
+}  // namespace
+
+void BLAKE2b::compress(const uint8_t* input, size_t blocks, uint64_t increment) {
+   for(size_t b = 0; b != blocks; ++b) {
+      m_T[0] += increment;
+      if(m_T[0] < increment) {
+         m_T[1]++;
+      }
+
+      uint64_t M[16];
+      uint64_t v[16];
+      load_le(M, input, 16);
+
+      input += BLAKE2B_BLOCKBYTES;
+
+      for(size_t i = 0; i < 8; i++) {
+         v[i] = m_H[i];
+      }
+      for(size_t i = 0; i != 8; ++i) {
+         v[i + 8] = blake2b_IV[i];
+      }
+
+      v[12] ^= m_T[0];
+      v[13] ^= m_T[1];
+      v[14] ^= m_F;
+
+      ROUND<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>(v, M);
+      ROUND<14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3>(v, M);
+      ROUND<11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4>(v, M);
+      ROUND<7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8>(v, M);
+      ROUND<9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13>(v, M);
+      ROUND<2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9>(v, M);
+      ROUND<12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11>(v, M);
+      ROUND<13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10>(v, M);
+      ROUND<6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5>(v, M);
+      ROUND<10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0>(v, M);
+      ROUND<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>(v, M);
+      ROUND<14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3>(v, M);
+
+      for(size_t i = 0; i < 8; i++) {
+         m_H[i] ^= v[i] ^ v[i + 8];
+      }
+   }
+}
+
+void BLAKE2b::add_data(std::span<const uint8_t> input) {
+   BufferSlicer in(input);
+
+   while(!in.empty()) {
+      if(const auto one_block = m_buffer.handle_unaligned_data(in)) {
+         compress(one_block->data(), 1, BLAKE2B_BLOCKBYTES);
+      }
+
+      if(m_buffer.in_alignment()) {
+         const auto [aligned_data, full_blocks] = m_buffer.aligned_data_to_process(in);
+         if(full_blocks > 0) {
+            compress(aligned_data.data(), full_blocks, BLAKE2B_BLOCKBYTES);
+         }
+      }
+   }
+}
+
+void BLAKE2b::final_result(std::span<uint8_t> output) {
+   const auto pos = m_buffer.elements_in_buffer();
+   m_buffer.fill_up_with_zeros();
+
+   m_F = 0xFFFFFFFFFFFFFFFF;
+   compress(m_buffer.consume().data(), 1, pos);
+   copy_out_le(output.first(output_length()), m_H);
+   state_init();
+}
+
+Key_Length_Specification BLAKE2b::key_spec() const {
+   return Key_Length_Specification(1, 64);
+}
+
+std::string BLAKE2b::name() const {
+   return fmt("BLAKE2b({})", m_output_bits);
+}
+
+std::unique_ptr<HashFunction> BLAKE2b::new_object() const {
+   return std::make_unique<BLAKE2b>(m_output_bits);
+}
+
+std::unique_ptr<HashFunction> BLAKE2b::copy_state() const {
+   return std::make_unique<BLAKE2b>(*this);
+}
+
+bool BLAKE2b::has_keying_material() const {
+   return m_key_size > 0;
+}
+
+void BLAKE2b::key_schedule(std::span<const uint8_t> key) {
+   BOTAN_ASSERT_NOMSG(key.size() <= m_buffer.size());
+
+   m_key_size = key.size();
+   m_padded_key_buffer.resize(m_buffer.size());
+
+   if(m_padded_key_buffer.size() > m_key_size) {
+      size_t padding = m_padded_key_buffer.size() - m_key_size;
+      clear_mem(m_padded_key_buffer.data() + m_key_size, padding);
+   }
+
+   copy_mem(m_padded_key_buffer.data(), key.data(), key.size());
+   state_init();
+}
+
+void BLAKE2b::clear() {
+   zeroise(m_H);
+   m_buffer.clear();
+   zeroise(m_padded_key_buffer);
+   m_key_size = 0;
+   state_init();
 }
 
 }  // namespace Botan
@@ -23883,7 +24690,6 @@ BigInt inverse_mod(const BigInt& n, const BigInt& mod) {
 */
 
 
-#include <array>
 
 namespace Botan {
 
@@ -31874,7 +32680,6 @@ void secure_scrub_memory(void* ptr, size_t n) {
 
 
 #include <cctype>
-#include <limits>
 
 namespace Botan {
 
