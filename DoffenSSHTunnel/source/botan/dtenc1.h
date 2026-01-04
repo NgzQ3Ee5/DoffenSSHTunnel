@@ -15,7 +15,7 @@ namespace dtenc1 {
  *   plus a per-message random salt (stored in the container).
  */
 std::string encrypt_base64(const uint8_t* plaintext, size_t plaintext_len,
-                           const std::string& bcrypt_secret);
+                           const std::string& password);
 
 /**
  * Attempt to decrypt a base64 DTENC1 ciphertext.
@@ -26,7 +26,7 @@ std::string encrypt_base64(const uint8_t* plaintext, size_t plaintext_len,
  *   - throws        -> input LOOKS like DTENC1 but is invalid/unsupported/wrong key
  */
 bool try_decrypt_base64(const std::string& ciphertext_b64,
-                        const std::string& bcrypt_secret,
+                        const std::string& password,
                         std::vector<uint8_t>& out_plaintext);
 
 } // namespace dtenc1
