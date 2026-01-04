@@ -60,67 +60,12 @@ void PasswordDb::openFile(QString filename, QString password)
     m_idents.clear();
     m_filename = filename;
 
-    try
-    {
-        readBotanCryptoBoxFile(password);
-    }
-    catch(std::exception &ex) {
-        //PEM: No PEM header found
-        QString msg = QString::fromStdString(ex.what());
-        if(msg.indexOf("PEM: No PEM header found") != -1) {
-            bool osSupported = false;
-            #ifdef Q_OS_WIN
-                osSupported = true;
-            #endif
-            if(osSupported) {
-                //Old format ? try to read it
-                readLemontFile(password);
-                //read OK, backup old format file
-                QFile backupFile(QString("%1.old").arg(filename));
-                for(int i=2;backupFile.exists();i++) {
-                    backupFile.setFileName(QString("%1.old%2").arg(filename).arg(i));
-                }
-                QFile::copy(filename, backupFile.fileName());
-                //then overwrite with the new format
-                saveFile(password);
-            } else {
-                QString msg = "Cannot read the password file on this operating system. Please run the app version 0.9.27 or newer once on a microsoft windows machine and then transfer the password file to this OS. Replace the following file: " + filename;
-                throw ExBadOperatingSystem(msg.toStdString());
-            }
-        } else if(msg.indexOf("CryptoBox integrity failure") != -1) {
-            throw ExBadFileFormat(Q_FUNC_INFO, filename.toStdString());
-        } else {
-            throw;
-        }
-    }
-
+    readBotanFile(password);
     setPassword(password);
 }
 
 //protected
-void PasswordDb::readLemontFile(QString password)
-{
-    m_idents.clear();
-    QList<Identifier> identList = LemontFileWrapper::getIdentifiers(m_filename, password);
-    for(int i=0;i<identList.size();i++) {
-        Identifier fileIdent = identList.at(i);
-        QString descr = fileIdent.getDescription();
-        if(descr == "<EMPTYDESCR>") descr = "";
-        QString login = fileIdent.getLogin();
-        if(login == "<EMPTYUID>") login = "";
-        QString password = fileIdent.getPassword();
-        if(password == "<EMPTYPWD>") password = "";
-        Identifier ident;
-        ident.setDescription(descr);
-        ident.setLogin(login);
-        ident.setPassword(password);
-        ident.setUuid(QUuid::createUuid());
-        m_idents.append(ident);
-    }
-}
-
-//protected
-void PasswordDb::readBotanCryptoBoxFile(QString password)
+void PasswordDb::readBotanFile(QString password)
 {
     m_idents.clear();
 
@@ -132,7 +77,8 @@ void PasswordDb::readBotanCryptoBoxFile(QString password)
     QByteArray data = loadFile.readAll();
     loadFile.close();
 
-    QJsonDocument doc(QJsonDocument::fromJson(m_bw.Decrypt(data, password)));
+    BotanWrapper::DecryptFormat fmt;
+    QJsonDocument doc(QJsonDocument::fromJson(m_bw.Decrypt(data, password, &fmt)));
     QJsonObject json = doc.object();
 
     QJsonArray pwdArray = json["identities"].toArray();
@@ -155,6 +101,38 @@ void PasswordDb::readBotanCryptoBoxFile(QString password)
             ident.setUuid(QUuid::createUuid());
         }
         m_idents.append(ident);
+    }
+
+    if(fmt == BotanWrapper::DecryptFormat::CryptoBoxLegacy)
+    {
+        // 2026-01-04: I just decrypted DoffenSSHTunnel.pwd with the old CryptoBox format.
+        // Save it with the new DTENC1 format now (converting to my new format)
+
+        const QString backupPath = m_filename + ".old_cryptobox";
+
+        // Remove existing backup (QFile::copy() will fail if destination exists)
+        if (QFile::exists(backupPath)) {
+            QFile existingBackup(backupPath);
+            if (!existingBackup.remove()) {
+                throw ExBad(
+                    QString("Failed to remove existing backup '%1': %2")
+                        .arg(backupPath, existingBackup.errorString())
+                        .toStdString()
+                    );
+            }
+        }
+
+        // Copy source -> backup
+        QFile source(m_filename);
+        if (!source.copy(backupPath)) {
+            throw ExBad(
+                QString("Failed to copy '%1' -> '%2': %3")
+                    .arg(m_filename, backupPath, source.errorString())
+                    .toStdString()
+                );
+        }
+
+        saveFile(password);
     }
 
 }

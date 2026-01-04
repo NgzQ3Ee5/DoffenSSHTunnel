@@ -22,5 +22,7 @@ unix:!macx {
     LIBS += -ldl
 }
 
-HEADERS += botan/botanwrapper.h
-SOURCES += botan/botanwrapper.cpp
+HEADERS += botan/botanwrapper.h \
+    $$PWD/dtenc1.h
+SOURCES += botan/botanwrapper.cpp \
+    $$PWD/dtenc1.cpp

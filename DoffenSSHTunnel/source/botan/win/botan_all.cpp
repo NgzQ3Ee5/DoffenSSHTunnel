@@ -1206,6 +1206,169 @@ class BOTAN_TEST_API calendar_point {
 namespace Botan {
 
 /**
+* DJB's ChaCha (https://cr.yp.to/chacha.html)
+*/
+class ChaCha final : public StreamCipher {
+   public:
+      /**
+      * @param rounds number of rounds
+      * @note Currently only 8, 12 or 20 rounds are supported, all others
+      * will throw an exception
+      */
+      explicit ChaCha(size_t rounds = 20);
+
+      std::string provider() const override;
+
+      /*
+      * ChaCha accepts 0, 8, 12 or 24 byte IVs.
+      * The default IV is a 8 zero bytes.
+      * An IV of length 0 is treated the same as the default zero IV.
+      * An IV of length 24 selects XChaCha mode
+      */
+      bool valid_iv_length(size_t iv_len) const override;
+
+      size_t default_iv_length() const override;
+
+      Key_Length_Specification key_spec() const override;
+
+      void clear() override;
+
+      std::unique_ptr<StreamCipher> new_object() const override;
+
+      std::string name() const override;
+
+      void seek(uint64_t offset) override;
+
+      bool has_keying_material() const override;
+
+      size_t buffer_size() const override;
+
+   private:
+      void key_schedule(std::span<const uint8_t> key) override;
+
+      void cipher_bytes(const uint8_t in[], uint8_t out[], size_t length) override;
+
+      void generate_keystream(uint8_t out[], size_t len) override;
+
+      void set_iv_bytes(const uint8_t iv[], size_t iv_len) override;
+
+      void initialize_state();
+
+      static size_t parallelism();
+
+      static void chacha(uint8_t output[], size_t output_blocks, uint32_t state[16], size_t rounds);
+
+#if defined(BOTAN_HAS_CHACHA_SIMD32)
+      static void chacha_simd32_x4(uint8_t output[64 * 4], uint32_t state[16], size_t rounds);
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_AVX2)
+      static void chacha_avx2_x8(uint8_t output[64 * 8], uint32_t state[16], size_t rounds);
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_AVX512)
+      static void chacha_avx512_x16(uint8_t output[64 * 16], uint32_t state[16], size_t rounds);
+#endif
+
+      size_t m_rounds;
+      secure_vector<uint32_t> m_key;
+      secure_vector<uint32_t> m_state;
+      secure_vector<uint8_t> m_buffer;
+      size_t m_position = 0;
+};
+
+}  // namespace Botan
+
+
+namespace Botan {
+
+/**
+* Base class
+* See draft-irtf-cfrg-chacha20-poly1305-03 for specification
+* If a nonce of 64 bits is used the older version described in
+* draft-agl-tls-chacha20poly1305-04 is used instead.
+* If a nonce of 192 bits is used, XChaCha20Poly1305 is selected.
+*/
+class ChaCha20Poly1305_Mode : public AEAD_Mode {
+   public:
+      void set_associated_data_n(size_t idx, std::span<const uint8_t> ad) final;
+
+      bool associated_data_requires_key() const override { return false; }
+
+      std::string name() const override { return "ChaCha20Poly1305"; }
+
+      size_t update_granularity() const override;
+
+      size_t ideal_granularity() const override;
+
+      Key_Length_Specification key_spec() const override { return Key_Length_Specification(32); }
+
+      bool valid_nonce_length(size_t n) const override;
+
+      size_t tag_size() const override { return 16; }
+
+      void clear() override;
+
+      void reset() override;
+
+      bool has_keying_material() const final;
+
+   protected:
+      std::unique_ptr<StreamCipher> m_chacha;                 // NOLINT(*non-private-member-variable*)
+      std::unique_ptr<MessageAuthenticationCode> m_poly1305;  // NOLINT(*non-private-member-variable*)
+
+      ChaCha20Poly1305_Mode();
+
+      secure_vector<uint8_t> m_ad;  // NOLINT(*non-private-member-variable*)
+      size_t m_nonce_len = 0;       // NOLINT(*non-private-member-variable*)
+      size_t m_ctext_len = 0;       // NOLINT(*non-private-member-variable*)
+
+      bool cfrg_version() const { return m_nonce_len == 12 || m_nonce_len == 24; }
+
+      void update_len(size_t len);
+
+   private:
+      void start_msg(const uint8_t nonce[], size_t nonce_len) override;
+
+      void key_schedule(std::span<const uint8_t> key) override;
+};
+
+/**
+* ChaCha20Poly1305 Encryption
+*/
+class ChaCha20Poly1305_Encryption final : public ChaCha20Poly1305_Mode {
+   public:
+      size_t output_length(size_t input_length) const override { return input_length + tag_size(); }
+
+      size_t minimum_final_size() const override { return 0; }
+
+   private:
+      size_t process_msg(uint8_t buf[], size_t size) override;
+      void finish_msg(secure_vector<uint8_t>& final_block, size_t offset = 0) override;
+};
+
+/**
+* ChaCha20Poly1305 Decryption
+*/
+class ChaCha20Poly1305_Decryption final : public ChaCha20Poly1305_Mode {
+   public:
+      size_t output_length(size_t input_length) const override {
+         BOTAN_ARG_CHECK(input_length >= tag_size(), "Sufficient input");
+         return input_length - tag_size();
+      }
+
+      size_t minimum_final_size() const override { return tag_size(); }
+
+   private:
+      size_t process_msg(uint8_t buf[], size_t size) override;
+      void finish_msg(secure_vector<uint8_t>& final_block, size_t offset = 0) override;
+};
+
+}  // namespace Botan
+
+namespace Botan {
+
+/**
 * Convert a sequence of UCS-2 (big endian) characters to a UTF-8 string
 * This is used for ASN.1 BMPString type
 * @param ucs2 the sequence of UCS-2 characters
@@ -1425,7 +1588,7 @@ Vector base_decode_to_vec(const Base& base, const char input[], size_t input_len
 * @file  target_info.h
 *
 * Automatically generated from
-* 'configure.py --cc=msvc --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy'
+* 'configure.py --cc=msvc --amalgamation --disable-shared --minimized-build --enable-modules=cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32'
 *
 * Target
 *  - Compiler: cl  /Zc:preprocessor /std:c++20 /EHs /GR /MD /bigobj /O2 /Oi /Zc:throwingNew
@@ -2915,6 +3078,97 @@ std::string fmt(std::string_view format, const T&... args) {
    fmt_detail::do_fmt(oss, format, args...);
    return oss.str();
 }
+
+}  // namespace Botan
+
+namespace Botan {
+
+/**
+* HKDF from RFC 5869.
+*/
+class HKDF final : public KDF {
+   public:
+      /**
+      * @param prf MAC algorithm to use
+      */
+      explicit HKDF(std::unique_ptr<MessageAuthenticationCode> prf) : m_prf(std::move(prf)) {}
+
+      std::unique_ptr<KDF> new_object() const override;
+
+      std::string name() const override;
+
+   private:
+      void perform_kdf(std::span<uint8_t> key,
+                       std::span<const uint8_t> secret,
+                       std::span<const uint8_t> salt,
+                       std::span<const uint8_t> label) const override;
+
+   private:
+      std::unique_ptr<MessageAuthenticationCode> m_prf;
+};
+
+/**
+* HKDF Extraction Step from RFC 5869.
+*/
+class HKDF_Extract final : public KDF {
+   public:
+      /**
+      * @param prf MAC algorithm to use
+      */
+      explicit HKDF_Extract(std::unique_ptr<MessageAuthenticationCode> prf) : m_prf(std::move(prf)) {}
+
+      std::unique_ptr<KDF> new_object() const override;
+
+      std::string name() const override;
+
+   private:
+      void perform_kdf(std::span<uint8_t> key,
+                       std::span<const uint8_t> secret,
+                       std::span<const uint8_t> salt,
+                       std::span<const uint8_t> label) const override;
+
+   private:
+      std::unique_ptr<MessageAuthenticationCode> m_prf;
+};
+
+/**
+* HKDF Expansion Step from RFC 5869.
+*/
+class HKDF_Expand final : public KDF {
+   public:
+      /**
+      * @param prf MAC algorithm to use
+      */
+      explicit HKDF_Expand(std::unique_ptr<MessageAuthenticationCode> prf) : m_prf(std::move(prf)) {}
+
+      std::unique_ptr<KDF> new_object() const override;
+
+      std::string name() const override;
+
+   private:
+      void perform_kdf(std::span<uint8_t> key,
+                       std::span<const uint8_t> secret,
+                       std::span<const uint8_t> salt,
+                       std::span<const uint8_t> label) const override;
+
+   private:
+      std::unique_ptr<MessageAuthenticationCode> m_prf;
+};
+
+/**
+* HKDF-Expand-Label from TLS 1.3/QUIC
+* @param hash_fn the hash to use
+* @param secret the secret bits
+* @param label the full label (no "TLS 1.3, " or "tls13 " prefix
+*  is applied)
+* @param hash_val the previous hash value (used for chaining, may be empty)
+* @param length the desired output length
+*/
+secure_vector<uint8_t> BOTAN_TEST_API hkdf_expand_label(std::string_view hash_fn,
+                                                        std::span<const uint8_t> secret,
+                                                        std::string_view label,
+                                                        std::span<const uint8_t> hash_val,
+                                                        size_t length);
 
 }  // namespace Botan
 
@@ -6423,6 +6677,39 @@ class KEM_Decryption_with_KDF : public KEM_Decryption {
 namespace Botan {
 
 /**
+* DJB's Poly1305
+* Important note: each key can only be used once
+*/
+class Poly1305 final : public MessageAuthenticationCode {
+   public:
+      std::string name() const override { return "Poly1305"; }
+
+      std::unique_ptr<MessageAuthenticationCode> new_object() const override { return std::make_unique<Poly1305>(); }
+
+      void clear() override;
+
+      size_t output_length() const override { return 16; }
+
+      Key_Length_Specification key_spec() const override { return Key_Length_Specification(32); }
+
+      bool fresh_key_required_per_message() const override { return true; }
+
+      bool has_keying_material() const override;
+
+   private:
+      void add_data(std::span<const uint8_t> input) override;
+      void final_result(std::span<uint8_t> output) override;
+      void key_schedule(std::span<const uint8_t> key) override;
+
+      secure_vector<uint64_t> m_poly;
+      AlignmentBuffer<uint8_t, 16> m_buffer;
+};
+
+}  // namespace Botan
+
+namespace Botan {
+
+/**
 * Prefetch an array
 *
 * This function returns a uint64_t which is accumulated from values
@@ -7789,6 +8076,171 @@ size_t ecp_work_factor(size_t prime_group_size);
 
 }  // namespace Botan
 /*
+* (C) 2013,2015 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+#include <sstream>
+
+#if defined(BOTAN_HAS_BLOCK_CIPHER)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_CCM)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_CHACHA20_POLY1305)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_EAX)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_GCM)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_OCB)
+#endif
+
+#if defined(BOTAN_HAS_AEAD_SIV)
+#endif
+
+#if defined(BOTAN_HAS_ASCON_AEAD128)
+#endif
+
+namespace Botan {
+
+std::unique_ptr<AEAD_Mode> AEAD_Mode::create_or_throw(std::string_view algo,
+                                                      Cipher_Dir dir,
+                                                      std::string_view provider) {
+   if(auto aead = AEAD_Mode::create(algo, dir, provider)) {
+      return aead;
+   }
+
+   throw Lookup_Error("AEAD", algo, provider);
+}
+
+std::unique_ptr<AEAD_Mode> AEAD_Mode::create(std::string_view algo, Cipher_Dir dir, std::string_view provider) {
+   BOTAN_UNUSED(provider);
+#if defined(BOTAN_HAS_AEAD_CHACHA20_POLY1305)
+   if(algo == "ChaCha20Poly1305") {
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<ChaCha20Poly1305_Encryption>();
+      } else {
+         return std::make_unique<ChaCha20Poly1305_Decryption>();
+      }
+   }
+#endif
+
+#if defined(BOTAN_HAS_ASCON_AEAD128)
+   if(algo == "Ascon-AEAD128") {
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<Ascon_AEAD128_Encryption>();
+      } else {
+         return std::make_unique<Ascon_AEAD128_Decryption>();
+      }
+   }
+#endif
+
+   if(algo.find('/') != std::string::npos) {
+      const std::vector<std::string> algo_parts = split_on(algo, '/');
+      std::string_view cipher_name = algo_parts[0];
+      const std::vector<std::string> mode_info = parse_algorithm_name(algo_parts[1]);
+
+      if(mode_info.empty()) {
+         return std::unique_ptr<AEAD_Mode>();
+      }
+
+      std::ostringstream mode_name;
+
+      mode_name << mode_info[0] << '(' << cipher_name;
+      for(size_t i = 1; i < mode_info.size(); ++i) {
+         mode_name << ',' << mode_info[i];
+      }
+      for(size_t i = 2; i < algo_parts.size(); ++i) {
+         mode_name << ',' << algo_parts[i];
+      }
+      mode_name << ')';
+
+      return AEAD_Mode::create(mode_name.str(), dir);
+   }
+
+#if defined(BOTAN_HAS_BLOCK_CIPHER)
+
+   SCAN_Name req(algo);
+
+   if(req.arg_count() == 0) {
+      return std::unique_ptr<AEAD_Mode>();
+   }
+
+   auto bc = BlockCipher::create(req.arg(0), provider);
+
+   if(!bc) {
+      return std::unique_ptr<AEAD_Mode>();
+   }
+
+   #if defined(BOTAN_HAS_AEAD_CCM)
+   if(req.algo_name() == "CCM") {
+      size_t tag_len = req.arg_as_integer(1, 16);
+      size_t L_len = req.arg_as_integer(2, 3);
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<CCM_Encryption>(std::move(bc), tag_len, L_len);
+      } else {
+         return std::make_unique<CCM_Decryption>(std::move(bc), tag_len, L_len);
+      }
+   }
+   #endif
+
+   #if defined(BOTAN_HAS_AEAD_GCM)
+   if(req.algo_name() == "GCM") {
+      size_t tag_len = req.arg_as_integer(1, 16);
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<GCM_Encryption>(std::move(bc), tag_len);
+      } else {
+         return std::make_unique<GCM_Decryption>(std::move(bc), tag_len);
+      }
+   }
+   #endif
+
+   #if defined(BOTAN_HAS_AEAD_OCB)
+   if(req.algo_name() == "OCB") {
+      size_t tag_len = req.arg_as_integer(1, 16);
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<OCB_Encryption>(std::move(bc), tag_len);
+      } else {
+         return std::make_unique<OCB_Decryption>(std::move(bc), tag_len);
+      }
+   }
+   #endif
+
+   #if defined(BOTAN_HAS_AEAD_EAX)
+   if(req.algo_name() == "EAX") {
+      size_t tag_len = req.arg_as_integer(1, bc->block_size());
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<EAX_Encryption>(std::move(bc), tag_len);
+      } else {
+         return std::make_unique<EAX_Decryption>(std::move(bc), tag_len);
+      }
+   }
+   #endif
+
+   #if defined(BOTAN_HAS_AEAD_SIV)
+   if(req.algo_name() == "SIV") {
+      if(dir == Cipher_Dir::Encryption) {
+         return std::make_unique<SIV_Encryption>(std::move(bc));
+      } else {
+         return std::make_unique<SIV_Decryption>(std::move(bc));
+      }
+   }
+   #endif
+
+#endif
+
+   return std::unique_ptr<AEAD_Mode>();
+}
+
+}  // namespace Botan
+/*
 * Algorithm Identifier
 * (C) 1999-2007 Jack Lloyd
 *
@@ -7879,7 +8331,6 @@ void AlgorithmIdentifier::decode_from(BER_Decoder& codec) {
 */
 
 
-#include <sstream>
 
 namespace Botan {
 
@@ -14604,6 +15055,594 @@ void Blowfish::clear() {
 
 }  // namespace Botan
 /*
+* ChaCha
+* (C) 2014,2018,2023 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+
+#if defined(BOTAN_HAS_CPUID)
+#endif
+
+namespace Botan {
+
+namespace {
+
+inline void chacha_quarter_round(uint32_t& a, uint32_t& b, uint32_t& c, uint32_t& d) {
+   a += b;
+   d ^= a;
+   d = rotl<16>(d);
+   c += d;
+   b ^= c;
+   b = rotl<12>(b);
+   a += b;
+   d ^= a;
+   d = rotl<8>(d);
+   c += d;
+   b ^= c;
+   b = rotl<7>(b);
+}
+
+/*
+* Generate HChaCha cipher stream (for XChaCha IV setup)
+*/
+void hchacha(uint32_t output[8], const uint32_t input[16], size_t rounds) {
+   BOTAN_ASSERT(rounds % 2 == 0, "Valid rounds");
+
+   uint32_t x00 = input[0];
+   uint32_t x01 = input[1];
+   uint32_t x02 = input[2];
+   uint32_t x03 = input[3];
+   uint32_t x04 = input[4];
+   uint32_t x05 = input[5];
+   uint32_t x06 = input[6];
+   uint32_t x07 = input[7];
+   uint32_t x08 = input[8];
+   uint32_t x09 = input[9];
+   uint32_t x10 = input[10];
+   uint32_t x11 = input[11];
+   uint32_t x12 = input[12];
+   uint32_t x13 = input[13];
+   uint32_t x14 = input[14];
+   uint32_t x15 = input[15];
+
+   for(size_t i = 0; i != rounds / 2; ++i) {
+      chacha_quarter_round(x00, x04, x08, x12);
+      chacha_quarter_round(x01, x05, x09, x13);
+      chacha_quarter_round(x02, x06, x10, x14);
+      chacha_quarter_round(x03, x07, x11, x15);
+
+      chacha_quarter_round(x00, x05, x10, x15);
+      chacha_quarter_round(x01, x06, x11, x12);
+      chacha_quarter_round(x02, x07, x08, x13);
+      chacha_quarter_round(x03, x04, x09, x14);
+   }
+
+   output[0] = x00;
+   output[1] = x01;
+   output[2] = x02;
+   output[3] = x03;
+   output[4] = x12;
+   output[5] = x13;
+   output[6] = x14;
+   output[7] = x15;
+}
+
+}  // namespace
+
+ChaCha::ChaCha(size_t rounds) : m_rounds(rounds) {
+   BOTAN_ARG_CHECK(m_rounds == 8 || m_rounds == 12 || m_rounds == 20, "ChaCha only supports 8, 12 or 20 rounds");
+}
+
+size_t ChaCha::parallelism() {
+#if defined(BOTAN_HAS_CHACHA_AVX512)
+   if(CPUID::has(CPUID::Feature::AVX512)) {
+      return 16;
+   }
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_AVX2)
+   if(CPUID::has(CPUID::Feature::AVX2)) {
+      return 8;
+   }
+#endif
+
+   return 4;
+}
+
+std::string ChaCha::provider() const {
+#if defined(BOTAN_HAS_CHACHA_AVX512)
+   if(auto feat = CPUID::check(CPUID::Feature::AVX512)) {
+      return *feat;
+   }
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_AVX2)
+   if(auto feat = CPUID::check(CPUID::Feature::AVX2)) {
+      return *feat;
+   }
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_SIMD32)
+   if(auto feat = CPUID::check(CPUID::Feature::SIMD_4X32)) {
+      return *feat;
+   }
+#endif
+
+   return "base";
+}
+
+void ChaCha::chacha(uint8_t output[], size_t output_blocks, uint32_t state[16], size_t rounds) {
+   BOTAN_ASSERT(rounds % 2 == 0, "Valid rounds");
+
+#if defined(BOTAN_HAS_CHACHA_AVX512)
+   if(CPUID::has(CPUID::Feature::AVX512)) {
+      while(output_blocks >= 16) {
+         ChaCha::chacha_avx512_x16(output, state, rounds);
+         output += 16 * 64;
+         output_blocks -= 16;
+      }
+   }
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_AVX2)
+   if(CPUID::has(CPUID::Feature::AVX2)) {
+      while(output_blocks >= 8) {
+         ChaCha::chacha_avx2_x8(output, state, rounds);
+         output += 8 * 64;
+         output_blocks -= 8;
+      }
+   }
+#endif
+
+#if defined(BOTAN_HAS_CHACHA_SIMD32)
+   if(CPUID::has(CPUID::Feature::SIMD_4X32)) {
+      while(output_blocks >= 4) {
+         ChaCha::chacha_simd32_x4(output, state, rounds);
+         output += 4 * 64;
+         output_blocks -= 4;
+      }
+   }
+#endif
+
+   // TODO interleave rounds
+   for(size_t i = 0; i != output_blocks; ++i) {
+      uint32_t x00 = state[0];
+      uint32_t x01 = state[1];
+      uint32_t x02 = state[2];
+      uint32_t x03 = state[3];
+      uint32_t x04 = state[4];
+      uint32_t x05 = state[5];
+      uint32_t x06 = state[6];
+      uint32_t x07 = state[7];
+      uint32_t x08 = state[8];
+      uint32_t x09 = state[9];
+      uint32_t x10 = state[10];
+      uint32_t x11 = state[11];
+      uint32_t x12 = state[12];
+      uint32_t x13 = state[13];
+      uint32_t x14 = state[14];
+      uint32_t x15 = state[15];
+
+      for(size_t r = 0; r != rounds / 2; ++r) {
+         chacha_quarter_round(x00, x04, x08, x12);
+         chacha_quarter_round(x01, x05, x09, x13);
+         chacha_quarter_round(x02, x06, x10, x14);
+         chacha_quarter_round(x03, x07, x11, x15);
+
+         chacha_quarter_round(x00, x05, x10, x15);
+         chacha_quarter_round(x01, x06, x11, x12);
+         chacha_quarter_round(x02, x07, x08, x13);
+         chacha_quarter_round(x03, x04, x09, x14);
+      }
+
+      x00 += state[0];
+      x01 += state[1];
+      x02 += state[2];
+      x03 += state[3];
+      x04 += state[4];
+      x05 += state[5];
+      x06 += state[6];
+      x07 += state[7];
+      x08 += state[8];
+      x09 += state[9];
+      x10 += state[10];
+      x11 += state[11];
+      x12 += state[12];
+      x13 += state[13];
+      x14 += state[14];
+      x15 += state[15];
+
+      store_le(x00, output + 64 * i + 4 * 0);
+      store_le(x01, output + 64 * i + 4 * 1);
+      store_le(x02, output + 64 * i + 4 * 2);
+      store_le(x03, output + 64 * i + 4 * 3);
+      store_le(x04, output + 64 * i + 4 * 4);
+      store_le(x05, output + 64 * i + 4 * 5);
+      store_le(x06, output + 64 * i + 4 * 6);
+      store_le(x07, output + 64 * i + 4 * 7);
+      store_le(x08, output + 64 * i + 4 * 8);
+      store_le(x09, output + 64 * i + 4 * 9);
+      store_le(x10, output + 64 * i + 4 * 10);
+      store_le(x11, output + 64 * i + 4 * 11);
+      store_le(x12, output + 64 * i + 4 * 12);
+      store_le(x13, output + 64 * i + 4 * 13);
+      store_le(x14, output + 64 * i + 4 * 14);
+      store_le(x15, output + 64 * i + 4 * 15);
+
+      state[12]++;
+      if(state[12] == 0) {
+         state[13] += 1;
+      }
+   }
+}
+
+/*
+* Combine cipher stream with message
+*/
+void ChaCha::cipher_bytes(const uint8_t in[], uint8_t out[], size_t length) {
+   assert_key_material_set();
+
+   while(length >= m_buffer.size() - m_position) {
+      const size_t available = m_buffer.size() - m_position;
+
+      xor_buf(out, in, &m_buffer[m_position], available);
+      chacha(m_buffer.data(), m_buffer.size() / 64, m_state.data(), m_rounds);
+
+      length -= available;
+      in += available;
+      out += available;
+      m_position = 0;
+   }
+
+   xor_buf(out, in, &m_buffer[m_position], length);
+
+   m_position += length;
+}
+
+void ChaCha::generate_keystream(uint8_t out[], size_t length) {
+   assert_key_material_set();
+
+   while(length >= m_buffer.size() - m_position) {
+      const size_t available = m_buffer.size() - m_position;
+
+      // TODO: this could write directly to the output buffer
+      // instead of bouncing it through m_buffer first
+      copy_mem(out, &m_buffer[m_position], available);
+      chacha(m_buffer.data(), m_buffer.size() / 64, m_state.data(), m_rounds);
+
+      length -= available;
+      out += available;
+      m_position = 0;
+   }
+
+   copy_mem(out, &m_buffer[m_position], length);
+
+   m_position += length;
+}
+
+void ChaCha::initialize_state() {
+   static const uint32_t TAU[] = {0x61707865, 0x3120646e, 0x79622d36, 0x6b206574};
+
+   static const uint32_t SIGMA[] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574};
+
+   m_state[4] = m_key[0];
+   m_state[5] = m_key[1];
+   m_state[6] = m_key[2];
+   m_state[7] = m_key[3];
+
+   if(m_key.size() == 4) {
+      m_state[0] = TAU[0];
+      m_state[1] = TAU[1];
+      m_state[2] = TAU[2];
+      m_state[3] = TAU[3];
+
+      m_state[8] = m_key[0];
+      m_state[9] = m_key[1];
+      m_state[10] = m_key[2];
+      m_state[11] = m_key[3];
+   } else {
+      m_state[0] = SIGMA[0];
+      m_state[1] = SIGMA[1];
+      m_state[2] = SIGMA[2];
+      m_state[3] = SIGMA[3];
+
+      m_state[8] = m_key[4];
+      m_state[9] = m_key[5];
+      m_state[10] = m_key[6];
+      m_state[11] = m_key[7];
+   }
+
+   m_state[12] = 0;
+   m_state[13] = 0;
+   m_state[14] = 0;
+   m_state[15] = 0;
+
+   m_position = 0;
+}
+
+bool ChaCha::has_keying_material() const {
+   return !m_state.empty();
+}
+
+size_t ChaCha::buffer_size() const {
+   return 64;
+}
+
+/*
+* ChaCha Key Schedule
+*/
+void ChaCha::key_schedule(std::span<const uint8_t> key) {
+   m_key.resize(key.size() / 4);
+   load_le<uint32_t>(m_key.data(), key.data(), m_key.size());
+
+   m_state.resize(16);
+
+   const size_t chacha_block = 64;
+   m_buffer.resize(parallelism() * chacha_block);
+
+   set_iv(nullptr, 0);
+}
+
+size_t ChaCha::default_iv_length() const {
+   return 24;
+}
+
+Key_Length_Specification ChaCha::key_spec() const {
+   return Key_Length_Specification(16, 32, 16);
+}
+
+std::unique_ptr<StreamCipher> ChaCha::new_object() const {
+   return std::make_unique<ChaCha>(m_rounds);
+}
+
+bool ChaCha::valid_iv_length(size_t iv_len) const {
+   return (iv_len == 0 || iv_len == 8 || iv_len == 12 || iv_len == 24);
+}
+
+void ChaCha::set_iv_bytes(const uint8_t iv[], size_t length) {
+   assert_key_material_set();
+
+   if(!valid_iv_length(length)) {
+      throw Invalid_IV_Length(name(), length);
+   }
+
+   initialize_state();
+
+   if(length == 0) {
+      // Treat zero length IV same as an all-zero IV
+      m_state[14] = 0;
+      m_state[15] = 0;
+   } else if(length == 8) {
+      m_state[14] = load_le<uint32_t>(iv, 0);
+      m_state[15] = load_le<uint32_t>(iv, 1);
+   } else if(length == 12) {
+      m_state[13] = load_le<uint32_t>(iv, 0);
+      m_state[14] = load_le<uint32_t>(iv, 1);
+      m_state[15] = load_le<uint32_t>(iv, 2);
+   } else if(length == 24) {
+      m_state[12] = load_le<uint32_t>(iv, 0);
+      m_state[13] = load_le<uint32_t>(iv, 1);
+      m_state[14] = load_le<uint32_t>(iv, 2);
+      m_state[15] = load_le<uint32_t>(iv, 3);
+
+      secure_vector<uint32_t> hc(8);
+      hchacha(hc.data(), m_state.data(), m_rounds);
+
+      m_state[4] = hc[0];
+      m_state[5] = hc[1];
+      m_state[6] = hc[2];
+      m_state[7] = hc[3];
+      m_state[8] = hc[4];
+      m_state[9] = hc[5];
+      m_state[10] = hc[6];
+      m_state[11] = hc[7];
+      m_state[12] = 0;
+      m_state[13] = 0;
+      m_state[14] = load_le<uint32_t>(iv, 4);
+      m_state[15] = load_le<uint32_t>(iv, 5);
+   }
+
+   chacha(m_buffer.data(), m_buffer.size() / 64, m_state.data(), m_rounds);
+   m_position = 0;
+}
+
+void ChaCha::clear() {
+   zap(m_key);
+   zap(m_state);
+   zap(m_buffer);
+   m_position = 0;
+}
+
+std::string ChaCha::name() const {
+   return fmt("ChaCha({})", m_rounds);
+}
+
+void ChaCha::seek(uint64_t offset) {
+   assert_key_material_set();
+
+   // Find the block offset
+   const uint64_t counter = offset / 64;
+
+   uint8_t out[8];
+
+   store_le(counter, out);
+
+   m_state[12] = load_le<uint32_t>(out, 0);
+   m_state[13] += load_le<uint32_t>(out, 1);
+
+   chacha(m_buffer.data(), m_buffer.size() / 64, m_state.data(), m_rounds);
+   m_position = offset % 64;
+}
+}  // namespace Botan
+/*
+* ChaCha20Poly1305 AEAD
+* (C) 2014,2016,2018 Jack Lloyd
+* (C) 2016 Daniel Neus, Rohde & Schwarz Cybersecurity
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+
+namespace Botan {
+
+ChaCha20Poly1305_Mode::ChaCha20Poly1305_Mode() :
+      m_chacha(StreamCipher::create("ChaCha")), m_poly1305(MessageAuthenticationCode::create("Poly1305")) {
+   if(!m_chacha || !m_poly1305) {
+      throw Algorithm_Not_Found("ChaCha20Poly1305");
+   }
+}
+
+bool ChaCha20Poly1305_Mode::valid_nonce_length(size_t n) const {
+   return (n == 8 || n == 12 || n == 24);
+}
+
+size_t ChaCha20Poly1305_Mode::update_granularity() const {
+   return 1;
+}
+
+size_t ChaCha20Poly1305_Mode::ideal_granularity() const {
+   return 128;
+}
+
+void ChaCha20Poly1305_Mode::clear() {
+   m_chacha->clear();
+   m_poly1305->clear();
+   reset();
+}
+
+void ChaCha20Poly1305_Mode::reset() {
+   m_ad.clear();
+   m_ctext_len = 0;
+   m_nonce_len = 0;
+}
+
+bool ChaCha20Poly1305_Mode::has_keying_material() const {
+   return m_chacha->has_keying_material();
+}
+
+void ChaCha20Poly1305_Mode::key_schedule(std::span<const uint8_t> key) {
+   m_chacha->set_key(key);
+}
+
+void ChaCha20Poly1305_Mode::set_associated_data_n(size_t idx, std::span<const uint8_t> ad) {
+   BOTAN_ARG_CHECK(idx == 0, "ChaCha20Poly1305: cannot handle non-zero index in set_associated_data_n");
+   if(m_ctext_len > 0 || m_nonce_len > 0) {
+      throw Invalid_State("Cannot set AD for ChaCha20Poly1305 while processing a message");
+   }
+   m_ad.assign(ad.begin(), ad.end());
+}
+
+void ChaCha20Poly1305_Mode::update_len(size_t len) {
+   uint8_t len8[8] = {0};
+   store_le(static_cast<uint64_t>(len), len8);
+   m_poly1305->update(len8, 8);
+}
+
+void ChaCha20Poly1305_Mode::start_msg(const uint8_t nonce[], size_t nonce_len) {
+   if(!valid_nonce_length(nonce_len)) {
+      throw Invalid_IV_Length(name(), nonce_len);
+   }
+
+   m_ctext_len = 0;
+   m_nonce_len = nonce_len;
+
+   m_chacha->set_iv(nonce, nonce_len);
+
+   uint8_t first_block[64];
+   m_chacha->write_keystream(first_block, sizeof(first_block));
+
+   m_poly1305->set_key(first_block, 32);
+   // Remainder of first block is discarded
+   secure_scrub_memory(first_block, sizeof(first_block));
+
+   m_poly1305->update(m_ad);
+
+   if(cfrg_version()) {
+      if(m_ad.size() % 16 != 0) {
+         const uint8_t zeros[16] = {0};
+         m_poly1305->update(zeros, 16 - m_ad.size() % 16);
+      }
+   } else {
+      update_len(m_ad.size());
+   }
+}
+
+size_t ChaCha20Poly1305_Encryption::process_msg(uint8_t buf[], size_t sz) {
+   m_chacha->cipher1(buf, sz);
+   m_poly1305->update(buf, sz);  // poly1305 of ciphertext
+   m_ctext_len += sz;
+   return sz;
+}
+
+void ChaCha20Poly1305_Encryption::finish_msg(secure_vector<uint8_t>& buffer, size_t offset) {
+   update(buffer, offset);
+   if(cfrg_version()) {
+      if(m_ctext_len % 16 != 0) {
+         const uint8_t zeros[16] = {0};
+         m_poly1305->update(zeros, 16 - m_ctext_len % 16);
+      }
+      update_len(m_ad.size());
+   }
+   update_len(m_ctext_len);
+
+   buffer.resize(buffer.size() + tag_size());
+   m_poly1305->final(&buffer[buffer.size() - tag_size()]);
+   m_ctext_len = 0;
+   m_nonce_len = 0;
+}
+
+size_t ChaCha20Poly1305_Decryption::process_msg(uint8_t buf[], size_t sz) {
+   m_poly1305->update(buf, sz);  // poly1305 of ciphertext
+   m_chacha->cipher1(buf, sz);
+   m_ctext_len += sz;
+   return sz;
+}
+
+void ChaCha20Poly1305_Decryption::finish_msg(secure_vector<uint8_t>& buffer, size_t offset) {
+   BOTAN_ARG_CHECK(buffer.size() >= offset, "Offset is out of range");
+   const size_t sz = buffer.size() - offset;
+   uint8_t* buf = buffer.data() + offset;
+
+   BOTAN_ARG_CHECK(sz >= tag_size(), "input did not include the tag");
+
+   const size_t remaining = sz - tag_size();
+
+   if(remaining > 0) {
+      m_poly1305->update(buf, remaining);  // poly1305 of ciphertext
+      m_chacha->cipher1(buf, remaining);
+      m_ctext_len += remaining;
+   }
+
+   if(cfrg_version()) {
+      if(m_ctext_len % 16 != 0) {
+         const uint8_t zeros[16] = {0};
+         m_poly1305->update(zeros, 16 - m_ctext_len % 16);
+      }
+      update_len(m_ad.size());
+   }
+
+   update_len(m_ctext_len);
+
+   uint8_t mac[16];
+   m_poly1305->final(mac);
+
+   const uint8_t* included_tag = &buf[remaining];
+
+   m_ctext_len = 0;
+   m_nonce_len = 0;
+
+   if(!CT::is_equal(mac, included_tag, tag_size()).as_bool()) {
+      throw Invalid_Authentication_Tag("ChaCha20Poly1305 tag check failed");
+   }
+   buffer.resize(offset + remaining);
+}
+
+}  // namespace Botan
+/*
 * Cryptobox Message Routines
 * (C) 2009 Jack Lloyd
 *
@@ -15826,6 +16865,143 @@ std::vector<uint8_t> hex_decode(const char input[], size_t input_length, bool ig
 
 std::vector<uint8_t> hex_decode(std::string_view input, bool ignore_ws) {
    return hex_decode(input.data(), input.size(), ignore_ws);
+}
+
+}  // namespace Botan
+/*
+* HKDF
+* (C) 2013,2015,2017 Jack Lloyd
+* (C) 2016 René Korthaus, Rohde & Schwarz Cybersecurity
+* (C) 2024 René Meusel, Rohde & Schwarz Cybersecurity
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+
+namespace Botan {
+
+std::unique_ptr<KDF> HKDF::new_object() const {
+   return std::make_unique<HKDF>(m_prf->new_object());
+}
+
+std::string HKDF::name() const {
+   return fmt("HKDF({})", m_prf->name());
+}
+
+void HKDF::perform_kdf(std::span<uint8_t> key,
+                       std::span<const uint8_t> secret,
+                       std::span<const uint8_t> salt,
+                       std::span<const uint8_t> label) const {
+   HKDF_Extract extract(m_prf->new_object());
+   HKDF_Expand expand(m_prf->new_object());
+   secure_vector<uint8_t> prk(m_prf->output_length());
+
+   extract.derive_key(prk, secret, salt, {});
+   expand.derive_key(key, prk, {}, label);
+}
+
+std::unique_ptr<KDF> HKDF_Extract::new_object() const {
+   return std::make_unique<HKDF_Extract>(m_prf->new_object());
+}
+
+std::string HKDF_Extract::name() const {
+   return fmt("HKDF-Extract({})", m_prf->name());
+}
+
+void HKDF_Extract::perform_kdf(std::span<uint8_t> key,
+                               std::span<const uint8_t> secret,
+                               std::span<const uint8_t> salt,
+                               std::span<const uint8_t> label) const {
+   const size_t prf_output_len = m_prf->output_length();
+   BOTAN_ARG_CHECK(key.size() <= prf_output_len, "HKDF-Extract maximum output length exceeded");
+   BOTAN_ARG_CHECK(label.empty(), "HKDF-Extract does not support a label input");
+
+   if(key.empty()) {
+      return;
+   }
+
+   if(salt.empty()) {
+      m_prf->set_key(std::vector<uint8_t>(prf_output_len));
+   } else {
+      m_prf->set_key(salt);
+   }
+
+   m_prf->update(secret);
+
+   if(key.size() == prf_output_len) {
+      m_prf->final(key);
+   } else {
+      const auto prk = m_prf->final();
+      copy_mem(key, std::span{prk}.first(key.size()));
+   }
+}
+
+std::unique_ptr<KDF> HKDF_Expand::new_object() const {
+   return std::make_unique<HKDF_Expand>(m_prf->new_object());
+}
+
+std::string HKDF_Expand::name() const {
+   return fmt("HKDF-Expand({})", m_prf->name());
+}
+
+void HKDF_Expand::perform_kdf(std::span<uint8_t> key,
+                              std::span<const uint8_t> secret,
+                              std::span<const uint8_t> salt,
+                              std::span<const uint8_t> label) const {
+   const auto prf_output_length = m_prf->output_length();
+   BOTAN_ARG_CHECK(key.size() <= prf_output_length * 255, "HKDF-Expand maximum output length exceeded");
+
+   if(key.empty()) {
+      return;
+   }
+
+   // Keep a reference to the previous PRF output (empty by default).
+   std::span<uint8_t> h = {};
+
+   BufferStuffer k(key);
+   m_prf->set_key(secret);
+   for(uint8_t counter = 1; !k.full(); ++counter) {
+      m_prf->update(h);
+      m_prf->update(label);
+      m_prf->update(salt);
+      m_prf->update(counter);
+
+      // Write straight into the output buffer, except if the PRF output needs
+      // a truncation in the final iteration.
+      if(k.remaining_capacity() >= prf_output_length) {
+         h = k.next(prf_output_length);
+         m_prf->final(h);
+      } else {
+         const auto full_prf_output = m_prf->final();
+         h = {};  // this is the final iteration!
+         k.append(std::span{full_prf_output}.first(k.remaining_capacity()));
+      }
+   }
+}
+
+secure_vector<uint8_t> hkdf_expand_label(std::string_view hash_fn,
+                                         std::span<const uint8_t> secret,
+                                         std::string_view label,
+                                         std::span<const uint8_t> hash_val,
+                                         size_t length) {
+   BOTAN_ARG_CHECK(length <= 0xFFFF, "HKDF-Expand-Label requested output too large");
+   BOTAN_ARG_CHECK(label.size() <= 0xFF, "HKDF-Expand-Label label too long");
+   BOTAN_ARG_CHECK(hash_val.size() <= 0xFF, "HKDF-Expand-Label hash too long");
+
+   HKDF_Expand hkdf(MessageAuthenticationCode::create_or_throw(fmt("HMAC({})", hash_fn)));
+
+   const auto prefix = concat<std::vector<uint8_t>>(store_be(static_cast<uint16_t>(length)),
+                                                    store_be(static_cast<uint8_t>(label.size())),
+                                                    as_span_of_bytes(label),
+                                                    store_be(static_cast<uint8_t>(hash_val.size())));
+
+   /*
+   * We do something a little dirty here to avoid copying the hash_val,
+   * making use of the fact that Botan's KDF interface supports label+salt,
+   * and knowing that our HKDF hashes first param label then param salt.
+   */
+   return hkdf.derive_key(length, secret, hash_val, prefix);
 }
 
 }  // namespace Botan
@@ -25783,6 +26959,215 @@ bool matches(DataSource& source, std::string_view extra, size_t search_range) {
 }
 
 }  // namespace Botan::PEM_Code
+/*
+* Derived from poly1305-donna-64.h by Andrew Moon <liquidsun@gmail.com>
+* in https://github.com/floodyberry/poly1305-donna
+*
+* (C) 2014 Andrew Moon
+* (C) 2014 Jack Lloyd
+*
+* Botan is released under the Simplified BSD License (see license.txt)
+*/
+
+
+
+namespace Botan {
+
+namespace {
+
+void poly1305_init(secure_vector<uint64_t>& X, const uint8_t key[32]) {
+   /* r &= 0xffffffc0ffffffc0ffffffc0fffffff */
+   const uint64_t t0 = load_le<uint64_t>(key, 0);
+   const uint64_t t1 = load_le<uint64_t>(key, 1);
+
+   X[0] = (t0) & 0xffc0fffffff;
+   X[1] = ((t0 >> 44) | (t1 << 20)) & 0xfffffc0ffff;
+   X[2] = ((t1 >> 24)) & 0x00ffffffc0f;
+
+   /* h = 0 */
+   X[3] = 0;
+   X[4] = 0;
+   X[5] = 0;
+
+   /* save pad for later */
+   X[6] = load_le<uint64_t>(key, 2);
+   X[7] = load_le<uint64_t>(key, 3);
+}
+
+void poly1305_blocks(secure_vector<uint64_t>& X, const uint8_t* m, size_t blocks, bool is_final = false) {
+#if !defined(BOTAN_TARGET_HAS_NATIVE_UINT128)
+   typedef donna128 uint128_t;
+#endif
+
+   const uint64_t hibit = is_final ? 0 : (static_cast<uint64_t>(1) << 40); /* 1 << 128 */
+
+   const uint64_t r0 = X[0];
+   const uint64_t r1 = X[1];
+   const uint64_t r2 = X[2];
+
+   const uint64_t M44 = 0xFFFFFFFFFFF;
+   const uint64_t M42 = 0x3FFFFFFFFFF;
+
+   uint64_t h0 = X[3 + 0];
+   uint64_t h1 = X[3 + 1];
+   uint64_t h2 = X[3 + 2];
+
+   const uint64_t s1 = r1 * 20;
+   const uint64_t s2 = r2 * 20;
+
+   for(size_t i = 0; i != blocks; ++i) {
+      const uint64_t t0 = load_le<uint64_t>(m, 0);
+      const uint64_t t1 = load_le<uint64_t>(m, 1);
+
+      h0 += ((t0)&M44);
+      h1 += (((t0 >> 44) | (t1 << 20)) & M44);
+      h2 += (((t1 >> 24)) & M42) | hibit;
+
+      const uint128_t d0 = uint128_t(h0) * r0 + uint128_t(h1) * s2 + uint128_t(h2) * s1;
+      const uint64_t c0 = carry_shift(d0, 44);
+
+      const uint128_t d1 = uint128_t(h0) * r1 + uint128_t(h1) * r0 + uint128_t(h2) * s2 + c0;
+      const uint64_t c1 = carry_shift(d1, 44);
+
+      const uint128_t d2 = uint128_t(h0) * r2 + uint128_t(h1) * r1 + uint128_t(h2) * r0 + c1;
+      const uint64_t c2 = carry_shift(d2, 42);
+
+      h0 = d0 & M44;
+      h1 = d1 & M44;
+      h2 = d2 & M42;
+
+      h0 += c2 * 5;
+      h1 += h0 >> 44;
+      h0 = h0 & M44;
+
+      m += 16;
+   }
+
+   X[3 + 0] = h0;
+   X[3 + 1] = h1;
+   X[3 + 2] = h2;
+}
+
+void poly1305_finish(secure_vector<uint64_t>& X, uint8_t mac[16]) {
+   const uint64_t M44 = 0xFFFFFFFFFFF;
+   const uint64_t M42 = 0x3FFFFFFFFFF;
+
+   /* fully carry h */
+   uint64_t h0 = X[3 + 0];
+   uint64_t h1 = X[3 + 1];
+   uint64_t h2 = X[3 + 2];
+
+   uint64_t c = (h1 >> 44);
+   h1 &= M44;
+   h2 += c;
+   c = (h2 >> 42);
+   h2 &= M42;
+   h0 += c * 5;
+   c = (h0 >> 44);
+   h0 &= M44;
+   h1 += c;
+   c = (h1 >> 44);
+   h1 &= M44;
+   h2 += c;
+   c = (h2 >> 42);
+   h2 &= M42;
+   h0 += c * 5;
+   c = (h0 >> 44);
+   h0 &= M44;
+   h1 += c;
+
+   /* compute h + -p */
+   uint64_t g0 = h0 + 5;
+   c = (g0 >> 44);
+   g0 &= M44;
+   uint64_t g1 = h1 + c;
+   c = (g1 >> 44);
+   g1 &= M44;
+   uint64_t g2 = h2 + c - (static_cast<uint64_t>(1) << 42);
+
+   /* select h if h < p, or h + -p if h >= p */
+   const auto c_mask = CT::Mask<uint64_t>::expand(c);
+   h0 = c_mask.select(g0, h0);
+   h1 = c_mask.select(g1, h1);
+   h2 = c_mask.select(g2, h2);
+
+   /* h = (h + pad) */
+   const uint64_t t0 = X[6];
+   const uint64_t t1 = X[7];
+
+   h0 += ((t0)&M44);
+   c = (h0 >> 44);
+   h0 &= M44;
+   h1 += (((t0 >> 44) | (t1 << 20)) & M44) + c;
+   c = (h1 >> 44);
+   h1 &= M44;
+   h2 += (((t1 >> 24)) & M42) + c;
+   h2 &= M42;
+
+   /* mac = h % (2^128) */
+   h0 = ((h0) | (h1 << 44));
+   h1 = ((h1 >> 20) | (h2 << 24));
+
+   store_le(mac, h0, h1);
+
+   /* zero out the state */
+   clear_mem(X.data(), X.size());
+}
+
+}  // namespace
+
+void Poly1305::clear() {
+   zap(m_poly);
+   m_buffer.clear();
+}
+
+bool Poly1305::has_keying_material() const {
+   return m_poly.size() == 8;
+}
+
+void Poly1305::key_schedule(std::span<const uint8_t> key) {
+   m_buffer.clear();
+   m_poly.resize(8);
+
+   poly1305_init(m_poly, key.data());
+}
+
+void Poly1305::add_data(std::span<const uint8_t> input) {
+   assert_key_material_set();
+
+   BufferSlicer in(input);
+
+   while(!in.empty()) {
+      if(const auto one_block = m_buffer.handle_unaligned_data(in)) {
+         poly1305_blocks(m_poly, one_block->data(), 1);
+      }
+
+      if(m_buffer.in_alignment()) {
+         const auto [aligned_data, full_blocks] = m_buffer.aligned_data_to_process(in);
+         if(full_blocks > 0) {
+            poly1305_blocks(m_poly, aligned_data.data(), full_blocks);
+         }
+      }
+   }
+}
+
+void Poly1305::final_result(std::span<uint8_t> out) {
+   assert_key_material_set();
+
+   if(!m_buffer.in_alignment()) {
+      const uint8_t final_byte = 0x01;
+      m_buffer.append({&final_byte, 1});
+      m_buffer.fill_up_with_zeros();
+      poly1305_blocks(m_poly, m_buffer.consume().data(), 1, true);
+   }
+
+   poly1305_finish(m_poly, out.data());
+
+   m_poly.clear();
+   m_buffer.clear();
+}
+
+}  // namespace Botan
 /*
 * PK Key
 * (C) 1999-2010,2016 Jack Lloyd

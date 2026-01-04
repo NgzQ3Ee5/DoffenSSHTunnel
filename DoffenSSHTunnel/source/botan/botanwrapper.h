@@ -24,15 +24,22 @@ class BotanWrapper : public QObject
     Q_OBJECT
 
 public:
+    enum class DecryptFormat
+    {
+        Unknown = 0,
+        DTENC1,
+        CryptoBoxLegacy
+    };
+
     explicit BotanWrapper(QObject* parent = nullptr);
 
     // Convenience overloads for textual data (UTF-8 plaintext, ASCII PEM ciphertext)
     QString EncryptWithPassword(QString Data, QString Password);
-    QString Decrypt(QString Data, QString Password);
+    QString Decrypt(QString Data, QString Password, DecryptFormat* OutFormat);
 
     // Binary-safe overloads (single source of truth for crypto)
     QByteArray EncryptWithPassword(QByteArray Data, QString Password);
-    QByteArray Decrypt(QByteArray Data, QString Password);
+    QByteArray Decrypt(QByteArray Data, QString Password, DecryptFormat* OutFormat);
 
     // bcrypt helpers
     QString BCryptGenerate(QString Password);

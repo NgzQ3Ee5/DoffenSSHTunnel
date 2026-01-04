@@ -140,6 +140,8 @@
 /*
 * Module availability definitions
 */
+#define BOTAN_HAS_AEAD_CHACHA20_POLY1305 20180807
+#define BOTAN_HAS_AEAD_MODES 20131128
 #define BOTAN_HAS_ASN1 20201106
 #define BOTAN_HAS_AUTO_RNG 20161126
 #define BOTAN_HAS_AUTO_SEEDING_RNG 20160821
@@ -148,12 +150,14 @@
 #define BOTAN_HAS_BIGINT 20240529
 #define BOTAN_HAS_BLOCK_CIPHER 20131128
 #define BOTAN_HAS_BLOWFISH 20180718
+#define BOTAN_HAS_CHACHA 20180807
 #define BOTAN_HAS_CIPHER_MODES 20180124
 #define BOTAN_HAS_CRYPTO_BOX 20131128
 #define BOTAN_HAS_CTR_BE 20131128
 #define BOTAN_HAS_ENTROPY_SOURCE 20151120
 #define BOTAN_HAS_HASH 20180112
 #define BOTAN_HAS_HEX_CODEC 20131128
+#define BOTAN_HAS_HKDF 20170927
 #define BOTAN_HAS_HMAC 20131128
 #define BOTAN_HAS_HMAC_DRBG 20140319
 #define BOTAN_HAS_KDF 20250528
@@ -165,6 +169,7 @@
 #define BOTAN_HAS_PBKDF 20180902
 #define BOTAN_HAS_PBKDF2 20180902
 #define BOTAN_HAS_PEM_CODEC 20131128
+#define BOTAN_HAS_POLY1305 20141227
 #define BOTAN_HAS_PUBLIC_KEY_CRYPTO 20131128
 #define BOTAN_HAS_RSA_ENCRYPTION_PADDING 20250720
 #define BOTAN_HAS_SERPENT 20131128
@@ -433,49 +438,6 @@ static_assert(sizeof(std::size_t) == 8 || sizeof(std::size_t) == 4, "This platfo
 * How much to allocate for a buffer of no particular size
 */
 constexpr size_t DefaultBufferSize = 4096;
-
-}  // namespace Botan
-
-namespace Botan {
-
-/*
-* Define BOTAN_MALLOC_FN
-*/
-#if defined(__clang__) || defined(__GNUG__)
-   #define BOTAN_MALLOC_FN __attribute__((malloc))
-#elif defined(_MSC_VER)
-   #define BOTAN_MALLOC_FN __declspec(restrict)
-#else
-   #define BOTAN_MALLOC_FN
-#endif
-
-/**
-* Allocate a memory buffer by some method. This should only be used for
-* primitive types (uint8_t, uint32_t, etc).
-*
-* @param elems the number of elements
-* @param elem_size the size of each element
-* @return pointer to allocated and zeroed memory, or throw std::bad_alloc on failure
-*/
-BOTAN_PUBLIC_API(2, 3) BOTAN_MALLOC_FN void* allocate_memory(size_t elems, size_t elem_size);
-
-/**
-* Free a pointer returned by allocate_memory
-* @param p the pointer returned by allocate_memory
-* @param elems the number of elements, as passed to allocate_memory
-* @param elem_size the size of each element, as passed to allocate_memory
-*/
-BOTAN_PUBLIC_API(2, 3) void deallocate_memory(void* p, size_t elems, size_t elem_size);
-
-/**
-* Ensure the allocator is initialized
-*/
-void BOTAN_UNSTABLE_API initialize_allocator();
-
-class Allocator_Initializer final {
-   public:
-      Allocator_Initializer() { initialize_allocator(); }
-};
 
 }  // namespace Botan
 
@@ -812,6 +774,261 @@ inline void do_throw_error(const char* file, int line, const char* func, Args...
 
 }  // namespace Botan
 
+
+namespace Botan {
+
+template <typename T, typename Tag, typename... Capabilities>
+class Strong;
+
+template <typename... Ts>
+struct is_strong_type : std::false_type {};
+
+template <typename... Ts>
+struct is_strong_type<Strong<Ts...>> : std::true_type {};
+
+template <typename... Ts>
+constexpr bool is_strong_type_v = is_strong_type<std::remove_const_t<Ts>...>::value;
+
+template <typename T0 = void, typename... Ts>
+struct all_same {
+      static constexpr bool value = (std::is_same_v<T0, Ts> && ... && true);
+};
+
+template <typename... Ts>
+static constexpr bool all_same_v = all_same<Ts...>::value;
+
+namespace detail {
+
+/**
+ * Helper type to indicate that a certain type should be automatically
+ * detected based on the context.
+ */
+struct AutoDetect {
+      constexpr AutoDetect() = delete;
+};
+
+}  // namespace detail
+
+namespace ranges {
+
+/**
+ * Models a std::ranges::contiguous_range that (optionally) restricts its
+ * value_type to ValueT. In other words: a stretch of contiguous memory of
+ * a certain type (optional ValueT).
+ */
+template <typename T, typename ValueT = std::ranges::range_value_t<T>>
+concept contiguous_range = std::ranges::contiguous_range<T> && std::same_as<ValueT, std::ranges::range_value_t<T>>;
+
+/**
+ * Models a std::ranges::contiguous_range that satisfies
+ * std::ranges::output_range with an arbitrary value_type. In other words: a
+ * stretch of contiguous memory of a certain type (optional ValueT) that can be
+ * written to.
+ */
+template <typename T, typename ValueT = std::ranges::range_value_t<T>>
+concept contiguous_output_range = contiguous_range<T, ValueT> && std::ranges::output_range<T, ValueT>;
+
+/**
+ * Models a range that can be turned into a std::span<>. Typically, this is some
+ * form of ranges::contiguous_range.
+ */
+template <typename T>
+concept spanable_range = std::constructible_from<std::span<const std::ranges::range_value_t<T>>, T>;
+
+/**
+ * Models a range that can be turned into a std::span<> with a static extent.
+ * Typically, this is a std::array or a std::span derived from an array.
+ */
+// clang-format off
+template <typename T>
+concept statically_spanable_range = spanable_range<T> &&
+                                    decltype(std::span{std::declval<T&>()})::extent != std::dynamic_extent;
+
+// clang-format on
+
+/**
+ * Find the length in bytes of a given contiguous range @p r.
+ */
+inline constexpr size_t size_bytes(const spanable_range auto& r) {
+   return std::span{r}.size_bytes();
+}
+
+/**
+ * Check that a given range @p r has a certain statically-known byte length. If
+ * the range's extent is known at compile time, this is a static check,
+ * otherwise a runtime argument check will be added.
+ *
+ * @throws Invalid_Argument  if range @p r has a dynamic extent and does not
+ *                           feature the expected byte length.
+ */
+template <size_t expected, spanable_range R>
+inline constexpr void assert_exact_byte_length(const R& r) {
+   const std::span s{r};
+   if constexpr(statically_spanable_range<R>) {
+      static_assert(s.size_bytes() == expected, "memory region does not have expected byte lengths");
+   } else {
+      if(s.size_bytes() != expected) {
+         throw Invalid_Argument("Memory regions did not have expected byte lengths");
+      }
+   }
+}
+
+/**
+ * Check that a list of ranges (in @p r0 and @p rs) all have the same byte
+ * lengths. If the first range's extent is known at compile time, this will be a
+ * static check for all other ranges whose extents are known at compile time,
+ * otherwise a runtime argument check will be added.
+ *
+ * @throws Invalid_Argument  if any range has a dynamic extent and not all
+ *                           ranges feature the same byte length.
+ */
+template <spanable_range R0, spanable_range... Rs>
+inline constexpr void assert_equal_byte_lengths(const R0& r0, const Rs&... rs)
+   requires(sizeof...(Rs) > 0)
+{
+   const std::span s0{r0};
+
+   if constexpr(statically_spanable_range<R0>) {
+      constexpr size_t expected_size = s0.size_bytes();
+      (assert_exact_byte_length<expected_size>(rs), ...);
+   } else {
+      const size_t expected_size = s0.size_bytes();
+      const bool correct_size =
+         ((std::span<const std::ranges::range_value_t<Rs>>{rs}.size_bytes() == expected_size) && ...);
+
+      if(!correct_size) {
+         throw Invalid_Argument("Memory regions did not have equal lengths");
+      }
+   }
+}
+
+}  // namespace ranges
+
+namespace concepts {
+
+// TODO: C++20 provides concepts like std::ranges::range or ::sized_range
+//       but at the time of this writing clang had not caught up on all
+//       platforms. E.g. clang 14 on Xcode does not support ranges properly.
+
+template <typename IterT, typename ContainerT>
+concept container_iterator =
+   std::same_as<IterT, typename ContainerT::iterator> || std::same_as<IterT, typename ContainerT::const_iterator>;
+
+template <typename PtrT, typename ContainerT>
+concept container_pointer =
+   std::same_as<PtrT, typename ContainerT::pointer> || std::same_as<PtrT, typename ContainerT::const_pointer>;
+
+template <typename T>
+concept container = requires(T a) {
+   { a.begin() } -> container_iterator<T>;
+   { a.end() } -> container_iterator<T>;
+   { a.cbegin() } -> container_iterator<T>;
+   { a.cend() } -> container_iterator<T>;
+   { a.size() } -> std::same_as<typename T::size_type>;
+   typename T::value_type;
+};
+
+template <typename T>
+concept contiguous_container = container<T> && requires(T a) {
+   { a.data() } -> container_pointer<T>;
+};
+
+template <typename T>
+concept has_empty = requires(T a) {
+   { a.empty() } -> std::same_as<bool>;
+};
+
+// clang-format off
+template <typename T>
+concept has_bounds_checked_accessors = container<T> && (
+                                          requires(T a, const T ac, typename T::size_type s) {
+                                             { a.at(s) } -> std::same_as<typename T::value_type&>;
+                                             { ac.at(s) } -> std::same_as<const typename T::value_type&>;
+                                          } ||
+                                          requires(T a, const T ac, typename T::key_type k) {
+                                             { a.at(k) } -> std::same_as<typename T::mapped_type&>;
+                                             { ac.at(k) } -> std::same_as<const typename T::mapped_type&>;
+                                          });
+// clang-format on
+
+template <typename T>
+concept resizable_container = container<T> && requires(T& c, typename T::size_type s) {
+   T(s);
+   c.resize(s);
+};
+
+template <typename T>
+concept reservable_container = container<T> && requires(T& c, typename T::size_type s) { c.reserve(s); };
+
+template <typename T>
+concept resizable_byte_buffer =
+   contiguous_container<T> && resizable_container<T> && std::same_as<typename T::value_type, uint8_t>;
+
+template <typename T>
+concept streamable = requires(std::ostream& os, T a) { os << a; };
+
+template <class T>
+concept strong_type = is_strong_type_v<T>;
+
+template <class T>
+concept contiguous_strong_type = strong_type<T> && contiguous_container<T>;
+
+template <class T>
+concept integral_strong_type = strong_type<T> && std::integral<typename T::wrapped_type>;
+
+template <class T>
+concept unsigned_integral_strong_type = strong_type<T> && std::unsigned_integral<typename T::wrapped_type>;
+
+template <typename T, typename Capability>
+concept strong_type_with_capability = T::template has_capability<Capability>();
+
+}  // namespace concepts
+
+}  // namespace Botan
+
+namespace Botan {
+
+/*
+* Define BOTAN_MALLOC_FN
+*/
+#if defined(__clang__) || defined(__GNUG__)
+   #define BOTAN_MALLOC_FN __attribute__((malloc))
+#elif defined(_MSC_VER)
+   #define BOTAN_MALLOC_FN __declspec(restrict)
+#else
+   #define BOTAN_MALLOC_FN
+#endif
+
+/**
+* Allocate a memory buffer by some method. This should only be used for
+* primitive types (uint8_t, uint32_t, etc).
+*
+* @param elems the number of elements
+* @param elem_size the size of each element
+* @return pointer to allocated and zeroed memory, or throw std::bad_alloc on failure
+*/
+BOTAN_PUBLIC_API(2, 3) BOTAN_MALLOC_FN void* allocate_memory(size_t elems, size_t elem_size);
+
+/**
+* Free a pointer returned by allocate_memory
+* @param p the pointer returned by allocate_memory
+* @param elems the number of elements, as passed to allocate_memory
+* @param elem_size the size of each element, as passed to allocate_memory
+*/
+BOTAN_PUBLIC_API(2, 3) void deallocate_memory(void* p, size_t elems, size_t elem_size);
+
+/**
+* Ensure the allocator is initialized
+*/
+void BOTAN_UNSTABLE_API initialize_allocator();
+
+class Allocator_Initializer final {
+   public:
+      Allocator_Initializer() { initialize_allocator(); }
+};
+
+}  // namespace Botan
+
 #if !defined(BOTAN_IS_BEING_BUILT) && !defined(BOTAN_DISABLE_DEPRECATED_FEATURES)
    // TODO(Botan4) remove this
    #include <deque>
@@ -932,6 +1149,556 @@ void zap(std::vector<T, Alloc>& vec) {
    zeroise(vec);
    vec.clear();
    vec.shrink_to_fit();
+}
+
+}  // namespace Botan
+
+
+namespace Botan {
+
+class OctetString;
+
+/**
+* Represents the length requirements on an algorithm key
+*/
+class BOTAN_PUBLIC_API(2, 0) Key_Length_Specification final {
+   public:
+      /**
+      * Constructor for fixed length keys
+      * @param keylen the supported key length
+      */
+      explicit Key_Length_Specification(size_t keylen) : m_min_keylen(keylen), m_max_keylen(keylen), m_keylen_mod(1) {}
+
+      /**
+      * Constructor for variable length keys
+      * @param min_k the smallest supported key length
+      * @param max_k the largest supported key length
+      * @param k_mod the number of bytes the key must be a multiple of
+      */
+      Key_Length_Specification(size_t min_k, size_t max_k, size_t k_mod = 1) :
+            m_min_keylen(min_k), m_max_keylen(max_k > 0 ? max_k : min_k), m_keylen_mod(k_mod) {}
+
+      /**
+      * @param length is a key length in bytes
+      * @return true iff this length is a valid length for this algo
+      */
+      bool valid_keylength(size_t length) const {
+         return ((length >= m_min_keylen) && (length <= m_max_keylen) && (length % m_keylen_mod == 0));
+      }
+
+      /**
+      * @return minimum key length in bytes
+      */
+      size_t minimum_keylength() const { return m_min_keylen; }
+
+      /**
+      * @return maximum key length in bytes
+      */
+      size_t maximum_keylength() const { return m_max_keylen; }
+
+      /**
+      * @return key length multiple in bytes
+      */
+      size_t keylength_multiple() const { return m_keylen_mod; }
+
+      /*
+      * Multiplies all length requirements with the given factor
+      * @param n the multiplication factor
+      * @return a key length specification multiplied by the factor
+      */
+      Key_Length_Specification multiple(size_t n) const {
+         return Key_Length_Specification(n * m_min_keylen, n * m_max_keylen, n * m_keylen_mod);
+      }
+
+   private:
+      size_t m_min_keylen, m_max_keylen, m_keylen_mod;
+};
+
+/**
+* This class represents a symmetric algorithm object.
+*/
+class BOTAN_PUBLIC_API(2, 0) SymmetricAlgorithm {
+   public:
+      SymmetricAlgorithm() = default;
+      virtual ~SymmetricAlgorithm() = default;
+      SymmetricAlgorithm(const SymmetricAlgorithm& other) = default;
+      SymmetricAlgorithm(SymmetricAlgorithm&& other) = default;
+      SymmetricAlgorithm& operator=(const SymmetricAlgorithm& other) = default;
+      SymmetricAlgorithm& operator=(SymmetricAlgorithm&& other) = default;
+
+      /**
+      * Reset the internal state. This includes not just the key, but
+      * any partial message that may have been in process.
+      */
+      virtual void clear() = 0;
+
+      /**
+      * @return object describing limits on key size
+      */
+      virtual Key_Length_Specification key_spec() const = 0;
+
+      /**
+      * @return maximum allowed key length
+      */
+      size_t maximum_keylength() const { return key_spec().maximum_keylength(); }
+
+      /**
+      * @return minimum allowed key length
+      */
+      size_t minimum_keylength() const { return key_spec().minimum_keylength(); }
+
+      /**
+      * Check whether a given key length is valid for this algorithm.
+      * @param length the key length to be checked.
+      * @return true if the key length is valid.
+      */
+      bool valid_keylength(size_t length) const { return key_spec().valid_keylength(length); }
+
+      /**
+      * Set the symmetric key of this object.
+      * @param key the SymmetricKey to be set.
+      */
+      void set_key(const OctetString& key);
+
+      /**
+      * Set the symmetric key of this object.
+      * @param key the contiguous byte range to be set.
+      */
+      void set_key(std::span<const uint8_t> key);
+
+      /**
+      * Set the symmetric key of this object.
+      * @param key the to be set as a byte array.
+      * @param length in bytes of key param
+      */
+      void set_key(const uint8_t key[], size_t length) { set_key(std::span{key, length}); }
+
+      /**
+      * @return the algorithm name
+      */
+      virtual std::string name() const = 0;
+
+      /**
+      * @return true if a key has been set on this object
+      */
+      virtual bool has_keying_material() const = 0;
+
+   protected:
+      void assert_key_material_set() const { assert_key_material_set(has_keying_material()); }
+
+      void assert_key_material_set(bool predicate) const {
+         if(!predicate) {
+            throw_key_not_set_error();
+         }
+      }
+
+   private:
+      void throw_key_not_set_error() const;
+
+      /**
+      * Run the key schedule
+      * @param key the key
+      */
+      virtual void key_schedule(std::span<const uint8_t> key) = 0;
+};
+
+}  // namespace Botan
+
+namespace Botan {
+
+/**
+* The two possible directions a Cipher_Mode can operate in
+*/
+enum class Cipher_Dir : uint8_t {
+   Encryption = 0,
+   Decryption = 1,
+
+   ENCRYPTION BOTAN_DEPRECATED("Use Cipher_Dir::Encryption") = Encryption,
+   DECRYPTION BOTAN_DEPRECATED("Use Cipher_Dir::Decryption") = Decryption,
+};
+
+/**
+* Interface for cipher modes
+*/
+class BOTAN_PUBLIC_API(2, 0) Cipher_Mode : public SymmetricAlgorithm {
+   public:
+      /**
+      * @return list of available providers for this algorithm, empty if not available
+      * @param algo_spec algorithm name
+      */
+      static std::vector<std::string> providers(std::string_view algo_spec);
+
+      /**
+      * Create an AEAD mode
+      * @param algo the algorithm to create
+      * @param direction specify if this should be an encryption or decryption AEAD
+      * @param provider optional specification for provider to use
+      * @return an AEAD mode or a null pointer if not available
+      */
+      static std::unique_ptr<Cipher_Mode> create(std::string_view algo,
+                                                 Cipher_Dir direction,
+                                                 std::string_view provider = "");
+
+      /**
+      * Create an AEAD mode, or throw
+      * @param algo the algorithm to create
+      * @param direction specify if this should be an encryption or decryption AEAD
+      * @param provider optional specification for provider to use
+      * @return an AEAD mode, or throw an exception
+      */
+      static std::unique_ptr<Cipher_Mode> create_or_throw(std::string_view algo,
+                                                          Cipher_Dir direction,
+                                                          std::string_view provider = "");
+
+   protected:
+      /*
+      * Prepare for processing a message under the specified nonce
+      */
+      virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
+
+      /*
+      * Process message blocks
+      * Input must be a multiple of update_granularity.
+      */
+      virtual size_t process_msg(uint8_t msg[], size_t msg_len) = 0;
+
+      /*
+      * Finishes a message
+      */
+      virtual void finish_msg(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
+
+   public:
+      /**
+      * Begin processing a message with a fresh nonce.
+      *
+      * @warning Typically one must not reuse the same nonce for more than one
+      *          message under the same key. For most cipher modes this would
+      *          mean total loss of security and/or authenticity guarantees.
+      *
+      * @note If reliably generating unique nonces is difficult in your
+      *       environment, use SIV which retains security even if nonces
+      *       are repeated.
+      *
+      * @param nonce the per message nonce
+      */
+      void start(std::span<const uint8_t> nonce) { start_msg(nonce.data(), nonce.size()); }
+
+      /**
+      * Begin processing a message with a fresh nonce.
+      * @param nonce the per message nonce
+      * @param nonce_len length of nonce
+      */
+      void start(const uint8_t nonce[], size_t nonce_len) { start_msg(nonce, nonce_len); }
+
+      /**
+      * Begin processing a message.
+      *
+      * The exact semantics of this depend on the mode. For many modes, the call
+      * will fail since a nonce must be provided.
+      *
+      * For certain modes such as CBC this will instead cause the last
+      * ciphertext block to be used as the nonce of the new message; doing this
+      * isn't a good idea, but some (mostly older) protocols do this.
+      */
+      void start() { return start_msg(nullptr, 0); }
+
+      /**
+      * Process message blocks
+      *
+      * Input must be a multiple of update_granularity
+      *
+      * Processes msg in place and returns bytes written. Normally
+      * this will be either msg_len (indicating the entire message was
+      * processed) or for certain AEAD modes zero (indicating that the
+      * mode requires the entire message be processed in one pass).
+      *
+      * @param msg the message to be processed
+      * @return bytes written in-place
+      */
+      size_t process(std::span<uint8_t> msg) { return this->process_msg(msg.data(), msg.size()); }
+
+      size_t process(uint8_t msg[], size_t msg_len) { return this->process_msg(msg, msg_len); }
+
+      /**
+      * Process some data. Input must be in size update_granularity() uint8_t
+      * blocks. The @p buffer is an in/out parameter and may be resized. In
+      * particular, some modes require that all input be consumed before any
+      * output is produced; with these modes, @p buffer will be returned empty.
+      *
+      * The first @p offset bytes of @p buffer will be ignored (this allows in
+      * place processing of a buffer that contains an initial plaintext header).
+      *
+      * @param buffer in/out parameter which will possibly be resized
+      * @param offset an offset into blocks to begin processing
+      */
+      template <concepts::resizable_byte_buffer T>
+      void update(T& buffer, size_t offset = 0) {
+         const size_t written = process(std::span(buffer).subspan(offset));
+         buffer.resize(offset + written);
+      }
+
+      /**
+      * Complete procession of a message with a final input of @p buffer, which
+      * is treated the same as with update(). If you have the entire message in
+      * hand, calling finish() without ever calling update() is both efficient
+      * and convenient.
+      *
+      * When using an AEAD_Mode, if the supplied authentication tag does not
+      * validate, this will throw an instance of Invalid_Authentication_Tag.
+      *
+      * If this occurs, all plaintext previously output via calls to update must
+      * be destroyed and not used in any way that an attacker could observe the
+      * effects of. This could be anything from echoing the plaintext back
+      * (perhaps in an error message), or by making an external RPC whose
+      * destination or contents depend on the plaintext. The only thing you can
+      * do is buffer it, and in the event of an invalid tag, erase the
+      * previously decrypted content from memory.
+      *
+      * One simple way to assure this could never happen is to never call
+      * update, and instead always marshal the entire message into a single
+      * buffer and call finish on it when decrypting.
+      *
+      * @param final_block in/out parameter which must be at least
+      *        minimum_final_size() bytes, and will be set to any final output
+      * @param offset an offset into final_block to begin processing
+      */
+      void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) { finish_msg(final_block, offset); }
+
+      /**
+      * Complete procession of a message.
+      *
+      * Note: Using this overload with anything but a Botan::secure_vector<>
+      *       is copying the bytes in the in/out buffer.
+      *
+      * @param final_block in/out parameter which must be at least
+      *        minimum_final_size() bytes, and will be set to any final output
+      * @param offset an offset into final_block to begin processing
+      */
+      template <concepts::resizable_byte_buffer T>
+      void finish(T& final_block, size_t offset = 0) {
+         Botan::secure_vector<uint8_t> tmp(final_block.begin(), final_block.end());
+         finish_msg(tmp, offset);
+         final_block.resize(tmp.size());
+         std::copy(tmp.begin(), tmp.end(), final_block.begin());
+      }
+
+      /**
+      * Returns the size of the output if this transform is used to process a
+      * message with input_length bytes. In most cases the answer is precise.
+      * If it is not possible to precise (namely for CBC decryption) instead an
+      * upper bound is returned.
+      */
+      virtual size_t output_length(size_t input_length) const = 0;
+
+      /**
+      * The :cpp:class:`Cipher_Mode` interface requires message processing in
+      * multiples of the block size. This returns size of required blocks to
+      * update. If the mode implementation does not require buffering it will
+      * return 1.
+      * @return size of required blocks to update
+      */
+      virtual size_t update_granularity() const = 0;
+
+      /**
+      * Return an ideal granularity. This will be a multiple of the result of
+      * update_granularity but may be larger. If so it indicates that better
+      * performance may be achieved by providing buffers that are at least that
+      * size (due to SIMD execution, etc).
+      */
+      virtual size_t ideal_granularity() const = 0;
+
+      /**
+      * Certain modes require the entire message be available before
+      * any processing can occur. For such modes, input will be consumed
+      * but not returned, until `finish` is called, which returns the
+      * entire message.
+      *
+      * This function returns true if this mode has this style of
+      * operation.
+      */
+      virtual bool requires_entire_message() const { return false; }
+
+      /**
+      * @return required minimum size to finalize() - may be any
+      *         length larger than this.
+      */
+      virtual size_t minimum_final_size() const = 0;
+
+      /**
+      * @return the default size for a nonce
+      */
+      virtual size_t default_nonce_length() const = 0;
+
+      /**
+      * @return true iff nonce_len is a valid length for the nonce
+      */
+      virtual bool valid_nonce_length(size_t nonce_len) const = 0;
+
+      /**
+      * Resets just the message specific state and allows encrypting again under the existing key
+      */
+      virtual void reset() = 0;
+
+      /**
+      * Return the length in bytes of the authentication tag this algorithm
+      * generates. If the mode is not authenticated, this will return 0.
+      *
+      * @return true iff this mode provides authentication as well as
+      *         confidentiality.
+      */
+      bool authenticated() const { return this->tag_size() > 0; }
+
+      /**
+      * @return the size of the authentication tag used (in bytes)
+      */
+      virtual size_t tag_size() const { return 0; }
+
+      /**
+      * @return provider information about this implementation. Default is "base",
+      * might also return "sse2", "avx2", "openssl", or some other arbitrary string.
+      */
+      virtual std::string provider() const { return "base"; }
+};
+
+/**
+* Get a cipher mode by name (eg "AES-128/CBC" or "Serpent/XTS")
+* @param algo_spec cipher name
+* @param direction Cipher_Dir::Encryption or Cipher_Dir::Decryption
+* @param provider provider implementation to choose
+*/
+BOTAN_DEPRECATED("Use Cipher_Mode::create")
+inline Cipher_Mode* get_cipher_mode(std::string_view algo_spec, Cipher_Dir direction, std::string_view provider = "") {
+   return Cipher_Mode::create(algo_spec, direction, provider).release();
+}
+
+}  // namespace Botan
+
+
+namespace Botan {
+
+/**
+* Interface for AEAD (Authenticated Encryption with Associated Data)
+* modes. These modes provide both encryption and message
+* authentication, and can authenticate additional per-message data
+* which is not included in the ciphertext (for instance a sequence
+* number).
+*/
+class BOTAN_PUBLIC_API(2, 0) AEAD_Mode : public Cipher_Mode {
+   public:
+      /**
+      * Create an AEAD mode
+      * @param algo the algorithm to create
+      * @param direction specify if this should be an encryption or decryption AEAD
+      * @param provider optional specification for provider to use
+      * @return an AEAD mode or a null pointer if not available
+      */
+      static std::unique_ptr<AEAD_Mode> create(std::string_view algo,
+                                               Cipher_Dir direction,
+                                               std::string_view provider = "");
+
+      /**
+      * Create an AEAD mode, or throw
+      * @param algo the algorithm to create
+      * @param direction specify if this should be an encryption or decryption AEAD
+      * @param provider optional specification for provider to use
+      * @return an AEAD mode, or throw an exception
+      */
+      static std::unique_ptr<AEAD_Mode> create_or_throw(std::string_view algo,
+                                                        Cipher_Dir direction,
+                                                        std::string_view provider = "");
+
+      /**
+      * Set associated data that is not included in the ciphertext but that
+      * should be authenticated. Must be called after set_key() and before
+      * start().
+      *
+      * Unless reset by another call, the associated data is kept between
+      * messages. Thus, if the AD does not change, calling once (after
+      * set_key()) is the optimum.
+      *
+      * @param ad the associated data
+      */
+      void set_associated_data(std::span<const uint8_t> ad) { set_associated_data_n(0, ad); }
+
+      void set_associated_data(const uint8_t ad[], size_t ad_len) { set_associated_data(std::span(ad, ad_len)); }
+
+      /**
+      * Set associated data that is not included in the ciphertext but
+      * that should be authenticated. Must be called after set_key() and
+      * before start().
+      *
+      * Unless reset by another call, the associated data is kept
+      * between messages. Thus, if the AD does not change, calling
+      * once (after set_key()) is the optimum.
+      *
+      * Some AEADs (namely SIV) support multiple AD inputs. For
+      * all other modes only nominal AD input 0 is supported; all
+      * other values of idx will cause an exception.
+      *
+      * Derived AEADs must implement this. For AEADs where
+      * `maximum_associated_data_inputs()` returns 1 (the default), the
+      * @p idx must simply be ignored.
+      *
+      * @param idx which associated data to set
+      * @param ad the associated data
+      */
+      virtual void set_associated_data_n(size_t idx, std::span<const uint8_t> ad) = 0;
+
+      /**
+      * Returns the maximum supported number of associated data inputs which
+      * can be provided to set_associated_data_n
+      *
+      * If returns 0, then no associated data is supported.
+      */
+      virtual size_t maximum_associated_data_inputs() const { return 1; }
+
+      /**
+      * Most AEADs require the key to be set prior to setting the AD
+      * A few allow the AD to be set even before the cipher is keyed.
+      * Such ciphers would return false from this function.
+      */
+      virtual bool associated_data_requires_key() const { return true; }
+
+      /**
+      * Set associated data that is not included in the ciphertext but
+      * that should be authenticated. Must be called after set_key() and
+      * before start().
+      *
+      * See @ref set_associated_data().
+      *
+      * @param ad the associated data
+      */
+      template <typename Alloc>
+      BOTAN_DEPRECATED("Simply use set_associated_data")
+      void set_associated_data_vec(const std::vector<uint8_t, Alloc>& ad) {
+         set_associated_data(ad);
+      }
+
+      /**
+      * Set associated data that is not included in the ciphertext but
+      * that should be authenticated. Must be called after set_key() and
+      * before start().
+      *
+      * See @ref set_associated_data().
+      *
+      * @param ad the associated data
+      */
+      BOTAN_DEPRECATED("Use set_associated_data") void set_ad(std::span<const uint8_t> ad) { set_associated_data(ad); }
+
+      /**
+      * @return default AEAD nonce size (a commonly supported value among AEAD
+      * modes, and large enough that random collisions are unlikely)
+      */
+      size_t default_nonce_length() const override { return 12; }
+};
+
+/**
+* Get an AEAD mode by name (eg "AES-128/GCM" or "Serpent/EAX")
+* @param name AEAD name
+* @param direction Cipher_Dir::Encryption or Cipher_Dir::Decryption
+*/
+BOTAN_DEPRECATED("Use AEAD_Mode::create") inline AEAD_Mode* get_aead(std::string_view name, Cipher_Dir direction) {
+   return AEAD_Mode::create(name, direction, "").release();
 }
 
 }  // namespace Botan
@@ -1684,218 +2451,6 @@ constexpr void ignore_params([[maybe_unused]] const T&... args) {}
 #define BOTAN_ASSERT_UNREACHABLE() Botan::assert_unreachable(__FILE__, __LINE__)
 
 // NOLINTEND(*-macro-usage)
-
-}  // namespace Botan
-
-
-namespace Botan {
-
-template <typename T, typename Tag, typename... Capabilities>
-class Strong;
-
-template <typename... Ts>
-struct is_strong_type : std::false_type {};
-
-template <typename... Ts>
-struct is_strong_type<Strong<Ts...>> : std::true_type {};
-
-template <typename... Ts>
-constexpr bool is_strong_type_v = is_strong_type<std::remove_const_t<Ts>...>::value;
-
-template <typename T0 = void, typename... Ts>
-struct all_same {
-      static constexpr bool value = (std::is_same_v<T0, Ts> && ... && true);
-};
-
-template <typename... Ts>
-static constexpr bool all_same_v = all_same<Ts...>::value;
-
-namespace detail {
-
-/**
- * Helper type to indicate that a certain type should be automatically
- * detected based on the context.
- */
-struct AutoDetect {
-      constexpr AutoDetect() = delete;
-};
-
-}  // namespace detail
-
-namespace ranges {
-
-/**
- * Models a std::ranges::contiguous_range that (optionally) restricts its
- * value_type to ValueT. In other words: a stretch of contiguous memory of
- * a certain type (optional ValueT).
- */
-template <typename T, typename ValueT = std::ranges::range_value_t<T>>
-concept contiguous_range = std::ranges::contiguous_range<T> && std::same_as<ValueT, std::ranges::range_value_t<T>>;
-
-/**
- * Models a std::ranges::contiguous_range that satisfies
- * std::ranges::output_range with an arbitrary value_type. In other words: a
- * stretch of contiguous memory of a certain type (optional ValueT) that can be
- * written to.
- */
-template <typename T, typename ValueT = std::ranges::range_value_t<T>>
-concept contiguous_output_range = contiguous_range<T, ValueT> && std::ranges::output_range<T, ValueT>;
-
-/**
- * Models a range that can be turned into a std::span<>. Typically, this is some
- * form of ranges::contiguous_range.
- */
-template <typename T>
-concept spanable_range = std::constructible_from<std::span<const std::ranges::range_value_t<T>>, T>;
-
-/**
- * Models a range that can be turned into a std::span<> with a static extent.
- * Typically, this is a std::array or a std::span derived from an array.
- */
-// clang-format off
-template <typename T>
-concept statically_spanable_range = spanable_range<T> &&
-                                    decltype(std::span{std::declval<T&>()})::extent != std::dynamic_extent;
-
-// clang-format on
-
-/**
- * Find the length in bytes of a given contiguous range @p r.
- */
-inline constexpr size_t size_bytes(const spanable_range auto& r) {
-   return std::span{r}.size_bytes();
-}
-
-/**
- * Check that a given range @p r has a certain statically-known byte length. If
- * the range's extent is known at compile time, this is a static check,
- * otherwise a runtime argument check will be added.
- *
- * @throws Invalid_Argument  if range @p r has a dynamic extent and does not
- *                           feature the expected byte length.
- */
-template <size_t expected, spanable_range R>
-inline constexpr void assert_exact_byte_length(const R& r) {
-   const std::span s{r};
-   if constexpr(statically_spanable_range<R>) {
-      static_assert(s.size_bytes() == expected, "memory region does not have expected byte lengths");
-   } else {
-      if(s.size_bytes() != expected) {
-         throw Invalid_Argument("Memory regions did not have expected byte lengths");
-      }
-   }
-}
-
-/**
- * Check that a list of ranges (in @p r0 and @p rs) all have the same byte
- * lengths. If the first range's extent is known at compile time, this will be a
- * static check for all other ranges whose extents are known at compile time,
- * otherwise a runtime argument check will be added.
- *
- * @throws Invalid_Argument  if any range has a dynamic extent and not all
- *                           ranges feature the same byte length.
- */
-template <spanable_range R0, spanable_range... Rs>
-inline constexpr void assert_equal_byte_lengths(const R0& r0, const Rs&... rs)
-   requires(sizeof...(Rs) > 0)
-{
-   const std::span s0{r0};
-
-   if constexpr(statically_spanable_range<R0>) {
-      constexpr size_t expected_size = s0.size_bytes();
-      (assert_exact_byte_length<expected_size>(rs), ...);
-   } else {
-      const size_t expected_size = s0.size_bytes();
-      const bool correct_size =
-         ((std::span<const std::ranges::range_value_t<Rs>>{rs}.size_bytes() == expected_size) && ...);
-
-      if(!correct_size) {
-         throw Invalid_Argument("Memory regions did not have equal lengths");
-      }
-   }
-}
-
-}  // namespace ranges
-
-namespace concepts {
-
-// TODO: C++20 provides concepts like std::ranges::range or ::sized_range
-//       but at the time of this writing clang had not caught up on all
-//       platforms. E.g. clang 14 on Xcode does not support ranges properly.
-
-template <typename IterT, typename ContainerT>
-concept container_iterator =
-   std::same_as<IterT, typename ContainerT::iterator> || std::same_as<IterT, typename ContainerT::const_iterator>;
-
-template <typename PtrT, typename ContainerT>
-concept container_pointer =
-   std::same_as<PtrT, typename ContainerT::pointer> || std::same_as<PtrT, typename ContainerT::const_pointer>;
-
-template <typename T>
-concept container = requires(T a) {
-   { a.begin() } -> container_iterator<T>;
-   { a.end() } -> container_iterator<T>;
-   { a.cbegin() } -> container_iterator<T>;
-   { a.cend() } -> container_iterator<T>;
-   { a.size() } -> std::same_as<typename T::size_type>;
-   typename T::value_type;
-};
-
-template <typename T>
-concept contiguous_container = container<T> && requires(T a) {
-   { a.data() } -> container_pointer<T>;
-};
-
-template <typename T>
-concept has_empty = requires(T a) {
-   { a.empty() } -> std::same_as<bool>;
-};
-
-// clang-format off
-template <typename T>
-concept has_bounds_checked_accessors = container<T> && (
-                                          requires(T a, const T ac, typename T::size_type s) {
-                                             { a.at(s) } -> std::same_as<typename T::value_type&>;
-                                             { ac.at(s) } -> std::same_as<const typename T::value_type&>;
-                                          } ||
-                                          requires(T a, const T ac, typename T::key_type k) {
-                                             { a.at(k) } -> std::same_as<typename T::mapped_type&>;
-                                             { ac.at(k) } -> std::same_as<const typename T::mapped_type&>;
-                                          });
-// clang-format on
-
-template <typename T>
-concept resizable_container = container<T> && requires(T& c, typename T::size_type s) {
-   T(s);
-   c.resize(s);
-};
-
-template <typename T>
-concept reservable_container = container<T> && requires(T& c, typename T::size_type s) { c.reserve(s); };
-
-template <typename T>
-concept resizable_byte_buffer =
-   contiguous_container<T> && resizable_container<T> && std::same_as<typename T::value_type, uint8_t>;
-
-template <typename T>
-concept streamable = requires(std::ostream& os, T a) { os << a; };
-
-template <class T>
-concept strong_type = is_strong_type_v<T>;
-
-template <class T>
-concept contiguous_strong_type = strong_type<T> && contiguous_container<T>;
-
-template <class T>
-concept integral_strong_type = strong_type<T> && std::integral<typename T::wrapped_type>;
-
-template <class T>
-concept unsigned_integral_strong_type = strong_type<T> && std::unsigned_integral<typename T::wrapped_type>;
-
-template <typename T, typename Capability>
-concept strong_type_with_capability = T::template has_capability<Capability>();
-
-}  // namespace concepts
 
 }  // namespace Botan
 
@@ -4227,157 +4782,6 @@ BOTAN_PUBLIC_API(2, 0) std::istream& operator>>(std::istream& stream, BigInt& n)
 
 }  // namespace Botan
 
-
-namespace Botan {
-
-class OctetString;
-
-/**
-* Represents the length requirements on an algorithm key
-*/
-class BOTAN_PUBLIC_API(2, 0) Key_Length_Specification final {
-   public:
-      /**
-      * Constructor for fixed length keys
-      * @param keylen the supported key length
-      */
-      explicit Key_Length_Specification(size_t keylen) : m_min_keylen(keylen), m_max_keylen(keylen), m_keylen_mod(1) {}
-
-      /**
-      * Constructor for variable length keys
-      * @param min_k the smallest supported key length
-      * @param max_k the largest supported key length
-      * @param k_mod the number of bytes the key must be a multiple of
-      */
-      Key_Length_Specification(size_t min_k, size_t max_k, size_t k_mod = 1) :
-            m_min_keylen(min_k), m_max_keylen(max_k > 0 ? max_k : min_k), m_keylen_mod(k_mod) {}
-
-      /**
-      * @param length is a key length in bytes
-      * @return true iff this length is a valid length for this algo
-      */
-      bool valid_keylength(size_t length) const {
-         return ((length >= m_min_keylen) && (length <= m_max_keylen) && (length % m_keylen_mod == 0));
-      }
-
-      /**
-      * @return minimum key length in bytes
-      */
-      size_t minimum_keylength() const { return m_min_keylen; }
-
-      /**
-      * @return maximum key length in bytes
-      */
-      size_t maximum_keylength() const { return m_max_keylen; }
-
-      /**
-      * @return key length multiple in bytes
-      */
-      size_t keylength_multiple() const { return m_keylen_mod; }
-
-      /*
-      * Multiplies all length requirements with the given factor
-      * @param n the multiplication factor
-      * @return a key length specification multiplied by the factor
-      */
-      Key_Length_Specification multiple(size_t n) const {
-         return Key_Length_Specification(n * m_min_keylen, n * m_max_keylen, n * m_keylen_mod);
-      }
-
-   private:
-      size_t m_min_keylen, m_max_keylen, m_keylen_mod;
-};
-
-/**
-* This class represents a symmetric algorithm object.
-*/
-class BOTAN_PUBLIC_API(2, 0) SymmetricAlgorithm {
-   public:
-      SymmetricAlgorithm() = default;
-      virtual ~SymmetricAlgorithm() = default;
-      SymmetricAlgorithm(const SymmetricAlgorithm& other) = default;
-      SymmetricAlgorithm(SymmetricAlgorithm&& other) = default;
-      SymmetricAlgorithm& operator=(const SymmetricAlgorithm& other) = default;
-      SymmetricAlgorithm& operator=(SymmetricAlgorithm&& other) = default;
-
-      /**
-      * Reset the internal state. This includes not just the key, but
-      * any partial message that may have been in process.
-      */
-      virtual void clear() = 0;
-
-      /**
-      * @return object describing limits on key size
-      */
-      virtual Key_Length_Specification key_spec() const = 0;
-
-      /**
-      * @return maximum allowed key length
-      */
-      size_t maximum_keylength() const { return key_spec().maximum_keylength(); }
-
-      /**
-      * @return minimum allowed key length
-      */
-      size_t minimum_keylength() const { return key_spec().minimum_keylength(); }
-
-      /**
-      * Check whether a given key length is valid for this algorithm.
-      * @param length the key length to be checked.
-      * @return true if the key length is valid.
-      */
-      bool valid_keylength(size_t length) const { return key_spec().valid_keylength(length); }
-
-      /**
-      * Set the symmetric key of this object.
-      * @param key the SymmetricKey to be set.
-      */
-      void set_key(const OctetString& key);
-
-      /**
-      * Set the symmetric key of this object.
-      * @param key the contiguous byte range to be set.
-      */
-      void set_key(std::span<const uint8_t> key);
-
-      /**
-      * Set the symmetric key of this object.
-      * @param key the to be set as a byte array.
-      * @param length in bytes of key param
-      */
-      void set_key(const uint8_t key[], size_t length) { set_key(std::span{key, length}); }
-
-      /**
-      * @return the algorithm name
-      */
-      virtual std::string name() const = 0;
-
-      /**
-      * @return true if a key has been set on this object
-      */
-      virtual bool has_keying_material() const = 0;
-
-   protected:
-      void assert_key_material_set() const { assert_key_material_set(has_keying_material()); }
-
-      void assert_key_material_set(bool predicate) const {
-         if(!predicate) {
-            throw_key_not_set_error();
-         }
-      }
-
-   private:
-      void throw_key_not_set_error() const;
-
-      /**
-      * Run the key schedule
-      * @param key the key
-      */
-      virtual void key_schedule(std::span<const uint8_t> key) = 0;
-};
-
-}  // namespace Botan
-
 namespace Botan {
 
 /**
@@ -4711,275 +5115,6 @@ class BOTAN_PUBLIC_API(2, 0) Buffered_Computation /* NOLINT(*special-member-func
       */
       virtual void final_result(std::span<uint8_t> out) = 0;
 };
-
-}  // namespace Botan
-
-namespace Botan {
-
-/**
-* The two possible directions a Cipher_Mode can operate in
-*/
-enum class Cipher_Dir : uint8_t {
-   Encryption = 0,
-   Decryption = 1,
-
-   ENCRYPTION BOTAN_DEPRECATED("Use Cipher_Dir::Encryption") = Encryption,
-   DECRYPTION BOTAN_DEPRECATED("Use Cipher_Dir::Decryption") = Decryption,
-};
-
-/**
-* Interface for cipher modes
-*/
-class BOTAN_PUBLIC_API(2, 0) Cipher_Mode : public SymmetricAlgorithm {
-   public:
-      /**
-      * @return list of available providers for this algorithm, empty if not available
-      * @param algo_spec algorithm name
-      */
-      static std::vector<std::string> providers(std::string_view algo_spec);
-
-      /**
-      * Create an AEAD mode
-      * @param algo the algorithm to create
-      * @param direction specify if this should be an encryption or decryption AEAD
-      * @param provider optional specification for provider to use
-      * @return an AEAD mode or a null pointer if not available
-      */
-      static std::unique_ptr<Cipher_Mode> create(std::string_view algo,
-                                                 Cipher_Dir direction,
-                                                 std::string_view provider = "");
-
-      /**
-      * Create an AEAD mode, or throw
-      * @param algo the algorithm to create
-      * @param direction specify if this should be an encryption or decryption AEAD
-      * @param provider optional specification for provider to use
-      * @return an AEAD mode, or throw an exception
-      */
-      static std::unique_ptr<Cipher_Mode> create_or_throw(std::string_view algo,
-                                                          Cipher_Dir direction,
-                                                          std::string_view provider = "");
-
-   protected:
-      /*
-      * Prepare for processing a message under the specified nonce
-      */
-      virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
-
-      /*
-      * Process message blocks
-      * Input must be a multiple of update_granularity.
-      */
-      virtual size_t process_msg(uint8_t msg[], size_t msg_len) = 0;
-
-      /*
-      * Finishes a message
-      */
-      virtual void finish_msg(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
-
-   public:
-      /**
-      * Begin processing a message with a fresh nonce.
-      *
-      * @warning Typically one must not reuse the same nonce for more than one
-      *          message under the same key. For most cipher modes this would
-      *          mean total loss of security and/or authenticity guarantees.
-      *
-      * @note If reliably generating unique nonces is difficult in your
-      *       environment, use SIV which retains security even if nonces
-      *       are repeated.
-      *
-      * @param nonce the per message nonce
-      */
-      void start(std::span<const uint8_t> nonce) { start_msg(nonce.data(), nonce.size()); }
-
-      /**
-      * Begin processing a message with a fresh nonce.
-      * @param nonce the per message nonce
-      * @param nonce_len length of nonce
-      */
-      void start(const uint8_t nonce[], size_t nonce_len) { start_msg(nonce, nonce_len); }
-
-      /**
-      * Begin processing a message.
-      *
-      * The exact semantics of this depend on the mode. For many modes, the call
-      * will fail since a nonce must be provided.
-      *
-      * For certain modes such as CBC this will instead cause the last
-      * ciphertext block to be used as the nonce of the new message; doing this
-      * isn't a good idea, but some (mostly older) protocols do this.
-      */
-      void start() { return start_msg(nullptr, 0); }
-
-      /**
-      * Process message blocks
-      *
-      * Input must be a multiple of update_granularity
-      *
-      * Processes msg in place and returns bytes written. Normally
-      * this will be either msg_len (indicating the entire message was
-      * processed) or for certain AEAD modes zero (indicating that the
-      * mode requires the entire message be processed in one pass).
-      *
-      * @param msg the message to be processed
-      * @return bytes written in-place
-      */
-      size_t process(std::span<uint8_t> msg) { return this->process_msg(msg.data(), msg.size()); }
-
-      size_t process(uint8_t msg[], size_t msg_len) { return this->process_msg(msg, msg_len); }
-
-      /**
-      * Process some data. Input must be in size update_granularity() uint8_t
-      * blocks. The @p buffer is an in/out parameter and may be resized. In
-      * particular, some modes require that all input be consumed before any
-      * output is produced; with these modes, @p buffer will be returned empty.
-      *
-      * The first @p offset bytes of @p buffer will be ignored (this allows in
-      * place processing of a buffer that contains an initial plaintext header).
-      *
-      * @param buffer in/out parameter which will possibly be resized
-      * @param offset an offset into blocks to begin processing
-      */
-      template <concepts::resizable_byte_buffer T>
-      void update(T& buffer, size_t offset = 0) {
-         const size_t written = process(std::span(buffer).subspan(offset));
-         buffer.resize(offset + written);
-      }
-
-      /**
-      * Complete procession of a message with a final input of @p buffer, which
-      * is treated the same as with update(). If you have the entire message in
-      * hand, calling finish() without ever calling update() is both efficient
-      * and convenient.
-      *
-      * When using an AEAD_Mode, if the supplied authentication tag does not
-      * validate, this will throw an instance of Invalid_Authentication_Tag.
-      *
-      * If this occurs, all plaintext previously output via calls to update must
-      * be destroyed and not used in any way that an attacker could observe the
-      * effects of. This could be anything from echoing the plaintext back
-      * (perhaps in an error message), or by making an external RPC whose
-      * destination or contents depend on the plaintext. The only thing you can
-      * do is buffer it, and in the event of an invalid tag, erase the
-      * previously decrypted content from memory.
-      *
-      * One simple way to assure this could never happen is to never call
-      * update, and instead always marshal the entire message into a single
-      * buffer and call finish on it when decrypting.
-      *
-      * @param final_block in/out parameter which must be at least
-      *        minimum_final_size() bytes, and will be set to any final output
-      * @param offset an offset into final_block to begin processing
-      */
-      void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) { finish_msg(final_block, offset); }
-
-      /**
-      * Complete procession of a message.
-      *
-      * Note: Using this overload with anything but a Botan::secure_vector<>
-      *       is copying the bytes in the in/out buffer.
-      *
-      * @param final_block in/out parameter which must be at least
-      *        minimum_final_size() bytes, and will be set to any final output
-      * @param offset an offset into final_block to begin processing
-      */
-      template <concepts::resizable_byte_buffer T>
-      void finish(T& final_block, size_t offset = 0) {
-         Botan::secure_vector<uint8_t> tmp(final_block.begin(), final_block.end());
-         finish_msg(tmp, offset);
-         final_block.resize(tmp.size());
-         std::copy(tmp.begin(), tmp.end(), final_block.begin());
-      }
-
-      /**
-      * Returns the size of the output if this transform is used to process a
-      * message with input_length bytes. In most cases the answer is precise.
-      * If it is not possible to precise (namely for CBC decryption) instead an
-      * upper bound is returned.
-      */
-      virtual size_t output_length(size_t input_length) const = 0;
-
-      /**
-      * The :cpp:class:`Cipher_Mode` interface requires message processing in
-      * multiples of the block size. This returns size of required blocks to
-      * update. If the mode implementation does not require buffering it will
-      * return 1.
-      * @return size of required blocks to update
-      */
-      virtual size_t update_granularity() const = 0;
-
-      /**
-      * Return an ideal granularity. This will be a multiple of the result of
-      * update_granularity but may be larger. If so it indicates that better
-      * performance may be achieved by providing buffers that are at least that
-      * size (due to SIMD execution, etc).
-      */
-      virtual size_t ideal_granularity() const = 0;
-
-      /**
-      * Certain modes require the entire message be available before
-      * any processing can occur. For such modes, input will be consumed
-      * but not returned, until `finish` is called, which returns the
-      * entire message.
-      *
-      * This function returns true if this mode has this style of
-      * operation.
-      */
-      virtual bool requires_entire_message() const { return false; }
-
-      /**
-      * @return required minimum size to finalize() - may be any
-      *         length larger than this.
-      */
-      virtual size_t minimum_final_size() const = 0;
-
-      /**
-      * @return the default size for a nonce
-      */
-      virtual size_t default_nonce_length() const = 0;
-
-      /**
-      * @return true iff nonce_len is a valid length for the nonce
-      */
-      virtual bool valid_nonce_length(size_t nonce_len) const = 0;
-
-      /**
-      * Resets just the message specific state and allows encrypting again under the existing key
-      */
-      virtual void reset() = 0;
-
-      /**
-      * Return the length in bytes of the authentication tag this algorithm
-      * generates. If the mode is not authenticated, this will return 0.
-      *
-      * @return true iff this mode provides authentication as well as
-      *         confidentiality.
-      */
-      bool authenticated() const { return this->tag_size() > 0; }
-
-      /**
-      * @return the size of the authentication tag used (in bytes)
-      */
-      virtual size_t tag_size() const { return 0; }
-
-      /**
-      * @return provider information about this implementation. Default is "base",
-      * might also return "sse2", "avx2", "openssl", or some other arbitrary string.
-      */
-      virtual std::string provider() const { return "base"; }
-};
-
-/**
-* Get a cipher mode by name (eg "AES-128/CBC" or "Serpent/XTS")
-* @param algo_spec cipher name
-* @param direction Cipher_Dir::Encryption or Cipher_Dir::Decryption
-* @param provider provider implementation to choose
-*/
-BOTAN_DEPRECATED("Use Cipher_Mode::create")
-inline Cipher_Mode* get_cipher_mode(std::string_view algo_spec, Cipher_Dir direction, std::string_view provider = "") {
-   return Cipher_Mode::create(algo_spec, direction, provider).release();
-}
 
 }  // namespace Botan
 
