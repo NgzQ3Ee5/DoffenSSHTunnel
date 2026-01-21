@@ -1,6 +1,6 @@
 Changelog
 ==================
-v0.9.69 Jan 21, 2025
+v0.9.69 Jan 21, 2026
 ------------------
 + New: Added Disclaimer.md and Security.md in the git repo.
 + New: Upgraded from Botan 1 to Botan 3, replacing CryptoBox with the new DTENC1 encryption format for the password database file.
