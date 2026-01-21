@@ -29,8 +29,7 @@ signals:
 public slots:
 
 protected:
-    void readLemontFile(QString password);
-    void readBotanCryptoBoxFile(QString password);
+    void readBotanFile(QString password);
     bool compareIdentifier(Identifier& ident1, Identifier& ident2);
 
 protected:

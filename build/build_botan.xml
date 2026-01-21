@@ -1,0 +1,103 @@
+<!--
+	## 1. Download Botan 3
+
+	Download the latest stable Botan 3 release from:
+
+	https://botan.randombit.net/#botan3
+
+	Extract the archive to directory `C:\QtProjects`
+
+	## 2. Exexute ant build task
+
+	The following commands generate a **static, minimized amalgamation build** with only the required modules enabled.
+
+	In directory `C:\QtProjects\DoffenSSHTunnel\build`
+
+	Execute `build_botan.bat`
+
+	Updates the files in `C:\QtProjects\DoffenSSHTunnel\DoffenSSHTunnel\source\botan`
+-->
+
+<project name="doffensshtunnel" default="botan" basedir=".">
+	
+	<description>
+        Botan Amalgamation Build (botan_all.h / botan_all.cpp)
+    </description>
+	
+	<!-- Botan download dir C:\QtProjects -->
+	<property name="botan_download_dir" value="../../Botan-3.10.0"/>
+	<!-- C:\QtProjects\DoffenSSHTunnel\DoffenSSHTunnel\source\botan -->
+	<property name="botan_dir" value="../DoffenSSHTunnel/source/botan"/>
+	
+	<!-- 
+		cryptobox is required to decrypt legacy ciphertext.
+		chacha20poly1305 + hkdf + base64 are for the DTENC1 modern format.
+	-->
+	<property name="botan_modules" value="cryptobox,bcrypt,auto_rng,system_rng,entropy,chacha20poly1305,base64,hkdf,hmac,sha2_32,argon2"/>
+	
+	<target name="nothing"></target>
+		
+	<target name="botan" description="create botan files">
+	
+		<echo message="Create Botan for windows"/>
+		<exec executable="python" dir="${botan_download_dir}" failonerror="true" failifexecutionfails="true">
+			<arg value="configure.py"/>
+			<arg value="--cc=msvc"/>
+			<arg value="--amalgamation"/>
+			<arg value="--disable-shared"/>
+			<arg value="--minimized-build"/>
+			<arg value="--enable-modules=${botan_modules}"/>
+		</exec>
+		
+		<echo message="Patching botan_all.cpp: guard NOMINMAX definition"/>
+
+		<replace file="${botan_download_dir}/botan_all.cpp"
+             token="#define NOMINMAX 1"
+             value="#ifndef NOMINMAX&#10;      #define NOMINMAX 1&#10;   #endif"/>
+		
+		<echo message="Copy botan_all.h / botan_all.cpp to ${botan_dir}/win"/>
+		<copy todir="${botan_dir}/win" overwrite="true" failonerror="true">
+			<fileset dir="${botan_download_dir}">
+				<include name="botan_all.h"/>
+				<include name="botan_all.cpp"/>
+			</fileset>
+		</copy>
+		
+		<echo message="Create Botan for linux"/>
+		<exec executable="python" dir="${botan_download_dir}" failonerror="true" failifexecutionfails="true">
+			<arg value="configure.py"/>
+			<arg value="--cc=gcc"/>
+			<arg value="--amalgamation"/>
+			<arg value="--disable-shared"/>
+			<arg value="--minimized-build"/>
+			<arg value="--enable-modules=${botan_modules}"/>
+		</exec>
+		
+		<echo message="Copy botan_all.h / botan_all.cpp to ${botan_dir}/linux"/>
+		<copy todir="${botan_dir}/linux" overwrite="true" failonerror="true">
+			<fileset dir="${botan_download_dir}">
+				<include name="botan_all.h"/>
+				<include name="botan_all.cpp"/>
+			</fileset>
+		</copy>
+		
+		<echo message="Create Botan for mac"/>
+		<exec executable="python" dir="${botan_download_dir}" failonerror="true" failifexecutionfails="true">
+			<arg value="configure.py"/>
+			<arg value="--cc=clang"/>
+			<arg value="--amalgamation"/>
+			<arg value="--disable-shared"/>
+			<arg value="--minimized-build"/>
+			<arg value="--enable-modules=${botan_modules}"/>
+		</exec>
+		
+		<echo message="Copy botan_all.h / botan_all.cpp to ${botan_dir}/mac"/>
+		<copy todir="${botan_dir}/mac" overwrite="true" failonerror="true">
+			<fileset dir="${botan_download_dir}">
+				<include name="botan_all.h"/>
+				<include name="botan_all.cpp"/>
+			</fileset>
+		</copy>
+		
+	</target>
+</project>

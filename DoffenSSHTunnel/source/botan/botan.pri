@@ -1,46 +1,28 @@
-HEADERS += botan/botan.h
-SOURCES += botan/botan.cpp
-HEADERS += botan/botanwrapper.h
-SOURCES += botan/botanwrapper.cpp
+# Botan 3 (amalgamation)
+
 CONFIG += exceptions
 
-
-# Defines for Botan
-# Will not compile on most systems without these settings
-
-unix:QMAKE_CXXFLAGS_DEBUG += -O2
-
-DEFINES += BOTAN_DLL=Q_DECL_EXPORT
-unix:DEFINES += BOTAN_TARGET_OS_HAS_GETTIMEOFDAY BOTAN_HAS_ALLOC_MMAP \
-    BOTAN_HAS_ENTROPY_SRC_DEV_RANDOM BOTAN_HAS_ENTROPY_SRC_EGD BOTAN_HAS_ENTROPY_SRC_FTW \
-    BOTAN_HAS_ENTROPY_SRC_UNIX BOTAN_HAS_MUTEX_PTHREAD BOTAN_HAS_PIPE_UNIXFD_IO
-*linux*:DEFINES += BOTAN_TARGET_OS_IS_LINUX BOTAN_TARGET_OS_HAS_CLOCK_GETTIME \
-    BOTAN_TARGET_OS_HAS_DLOPEN BOTAN_TARGET_OS_HAS_GMTIME_R BOTAN_TARGET_OS_HAS_POSIX_MLOCK \
-    BOTAN_HAS_DYNAMICALLY_LOADED_ENGINE BOTAN_HAS_DYNAMIC_LOADER
-macx:DEFINES += BOTAN_TARGET_OS_IS_DARWIN
-*g++*:DEFINES += BOTAN_BUILD_COMPILER_IS_GCC
+# Botan 3 requires at least C++20
+CONFIG += c++20
 
 win32 {
-    DEFINES += BOTAN_TARGET_OS_IS_WINDOWS \
-        BOTAN_TARGET_OS_HAS_LOADLIBRARY BOTAN_TARGET_OS_HAS_WIN32_GET_SYSTEMTIME \
-        BOTAN_TARGET_OS_HAS_WIN32_VIRTUAL_LOCK BOTAN_HAS_DYNAMICALLY_LOADED_ENGINE \
-        BOTAN_HAS_DYNAMIC_LOADER BOTAN_HAS_ENTROPY_SRC_CAPI BOTAN_HAS_ENTROPY_SRC_WIN32 \
-        BOTAN_HAS_MUTEX_WIN32
-
-    win32-msvc* {
-        QMAKE_CXXFLAGS += -wd4251 -wd4290 -wd4250
-        DEFINES += BOTAN_BUILD_COMPILER_IS_MSVC BOTAN_TARGET_OS_HAS_GMTIME_S
-    } else {
-        QMAKE_CFLAGS += -fpermissive -finline-functions -Wno-long-long
-        QMAKE_CXXFLAGS += -fpermissive -finline-functions -Wno-long-long
-    }
-    LIBS += -ladvapi32 -luser32
+    HEADERS += botan/win/botan_all.h
+    SOURCES += botan/win/botan_all.cpp
 }
 
-unix:*-g++* {
-    QMAKE_CFLAGS += -fPIC -ansi -fpermissive -finline-functions -Wno-long-long
-    QMAKE_CXXFLAGS += -fPIC -ansi -fpermissive -finline-functions -Wno-long-long
-    QMAKE_CXXFLAGS_HIDESYMS -= -fvisibility-inlines-hidden # for ubuntu 7.04
-    QMAKE_CXXFLAGS += -std=c++11
+macx {
+    HEADERS += botan/mac/botan_all.h
+    SOURCES += botan/mac/botan_all.cpp
+}
+
+# dl may be needed on some Unix builds, depending on enabled features
+unix:!macx {
+    HEADERS += botan/linux/botan_all.h
+    SOURCES += botan/linux/botan_all.cpp
     LIBS += -ldl
 }
+
+HEADERS += botan/botanwrapper.h \
+    $$PWD/dtenc1.h
+SOURCES += botan/botanwrapper.cpp \
+    $$PWD/dtenc1.cpp
