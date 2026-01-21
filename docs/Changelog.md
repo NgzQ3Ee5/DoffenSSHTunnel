@@ -1,5 +1,11 @@
 Changelog
 ==================
+v0.9.69 Jan 21, 2025
+------------------
++ New: Added Disclaimer.md and Security.md in the git repo.
++ New: Upgraded from Botan 1 to Botan 3, replacing CryptoBox with the new DTENC1 encryption format for the password database file.
++ New: Legacy CryptoBox password file DoffenSSHTunnel.pwd is renamed to DoffenSSHTunnel.pwd.old_cryptobox and replaced with a new DTENC1-encrypted file on startup.
+
 v0.9.68 Dec 31, 2025
 ------------------
 + New: Added configurable MobaXTerm timing settings in DoffenSSHTunnelApp.ini (mobaxterm_startup_delay_seconds and mobaxterm_newtab_delay_seconds) to ensure stable startup and tab creation when opening multiple sessions.
